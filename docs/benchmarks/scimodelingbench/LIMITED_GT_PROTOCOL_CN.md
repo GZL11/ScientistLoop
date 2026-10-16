@@ -123,6 +123,3 @@ python docs/benchmarks/scimodelingbench/summarize_limited_gt.py \
 避免超时旧请求误读下一份提交。
 
 本次实现通过本地协议测试、模拟 CLI 集成测试及批量命令 dry-run。
-2026-10-09 已完成三个黑盒优化任务的 k=0/1/5/20 首轮真实集群实验，每组独立运行一次，
-研究时间上限为 2h。任务介绍、评分公式、结果图、恢复审计与异常分析见
-[有限 GT 访问实验报告](LIMITED_GT_EXPERIMENT_20261009_CN.md)。

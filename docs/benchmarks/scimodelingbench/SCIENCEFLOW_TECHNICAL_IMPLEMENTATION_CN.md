@@ -812,7 +812,7 @@ ScienceFlow 最强的部分不是某个特定 prompt，而是把长程科研任�
 
 ### 15.2 SciModelingBench 逐任务结果与资源
 
-本节只记录 ScienceFlow 官方实验中 ScienceFlow 与其 baseline 的完整结果，不混入 Famou Loop 的本地 run。我们的本地结果及逐项差值单独维护在 [SCIENCEFLOW_COMPARISON_CN.md](./SCIENCEFLOW_COMPARISON_CN.md)。
+本节只记录 ScienceFlow 官方实验中 ScienceFlow 与其 baseline 的完整结果，不混入 Famou Loop 的本地 run。本地结果属运行产物，不在本仓库维护。
 
 ScienceFlow 的 12 个 task 使用统一实验口径：所有 Agent 系统均使用 DeepSeek-V4-Flash-Preview；每个 system-task 的 wall-clock budget 为 2h。ScienceFlow 使用 2 个同质 Worker；运行资源为 8 logical CPU、0 GPU、峰值 RSS 小于 32GiB；每个 task 进行 8-20 次 batch submission；运行期间关闭外部网络，每次 evaluator 只返回整个 batch 的分数。
 
@@ -861,4 +861,4 @@ Group_balanced = mean(6 个 standalone normalized_t, DrugMatrix_group)
 2. ScienceFlow 并非每个 task 都最好。例如 `tfbind10_pho4`、`drugmatrix_creatinine` 和 `drugmatrix_sodium` 由 Claude Code 领先，`superconductor` 由 Pi 领先，`hopper_controller` 与 `drugmatrix_mchc` 由 OpenCode 领先，`drugmatrix_chloride` 由 Codex 领先。
 3. 7-group 汇总避免 6 个高度相关的 DrugMatrix endpoint 占据 12-task 简单平均的一半权重。该分组是 ScienceFlow 的报告口径，任务族依据来自 SciModelingBench 的数据组织。
 4. ScienceFlow 公开表不包含 `cell_dag_nas`，因此它是 12-task/7-group 结果。将本地 13-task 数据纳入比较时，必须分别报告官方可比的 12-task/7-group 口径和包含 `cell_dag_nas` 的扩展 13-task/8-group 口径。
-5. 上表反映的是 ScienceFlow 统一设置下的系统比较，不应与不同模型、预算、CPU、submission 次数或 simulator policy 的本地 run 直接作系统优劣归因。完整的本地对比、run 目录与可比性限制见 [SCIENCEFLOW_COMPARISON_CN.md](./SCIENCEFLOW_COMPARISON_CN.md)。
+5. 上表反映的是 ScienceFlow 统一设置下的系统比较，不应与不同模型、预算、CPU、submission 次数或 simulator policy 的本地 run 直接作系统优劣归因。

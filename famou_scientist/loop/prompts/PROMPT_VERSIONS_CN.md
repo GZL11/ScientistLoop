@@ -107,7 +107,6 @@ fmjob 提交侧通过 `IDEA_PROMPT_VERSION` / `IMPLEMENT_PROMPT_VERSION` 透传�
 更正（2026-09-09）：此处此前写"要分离得补第三条臂测实现方差基线"。实现方差后来
 实测出来了——同一条 idea 实现两次的绝对差值**中位只有 0.017**，比 σ 0.119 小近一个
 数量级，不是 Δ 的主要来源。大头是 Idea 生成的多样性，即 run 间方差本身。
-详见 `docs/benchmarks/naturebench/LOOP_ABLATION_STUDIES_CN.md` 5.2/5.3。
 
 ### v5 `idea_agent_v5.md`（2026-09-09，跨任务经验臂的当前版本）
 

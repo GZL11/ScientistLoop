@@ -39,6 +39,23 @@ docs/benchmarks/**/limited_gt_blackbox_*/
 docs/benchmarks/**/figs/
 docs/benchmarks/**/archive/
 docs/benchmarks/**/submission_best_score_curves.*
+# 实验报告正文同样是跑出来的结果：接入指南、协议和综述入库，报告不入库。
+# 这里逐个写死——文档名没有可靠的共同规律，通配符会漏也会误伤。
+docs/benchmarks/naturebench/CURRENT_ISSUES_CN.md
+docs/benchmarks/naturebench/IDEA_DEBATE_PAIRED_EXPERIMENT_CN.md
+docs/benchmarks/naturebench/IDEA_QUALITY_LITERATURE_CN.md
+docs/benchmarks/naturebench/IDEA_RANKING_PREDICTABILITY_CN.md
+docs/benchmarks/naturebench/LOOP_ABLATION_STUDIES_CN.md
+docs/benchmarks/naturebench/LOOP_DESIGN_INVENTORY_CN.md
+docs/benchmarks/naturebench/MODEL_COMPARISON_CN.md
+docs/benchmarks/naturebench/NATUREBENCH_VALIDITY_BOUNDARIES_CN.md
+docs/benchmarks/naturebench/SEARCH_POLICY_DESIGN_AND_RESULTS_CN.md
+docs/benchmarks/scimodelingbench/LIMITED_GT_EXPERIMENT_20261009_CN.md
+docs/benchmarks/scimodelingbench/LIMITED_GT_REPEATS_20261010_CN.md
+docs/benchmarks/scimodelingbench/SCIENCEFLOW_COMPARISON_CN.md
+docs/benchmarks/scimodelingbench/SCIENCEFLOW_PARITY_DIAGNOSIS_CN.md
+docs/benchmarks/terminal_bench_science/LIMITED_GT_BUDGET_EXPERIMENT_CN.md
+docs/benchmarks/terminal_bench_science/PROXY_GT_VERIFIER_DESIGN_AND_RESULTS_CN.md
 
 # ── 凭据：任何形态都不进库 ────────────────────────────────────────────────
 # 批次提交用的 settings 里是明文 token，历史上泄过一次，这里硬挡
