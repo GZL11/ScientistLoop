@@ -1,0 +1,19 @@
+{
+  "version": "20260715-003-survey-only-search-literature",
+  "created_at": "2026-07-15",
+  "title": "Scope search_literature to survey retrieval",
+  "description": "Prevents arc_search_literature from being used as a concrete paper lookup tool by tightening its schema description and adding a generic guard for named/versioned/identifier-like queries.",
+  "source_file": "tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Clarify that arc_search_literature is for topic-level literature survey, related work, and benchmark landscape retrieval.",
+    "Add a generic query-shape guard for short named papers, versioned paper names, arXiv IDs, and DOI-like inputs.",
+    "Return a structured wrong_tool_for_specific_paper_lookup message instead of weakly related candidate lists for exact-paper lookup attempts.",
+    "Leave lookup_paper disabled via disabled_exports."
+  ],
+  "rollback": {
+    "target": "20260713-002-lookup-precision behavior",
+    "notes": "Restore the previous arc_search_literature description and remove the concrete-paper query guard."
+  }
+}
+

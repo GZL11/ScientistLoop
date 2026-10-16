@@ -1,0 +1,115 @@
+\section{Introduction}
+\label{sec:intro}
+
+%% 结构（见 outline_v1.md §1）：¶1 问题重要性 + 目标是什么 → ¶2 rs-fMRI 在组水平产出了什么
+%% → ¶3 枢纽：组水平差异 ≠ 个体水平预测，而后者塌了 → ¶4 两个已确立的原因 + 并非无解
+%% → ¶5 方法登场 + 自动化搜索带来的危险 → ¶6 数据集 + contributions + roadmap
+%%
+%% 2026-08-09 修订（v2.1）：删除原 ¶5「第三个原因：算法逐篇手工设计、评估严格度决定数字」。
+%%   理由（用户判断）：该段以「各篇论文在自选划分/子样本/流水线上评估」作为指责，而本文自己
+%%   同样在自选的划分上评估，论证会反噬；且评估严格度这条线 §2.1 已完整承载，§1 重复无收益。
+%%   ¶4 与 ¶6 直接承接：由「方法与评估都做对时是有空间的」→「但方法一直是一次一个架构地设计」，
+%%   一句带过，不再展开严格度论证，也不再前指 §2.1。
+%% 纪律：不作优先权宣称（no "first"/"the first to"）；不写协议机制细节（留 §5）。
+%%
+%% 2026-08-09 全面重写（v2）。依据 reference/mdd-related 下 13 篇论文 Introduction 的调研：
+%%   (a) 这一体裁无一篇用短促独立句作修辞，均为多从句匀速学术散文——v1 的碎句已全部并句；
+%%   (b) 大刊（Gallo/Mol Psych、Zheng/PLOS Digit Health）的 intro 极简、只给聚合量级，
+%%       把逐研究数字留给正文，v1 的 ¶3 数字堆叠已按此压缩；
+%%   (c) Yamashita 2020 自陈：临床上区分 MDD 与健康人对有经验的医生并不难，marker 的价值
+%%       在于机制与治疗选择——¶1 末句正面回应这一点，避免「用分类器替代访谈」的弱论证。
+%% 新增论证（v1 没有的）：组水平一致性与个体水平可判别性是两个量，且组水平连符号都未settled
+%%   （Kaiser 元分析报 DMN 高连接，Yan 在最大队列报复发患者 DMN 低连接）——这是 ¶2→¶3 的枢纽。
+%% 新增引用：kaiser2015（JAMA Psychiatry 元分析，Crossref + Europe PMC 双重核实，方向性结论
+%%   取自其 Results 原文：frontoparietal 内 hypoconnectivity、default network 内 hyperconnectivity）。
+
+Depressive disorders ranked second among all causes of years lived with disability in the Global
+Burden of Disease Study 2019 \citep{gbd2019mental}. The diagnosis rests on clinical interview and
+symptom-scale scores; no laboratory or imaging measurement enters it. The category so defined is
+broad and is applied with limited reproducibility: in the DSM-5 field trials, two clinicians who
+independently assessed the same patient agreed on a diagnosis of major depressive disorder at a
+pooled intraclass $\kappa$ of 0.28 \citep{regier2013dsm5}. The case for a biological
+marker therefore rests less on any inability of clinicians to recognize depression than on what a
+measurement independent of the interview would supply: a quantity that can be related to mechanism,
+to treatment response, and to the boundaries of a category that symptom criteria have not sharpened.
+
+Resting-state functional MRI has been the most actively pursued candidate for such a measurement:
+it records spontaneous coordination between brain regions without requiring task performance, and
+can therefore be acquired under uniform conditions across patients whose ability to comply with a
+task would differ. Group comparisons have produced a broadly consistent account of which systems
+are implicated. A meta-analysis pooling 27 data sets associated the disorder with hypoconnectivity
+within the frontoparietal control network and with altered coupling between that network and the
+default mode network \citep{kaiser2015}; analyses of the REST-meta-MDD consortium reported reduced
+default mode connectivity in patients with recurrent illness \citep{yan2019pnas}; and thalamic
+hyperconnectivity was the dominant discriminative feature in each of two independently collected
+consortia \citep{gallo2023}. The direction of the difference is less settled than its location: the
+meta-analytic estimate for the default mode network is one of hyperconnectivity, while the largest
+single consortium reports the opposite in its recurrent patients.
+
+That the groups differ on average does not establish that an individual scan can be assigned to one
+of them, and it is the latter that any use of such a marker would require. Measured directly,
+individual-level discrimination has not held up. A meta-analysis of resting-state classification
+studies reported 85\% sensitivity and 83\% specificity across samples averaging roughly 28 patients
+each \citep{kambeitz2017}. Posed on the two largest available multi-site consortia, the same problem
+yields 61\% balanced accuracy, and falls to 53--56\% when one consortium is used for training and
+the other for testing \citep{gallo2023}. Stratifying studies by sample size shows the same relation
+from the other side, with the larger studies reporting the lower sensitivities and specificities
+\citep{chen2023meta}. Accuracy that falls as samples grow is the reverse of what a learning curve
+predicts, and is what a literature reports when each published entry is a maximum taken over choices
+that go unrecorded \citep{schnack2016, marek2022}.
+
+Two reasons for this are established. Depression is a syndrome rather than a lesion, so patients who
+share a diagnosis need not share a neurobiology, and what a classifier can learn is bounded by the
+consistency of the labels it is trained on. Differences between acquisition sites are the second
+reason, and they have been measured rather than asserted: using participants who travelled between
+scanners, \citet{yamashita2019} decomposed site differences into a sampling component and a
+measurement component, and found the effect of both on pairwise functional connectivity to be
+greater than or equal to the effect of the psychiatric disorders themselves. Neither reason makes
+the problem intractable when the method and the evaluation are designed for it. After explicit
+harmonization, a marker trained on four sites transferred to 521 participants from five independent
+sites at approximately 70\% accuracy \citep{yamashita2020}.
+
+What that method should be, however, has been approached one architecture at a time, each proposal
+a single point in a large space of candidate algorithms that has been sampled sparsely. We take a
+different route: an LLM-driven evolutionary coding agent writes, executes, and revises complete
+classification programs, so that the choice of connectome view, the construction of features, the
+network architecture, the loss, and the training schedule are decided by the search rather than
+fixed in advance. Automating the search also automates the analytic freedom that produced the
+pattern described above. Where a human explores a few dozen variants, an agent explores hundreds,
+in whichever direction raises the reported number. The evaluation must therefore be hardened before
+the search begins, not audited after it ends.
+
+The work is carried out on REST-meta-MDD / DIRECT Phase II, the largest openly shared multi-site
+resting-state fMRI resource for depression: 1{,}660 patients with major depressive disorder and
+1{,}341 healthy controls from 23 cohorts, 3{,}001 participants in total, with every site processed
+through a common pipeline \citep{direct2}.
+
+\paragraph{Contributions.}
+\begin{itemize}
+  \item \textbf{An end-to-end algorithm discovery loop for connectome classification.} The agent
+    designs executable programs rather than tuning the hyperparameters of a fixed model, and every
+    candidate is scored under the same protocol.
+
+  \item \textbf{Discovered algorithms that are architecturally new and generalize across sites.}
+    We specify in advance what distinguishes an architectural change from a tuning change---whether
+    the network itself differs from the starting paradigms, rather than carrying additional penalty
+    terms or a different training schedule---and assess the selected candidates against it.
+
+  \item \textbf{An interpretable account of what the discovered algorithms rely on.} We identify
+    which connectome views and which regional pairs drive the prediction, and where these agree
+    with established depression imaging findings and where they do not, which yields hypotheses
+    that can be tested independently.
+    %% RISK: 本条依赖演化结果。若最终胜出候选不可解释（例如闭式核方法），
+    %% 必须撤下本条或改写为「对候选群体特征使用分布的分析」。定稿前按 §6.3 实际结果回改。
+
+  \item \textbf{An evaluation protocol built to survive automated search.} The protocol uses
+    site-disjoint partitions that keep model selection and reporting on mutually exclusive sets of
+    scanners, together with a final test set that the search never reads and that is used once.
+\end{itemize}
+
+\paragraph{Roadmap.}
+Section~\ref{sec:related} reviews reported classification results, the model families available for
+connectome data, and evolutionary coding agents. Section~\ref{sec:agent} describes the agent.
+Section~\ref{sec:application} specifies the data and the evaluation protocol, together with the
+requirements that the difficulty of the task imposes on any such protocol.
+Section~\ref{sec:results} reports results, and Section~\ref{sec:discussion} discusses limitations.

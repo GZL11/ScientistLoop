@@ -1,0 +1,31 @@
+{
+  "date": "2026-08-01",
+  "summary": "今天的核心活动是围绕一篇将进化算法（AlphaEvolve 范式）应用于 LLM post-training 算法自动发现的论文展开深度研读。用户从一个模糊的描述出发，经过两轮检索纠偏，最终定位到复旦大学的 POISE（arXiv:2603.23951）。随后对 POISE 的进化搜索机制、关键发现（analytic-variance scaling 与 validity masking）以及方法论局限性（缺乏组件级消融、宗谱路径无法做因果归因）进行了完整的深度解析。此外磁盘上存在一个历史实验目录（ml-ukf-soc），与本次阅读会话无直接关联。",
+  "sessions": [
+    {
+      "id": "ses_0432a22fdffeEZquWgh6stOT7U",
+      "title": "新对话",
+      "highlights": "本会话无任何文本消息，内容为空，无实质产出。"
+    },
+    {
+      "id": "ses_043d77ec6ffebPjdhUkxeYB17G",
+      "title": "新对话",
+      "highlights": "用户描述了一篇「用 AlphaEvolve 式进化从 GRPO 出发搜索更好 post-training 算法」的论文，初次检索误命中 EvolvedGRPO（进化数据/指令），经用户纠正后重新检索定位到 POISE。随后对 POISE 的三阶段闭环（提案生成→训练评估→反思归档）、关键机制（解析方差归一化、validity masking、GP 引导父代选择、宗谱链接）以及最优变体 VM-AV-GRPO 的性能收益（weighted Overall 47.8→52.5，AIME25 pass@32 26.7%→43.3%）进行了系统讲解。最后深入讨论了 POISE 方法论的核心弱点：进化搜索天然产出协同捆绑包而非单变量改动，论文未补受控消融实验，所谓「可解释设计原则」实为 evidence-grounded hypotheses 而非因果验证结论。"
+    }
+  ],
+  "artifacts": [
+    {
+      "dir": "research-runs/ml-ukf-soc-0629-b5c5/experiment/",
+      "files": [
+        "results.json"
+      ],
+      "note": "历史 run（UKF-SOC 方向）的实验真值注册表，与本日阅读会话无直接关联，属存量产物变更。"
+    }
+  ],
+  "open_questions": [
+    "POISE 发现的 analytic-variance scaling 和 validity masking 各自的独立贡献量是多少？论文未做组件级消融，这一因果归因问题悬而未决。",
+    "POISE 的进化搜索框架能否迁移到视觉-语言模型或其他模态的 post-training 场景？其 mutation operator（Gemini-3-pro-preview）对开源 LLM 替代的鲁棒性如何？",
+    "64 个候选变体的搜索过程中，GP 引导的父代选择相比随机选择或贪心选择实际节省了多少搜索算力？论文仅有事后统计分析，缺乏受控对比。",
+    "EvolvedGRPO 与 POISE 虽然路线不同（进化数据 vs 进化算法），二者能否结合——用 POISE 发现的算法再配合 EvolvedGRPO 的课程式难度递增？"
+  ]
+}

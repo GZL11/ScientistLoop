@@ -1,0 +1,20 @@
+{
+  "version": "20260808-001-extensible-venue-templates",
+  "created_at": "2026-08-08",
+  "title": "Extend the venue template source registry",
+  "description": "Keeps one generic template fetcher and adds ASME through the existing declarative source table and aliases.",
+  "source_file": "registry/source/tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "implementation_files": [
+    "scripts/latex_template.py"
+  ],
+  "changes": [
+    "Add the CTAN asmeconf package as an allowlisted ASME template source.",
+    "Add ASME IDETC aliases without adding a venue-specific tool.",
+    "Keep primary-class validation and fail-closed behavior."
+  ],
+  "rollback": {
+    "target": "20260716-001-fetch-latex-template",
+    "notes": "Remove the ASME source and aliases while retaining the previous fetcher."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "version": "20260716-001-verify-paper",
+  "created_at": "2026-07-16",
+  "title": "Split out paper verifier",
+  "description": "Creates a standalone registry record for arc_verify_paper so batch citation verification gets its own version history.",
+  "source_file": "tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Expose arc_verify_paper as an independent tool entry.",
+    "Track batch BibTeX verification separately from single citation lookup.",
+    "Keep the runtime checker and gate behavior unchanged."
+  ]
+}
+

@@ -1,0 +1,10 @@
+{
+  "evolved_at": "2026-05-07T08:51:58.926589+00:00",
+  "model": "claude-opus-4-7",
+  "family": "replenishment",
+  "n_traces_success": 3,
+  "n_traces_failure": 9,
+  "regressions": [],
+  "changed_templates": [],
+  "dry_run": false
+}

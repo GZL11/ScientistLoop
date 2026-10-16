@@ -1,0 +1,12 @@
+{
+  "version": "20260712-001-compaction-autocontinue-text-hook",
+  "created_at": "2026-07-12T00:00:00+08:00",
+  "description": "扩展 OpenCode experimental.compaction.autocontinue hook，允许 plugin 通过 output.text 替换 synthetic auto-continue 文本。",
+  "source_file": "registry/runtime-patches/compaction-autocontinue-text-hook/CHANGELOG.md",
+  "upstream_files": [
+    "packages/opencode/src/session/compaction.ts",
+    "packages/opencode/src/skill/prompt/customize-opencode.md"
+  ],
+  "type_definition_file": "/root/.config/opencode/node_modules/@opencode-ai/plugin/dist/index.d.ts",
+  "status": "applied"
+}

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Famou 研究台</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+    <!-- 依赖经本机服务器镜像 CDN（/_esm → esm.sh），浏览器只连 localhost：
+         在跳板机/受限网络里也能加载（只要运行 famou-scientist web 的那台机器能联网）。 -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "/_esm/react@18.3.1?bundle&target=es2022",
+          "react/jsx-runtime": "/_esm/react@18.3.1/jsx-runtime?bundle&target=es2022",
+          "react-dom/client": "/_esm/react-dom@18.3.1/client?bundle&target=es2022&external=react",
+          "react-markdown": "/_esm/react-markdown@9?bundle&target=es2022&external=react",
+          "remark-gfm": "/_esm/remark-gfm@4?bundle&target=es2022&external=react",
+          "remark-math": "/_esm/remark-math@6?bundle&target=es2022&external=react",
+          "rehype-katex": "/_esm/rehype-katex@7?bundle&target=es2022&external=react"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root">
+      <!-- 首屏 loading：React 渲染前显示，渲染后被 createRoot 替换掉。
+           首次打开需从 CDN 拉 React/react-markdown 依赖 + 浏览器内转译，可能十几秒。 -->
+      <div id="boot-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;color:#9aa3b2;font-family:-apple-system,'PingFang SC',sans-serif;gap:16px">
+        <div style="width:34px;height:34px;border:3px solid #2a2f3e;border-top-color:#6ea8fe;border-radius:50%;animation:bootspin .7s linear infinite"></div>
+        <div style="font-size:15px;color:#e6e8ee">🔬 Famou 研究台</div>
+        <div style="font-size:13px">正在加载界面…（首次打开需从 CDN 拉取依赖，请稍候）</div>
+        <style>@keyframes bootspin{to{transform:rotate(360deg)}}</style>
+      </div>
+    </div>
+
+    <!-- Babel standalone transpiles the single app bundle in-browser (no npm build).
+         MUST be the UMD build (defines global `Babel` via <script src>). Fetched through the
+         local server's CDN mirror (/_unpkg → unpkg.com) so the browser needn't reach unpkg. -->
+    <script src="/_unpkg/@babel/standalone@7.26.4/babel.min.js"></script>
+    <script>
+      // Load one combined source file, transpile (TS + JSX), run as a module.
+      fetch("/src/app.tsx")
+        .then((r) => r.text())
+        .then((src) => {
+          if (typeof Babel === "undefined") throw new Error("Babel 未加载（检查网络/CDN）")
+          const out = Babel.transform(src, {
+            filename: "app.tsx",
+            presets: [
+              ["typescript", { isTSX: true, allExtensions: true, onlyRemoveTypeImports: true }],
+              ["react", { runtime: "classic" }],
+            ],
+          }).code
+          const blob = new Blob([out], { type: "text/javascript" })
+          return import(URL.createObjectURL(blob))
+        })
+        .catch((e) => {
+          const root = document.getElementById("root")
+          root.innerHTML = ""
+          const pre = document.createElement("pre")
+          pre.style.cssText = "color:#f06d6d;padding:20px;white-space:pre-wrap"
+          pre.textContent = "加载失败：" + e.message
+          root.appendChild(pre)
+          console.error(e)
+        })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoonLog · 知识库</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --fg:#171717;--fg2:#4d4d4d;--fg3:#666;--fg4:#8f8f8f;
+  --bg:#fff;--bg2:#fafafa;--bg3:#f5f5f5;
+  --border:#ebebeb;--border2:#e0e0e0;
+  --accent:#e8590c;--accent-light:#fff4f0;
+  --blue:#0070f3;--blue-light:#ebf5ff;
+  --green:#297a3a;--green-light:#ecfdf5;
+  --r:8px;--r-sm:6px;
+  --shadow:0 0 0 1px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --sidebar-w:260px;
+}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg2);color:var(--fg);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+.app{display:flex;height:100vh}
+
+/* Topbar */
+.topbar{position:fixed;top:0;left:0;right:0;height:44px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;z-index:100;gap:12px}
+.topbar-brand{font-size:13px;font-weight:600;color:var(--accent)}
+.topbar-version{font-size:11px;font-weight:500;padding:2px 8px;border-radius:9999px;background:var(--bg3);color:var(--fg3);border:1px solid var(--border)}
+.topbar-auto{font-size:11px;color:var(--fg4)}
+.topbar-actions{margin-left:auto;display:flex;gap:8px}
+.topbar-btn{width:28px;height:28px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--fg3)}
+.topbar-btn:hover{background:var(--bg3)}
+
+/* Sidebar */
+.sidebar{width:var(--sidebar-w);background:var(--bg);border-right:1px solid var(--border);padding-top:44px;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
+.sidebar-search{padding:12px 14px}
+.sidebar-search input{width:100%;padding:7px 10px 7px 30px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px;outline:none;background:var(--bg2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238f8f8f' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") 10px center no-repeat}
+.sidebar-search input:focus{border-color:var(--accent);background-color:var(--bg)}
+.sidebar-nav{flex:1;overflow-y:auto;padding:0 8px 16px}
+
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--r-sm);font-size:13px;color:var(--fg2);cursor:pointer;transition:all .1s}
+.nav-item:hover{background:var(--bg3)}
+.nav-item.active{background:var(--accent-light);color:var(--accent);font-weight:500}
+.nav-item .nav-icon{width:16px;height:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:.5}
+.nav-item .nav-icon svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5}
+.nav-item.active .nav-icon{opacity:1}
+
+.nav-section{padding:16px 10px 6px;font-size:12px;font-weight:600;color:var(--fg3);display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+.nav-section:hover{color:var(--fg2)}
+.nav-section-icon{width:16px;height:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:.5}
+.nav-section-icon svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5}
+.nav-section-arrow{margin-left:auto;font-size:10px;color:var(--fg4);transition:transform .15s}
+.nav-section.collapsed .nav-section-arrow{transform:rotate(-90deg)}
+
+.nav-child{padding-left:24px;overflow:hidden;transition:max-height .2s ease}
+.nav-child.collapsed{max-height:0 !important;padding-top:0;padding-bottom:0}
+
+.nav-child{padding-left:24px}
+.nav-child .nav-item{font-size:12px;padding:5px 10px;color:var(--fg3)}
+.nav-child .nav-item.active{color:var(--accent);background:var(--accent-light)}
+
+/* Main content */
+.main{flex:1;padding-top:44px;overflow-y:auto}
+.content{max-width:720px;margin:0 auto;padding:32px 40px 80px}
+.content-back{font-size:18px;color:var(--fg4);cursor:pointer;margin-bottom:16px;display:inline-block}
+.content-back:hover{color:var(--fg)}
+
+/* Typography */
+.content h1{font-size:22px;font-weight:700;color:var(--fg);margin-bottom:12px;letter-spacing:-.3px}
+.content h2{font-size:16px;font-weight:600;color:var(--fg);margin:28px 0 12px;letter-spacing:-.2px}
+.content p{font-size:14px;line-height:1.7;color:var(--fg2);margin-bottom:16px}
+.content ul,.content ol{padding-left:20px;margin-bottom:16px}
+.content li{font-size:14px;line-height:1.7;color:var(--fg2);margin-bottom:6px}
+.content li strong{color:var(--fg)}
+.content a{color:var(--accent);text-decoration:none;font-weight:500}
+.content a:hover{text-decoration:underline}
+.content code{font-size:12px;font-family:'SF Mono',Consolas,monospace;background:var(--accent-light);color:var(--accent);padding:1px 5px;border-radius:3px}
+
+/* Tables */
+.content table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.content th{text-align:left;padding:10px 14px;background:var(--bg3);color:var(--fg2);font-weight:600;border-bottom:1px solid var(--border)}
+.content td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--fg2)}
+
+/* Exploration map */
+.explore-map{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:24px 24px 20px;margin:20px 0 32px;overflow-x:auto}
+.explore-map-title{font-size:11px;font-weight:600;color:var(--fg4);text-transform:uppercase;letter-spacing:.3px;margin-bottom:14px}
+.map-root-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.map-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.map-dot.root{background:var(--fg);width:10px;height:10px}
+.map-dot.success{background:#297a3a}
+.map-dot.active{background:#fff;border:2px solid #b45309;width:9px;height:9px}
+.map-dot.abandoned{background:#e5e7eb}
+.map-root-label{font-size:13px;font-weight:600;color:var(--fg)}
+.map-branches{padding-left:16px;border-left:1.5px solid var(--border2);margin-left:4px}
+.map-branch{padding:6px 0;position:relative}
+.map-branch::before{content:'';position:absolute;left:-16px;top:14px;width:14px;height:1.5px}
+.map-branch.success::before{background:#86efac}
+.map-branch.active::before{background:#fde68a}
+.map-branch.abandoned::before{background:#e5e7eb}
+.map-branch-row{display:flex;align-items:center;gap:7px}
+.map-label{font-size:12px;font-weight:500;color:var(--fg2)}
+.map-label.abandoned{color:var(--fg4);text-decoration:line-through;text-decoration-color:#d1d5db}
+.map-meta{font-size:10px;color:var(--fg4);font-weight:400}
+.map-tag{font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;margin-left:2px}
+.map-tag.success{background:#ecfdf5;color:#297a3a}
+.map-tag.warn{background:#fffbeb;color:#b45309}
+.map-tag.fail{background:#fee2e2;color:#dc2626}
+.map-sub{padding-left:20px;border-left:1.5px solid #86efac;margin-left:3px;margin-top:2px}
+.map-sub.active-line{border-left-color:#fde68a;border-left-style:dashed}
+.map-sub.abandoned-line{border-left-color:#e5e7eb;border-left-style:dashed}
+.map-sub-item{padding:4px 0;position:relative;display:flex;align-items:center;gap:7px}
+.map-sub-item::before{content:'';position:absolute;left:-20px;top:12px;width:14px;height:1.5px;background:#86efac}
+.map-sub.active-line .map-sub-item::before{background:#fde68a}
+.map-sub.abandoned-line .map-sub-item::before{background:#e5e7eb}
+.content td a{color:var(--accent)}
+.content tr:last-child td{border-bottom:none}
+
+/* Flowchart */
+.flowchart{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:32px;margin:16px 0;display:flex;flex-direction:column;align-items:center;gap:0}
+.flow-node{background:var(--bg);border:1px solid var(--border2);border-radius:var(--r);padding:12px 24px;font-size:12px;font-weight:500;color:var(--fg);text-align:center;min-width:200px;box-shadow:var(--shadow)}
+.flow-node.decision{border-radius:2px;transform:rotate(0deg);background:var(--bg);border-style:solid;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);padding:20px 32px;min-width:160px}
+.flow-arrow{width:2px;height:24px;background:var(--border2);position:relative}
+.flow-arrow::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:var(--border2)}
+.flow-arrow-label{font-size:10px;color:var(--fg4);margin-top:-4px;margin-bottom:4px}
+
+/* Reference count badge */
+.ref-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--fg4);float:right;margin-top:4px}
+.ref-badge svg{width:14px;height:14px}
+
+/* Page types indicator */
+.page-screen{display:none}
+.page-screen.active{display:block}
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <span class="topbar-brand">MoonLog</span>
+  <span class="topbar-version" style="cursor:pointer" onclick="toggleVersionDropdown()" id="versionBtn">2026.06.23 <span style="font-size:9px">▾</span></span>
+  <div id="versionDropdown" style="display:none;position:absolute;top:38px;left:80px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:4px;z-index:200;min-width:160px">
+    <div style="padding:7px 12px;font-size:12px;font-weight:500;color:var(--accent);background:var(--accent-light);border-radius:5px;cursor:default">2026.06.23 <span style="float:right;color:var(--fg4)">最新</span></div>
+    <div style="padding:7px 12px;font-size:12px;color:var(--fg2);border-radius:5px;cursor:pointer;margin-top:2px" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">2026.06.22</div>
+    <div style="padding:7px 12px;font-size:12px;color:var(--fg3);border-radius:5px;cursor:pointer;margin-top:2px" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">2026.06.20</div>
+  </div>
+  <span class="topbar-auto">自动编译 · 10小时前</span>
+  <div class="topbar-actions">
+    <button class="topbar-btn">✎</button>
+    <button class="topbar-btn">⚙</button>
+    <button class="topbar-btn">×</button>
+  </div>
+</div>
+
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-search">
+      <input type="text" placeholder="搜索 MoonLog...">
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showPage('overview')">
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        </span> Overview
+      </div>
+
+      <div class="nav-section" onclick="toggleSection(this)">
+        <span class="nav-section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg></span>
+        Research Object <span class="nav-section-arrow">▾</span>
+      </div>
+      <div class="nav-child">
+        <div class="nav-item" onclick="showPage('obj-benzyl')">Benzyl Alcohol Electronic St...</div>
+        <div class="nav-item" onclick="showPage('obj-pentane')">Pentane Isomer Boiling Points</div>
+        <div class="nav-item">Pine Wood Nematode Early ...</div>
+        <div class="nav-item">RNA-Seq Differential Expres...</div>
+      </div>
+
+      <div class="nav-section" onclick="toggleSection(this)">
+        <span class="nav-section-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+        Method <span class="nav-section-arrow">▾</span>
+      </div>
+      <div class="nav-child">
+        <div class="nav-item" onclick="showPage('method-cube')">Cube File Generation Workfl...</div>
+        <div class="nav-item">MPA Boiling Point Prediction</div>
+        <div class="nav-item" onclick="showPage('method-feature')">Multispectral Feature Select...</div>
+        <div class="nav-item">RNA-Seq Differential Expres...</div>
+      </div>
+
+      <div class="nav-section" onclick="toggleSection(this)">
+        <span class="nav-section-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></span>
+        Experiments & Analysis <span class="nav-section-arrow">▾</span>
+      </div>
+      <div class="nav-child">
+        <div class="nav-item" onclick="showPage('exp-benzyl')">Benzyl Alcohol Cube File Ge...</div>
+        <div class="nav-item">Pentane Boiling Point Predic...</div>
+        <div class="nav-item">Pine Wood Nematode Featu...</div>
+        <div class="nav-item">RNA-Seq Differential Expres...</div>
+      </div>
+
+      <div class="nav-section" onclick="toggleSection(this)">
+        <span class="nav-section-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+        Question & Decision <span class="nav-section-arrow">▾</span>
+      </div>
+      <div class="nav-child">
+        <div class="nav-item" onclick="showPage('qd-batch')">Batch Effect Correction in R...</div>
+        <div class="nav-item">Systematic Bias in MPA Boili...</div>
+        <div class="nav-item">Systematic Bias in Simple R...</div>
+      </div>
+
+      <div class="nav-section" onclick="toggleSection(this)">
+        <span class="nav-section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+        Log <span class="nav-section-arrow">▾</span>
+      </div>
+      <div class="nav-child">
+        <div class="nav-item" onclick="showPage('log')">2026.06.23 编译记录</div>
+        <div class="nav-item" onclick="showPage('log')">2026.06.22 编译记录</div>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+
+    <!-- Overview -->
+    <div class="page-screen active" id="page-overview">
+      <div class="content">
+        <h1>Molecular Property Calculation and Wavefunction Analysis Knowledge Base</h1>
+        <p>This knowledge base encompasses computational chemistry, remote sensing feature selection, and bioinformatics analysis. It includes pentane isomer boiling point prediction, benzyl alcohol wavefunction analysis, pine wood nematode early-infection detection via multispectral feature screening, and RNA-seq differential expression analysis. These threads share common methodological patterns: dimensionality reduction, cross-validated model selection, and validation against experimental or domain knowledge.</p>
+
+        <!-- Exploration Map — hierarchical tree -->
+        <div class="explore-map">
+          <div class="explore-map-title">探索路径</div>
+          <div class="map-root-row">
+            <div class="map-dot root"></div>
+            <span class="map-root-label">KNOWLEDGE</span>
+          </div>
+          <div class="map-branches">
+            <div class="map-branch success">
+              <div class="map-branch-row">
+                <div class="map-dot success"></div>
+                <span class="map-label">Boiling Point Prediction</span>
+                <span class="map-meta">pentane isomers</span>
+                <span class="map-tag success">完成</span>
+              </div>
+              <div class="map-sub">
+                <div class="map-sub-item">
+                  <div class="map-dot success"></div>
+                  <span class="map-label">MPA Model Verified</span>
+                </div>
+              </div>
+            </div>
+            <div class="map-branch success">
+              <div class="map-branch-row">
+                <div class="map-dot success"></div>
+                <span class="map-label">Wavefunction Analysis</span>
+                <span class="map-meta">benzyl alcohol</span>
+                <span class="map-tag success">完成</span>
+              </div>
+              <div class="map-sub">
+                <div class="map-sub-item">
+                  <div class="map-dot success"></div>
+                  <span class="map-label">Cube File Generation</span>
+                </div>
+              </div>
+            </div>
+            <div class="map-branch success">
+              <div class="map-branch-row">
+                <div class="map-dot success"></div>
+                <span class="map-label">Pine Wood Nematode</span>
+                <span class="map-meta">multispectral feature</span>
+                <span class="map-tag success">完成</span>
+              </div>
+              <div class="map-sub">
+                <div class="map-sub-item">
+                  <div class="map-dot success"></div>
+                  <span class="map-label">Borda Count → Top 10 Features</span>
+                </div>
+                <div class="map-sub-item">
+                  <div class="map-dot success"></div>
+                  <span class="map-label">Report Generated</span>
+                </div>
+              </div>
+              <div class="map-sub abandoned-line">
+                <div class="map-sub-item">
+                  <div class="map-dot abandoned"></div>
+                  <span class="map-label abandoned">Rank Truncation</span>
+                  <span class="map-tag fail">放弃</span>
+                </div>
+              </div>
+            </div>
+            <div class="map-branch success">
+              <div class="map-branch-row">
+                <div class="map-dot success"></div>
+                <span class="map-label">RNA-Seq Differential Expression</span>
+                <span class="map-meta">DESeq2 pipeline</span>
+                <span class="map-tag success">完成</span>
+              </div>
+              <div class="map-sub active-line">
+                <div class="map-sub-item">
+                  <div class="map-dot active"></div>
+                  <span class="map-label">Batch Effect Correction</span>
+                  <span class="map-tag warn">进行中</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h2>Boiling Point Prediction and Branching Effect</h2>
+        <p>Starting from pentane isomers, investigating how branching affects molecular boiling points, involving MPA model prediction, experimental validation, and model deviation analysis.</p>
+        <table>
+          <tr><th>Category</th><th>Specific Content</th></tr>
+          <tr><td>Research Object</td><td><a href="javascript:void(0)" onclick="showPage('obj-pentane')">Pentane Isomer Boiling Points</a></td></tr>
+          <tr><td>Method</td><td><a href="javascript:void(0)">MPA Boiling Point Prediction</a></td></tr>
+          <tr><td>Experiment & Analysis</td><td><a href="javascript:void(0)">Pentane Boiling Point Prediction Experiment</a></td></tr>
+          <tr><td>Question & Decision</td><td><a href="javascript:void(0)">Systematic Bias in MPA Boiling Point Prediction</a></td></tr>
+        </table>
+        <span class="ref-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> 4</span>
+
+        <h2>Wavefunction Analysis and Cube Generation</h2>
+        <p>Using benzyl alcohol as an example, documenting the complete computational workflow from geometry optimization to wavefunction analysis, and further to electron density and electrostatic potential visualization.</p>
+        <table>
+          <tr><th>Category</th><th>Specific Content</th></tr>
+          <tr><td>Research Object</td><td><a href="javascript:void(0)" onclick="showPage('obj-benzyl')">Benzyl Alcohol Electronic Structure</a></td></tr>
+          <tr><td>Method</td><td><a href="javascript:void(0)" onclick="showPage('method-cube')">Cube File Generation Workflow</a></td></tr>
+          <tr><td>Experiment & Analysis</td><td><a href="javascript:void(0)" onclick="showPage('exp-benzyl')">Benzyl Alcohol Cube File Generation Experiment</a></td></tr>
+          <tr><td>Question & Decision</td><td>—</td></tr>
+        </table>
+        <span class="ref-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> 3</span>
+
+        <h2>Pine Wood Nematode Early Detection</h2>
+        <p>Multispectral feature selection, ranking, and optimization for early-infection detection of pine wood nematode disease, including the methodological finding that simple rank-based truncation can be severely misleading.</p>
+        <table>
+          <tr><th>Category</th><th>Specific Content</th></tr>
+          <tr><td>Research Object</td><td><a href="javascript:void(0)">Pine Wood Nematode Early Infection Detection</a></td></tr>
+          <tr><td>Method</td><td><a href="javascript:void(0)" onclick="showPage('method-feature')">Multispectral Feature Selection and Ranking</a></td></tr>
+          <tr><td>Experiment & Analysis</td><td><a href="javascript:void(0)">Pine Wood Nematode Feature Selection Experiment</a></td></tr>
+          <tr><td>Question & Decision</td><td><a href="javascript:void(0)">Systematic Bias in Simple Rank-Based Feature Reduction</a></td></tr>
+        </table>
+        <span class="ref-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> 4</span>
+      </div>
+    </div>
+
+    <!-- Research Object: Benzyl Alcohol -->
+    <div class="page-screen" id="page-obj-benzyl">
+      <div class="content">
+        <span class="content-back" onclick="showPage('overview')">«</span>
+        <h1>Benzyl Alcohol Electronic Structure</h1>
+        <p>Benzyl alcohol (SMILES: <code>OCC1=CC=CC=C1</code>, molecular formula <em>C₇H₈O</em>) is a medium-sized molecule containing an aromatic ring and a hydroxyl functional group, with a total of 16 atoms. It was chosen as the demonstration system for wavefunction analysis.</p>
+
+        <h2>Electronic Property Analysis</h2>
+        <p>The electronic structure analysis of benzyl alcohol focuses on two core physical quantities:</p>
+        <ul>
+          <li><strong>Total electron density ρ(r)</strong>: Describes the spatial distribution of electrons within the molecule, used to analyze bonding characteristics and atomic charge distribution.</li>
+          <li><strong>Total electrostatic potential ESP</strong>: Used to predict reactive sites for nucleophilic reactions (low ESP regions) and electrophilic reactions (high ESP regions).</li>
+        </ul>
+        <p>These properties were calculated via the <a href="javascript:void(0)" onclick="showPage('method-cube')">Cube File Generation Workflow</a>, and the final calculation record is documented in the <a href="javascript:void(0)" onclick="showPage('exp-benzyl')">Benzyl Alcohol Cube File Generation Experiment</a>.</p>
+        <span class="ref-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> 2</span>
+      </div>
+    </div>
+
+    <!-- Research Object: Pentane -->
+    <div class="page-screen" id="page-obj-pentane">
+      <div class="content">
+        <span class="content-back" onclick="showPage('overview')">«</span>
+        <h1>Pentane Isomer Boiling Points</h1>
+        <p>The three isomers of pentane (<em>C₅H₁₂</em>) form a classic molecular system for studying the effect of branching on boiling points. Boiling point, as a core physical property, reflects the complex relationship between intermolecular forces and molecular shape.</p>
+
+        <h2>Molecular Information</h2>
+        <table>
+          <tr><th>Molecule</th><th>SMILES</th><th>Molecular formula</th><th>Structural feature</th></tr>
+          <tr><td>n-Pentane</td><td><code>CCCCC</code></td><td><em>C₅H₁₂</em></td><td>Linear chain</td></tr>
+          <tr><td>Isopentane (2-methylbutane)</td><td><code>CCC(C)C</code></td><td><em>C₅H₁₂</em></td><td>Single branch</td></tr>
+          <tr><td>Neopentane (2,2-dimethylpropane)</td><td><code>CC(C)(C)C</code></td><td><em>C₅H₁₂</em></td><td>Double branch, quaternary carbon center</td></tr>
+        </table>
+
+        <h2>Branching Effect</h2>
+        <p>The effect of branching on boiling point follows the rule "the more branching, the lower the boiling point." The key physical mechanisms include:</p>
+        <ol>
+          <li><strong>Weakened dispersion forces</strong>: Linear alkanes have a large intermolecular van der Waals contact area; branching makes the molecule more compact, reducing the effective contact area.</li>
+          <li><strong>Molecular shape effect</strong>: Neopentane is highly symmetric and nearly spherical, having the smallest single-molecule contact area.</li>
+          <li><strong>Conformational entropy</strong>: Linear alkanes have greater conformational entropy in the liquid phase, requiring higher energy for vaporization.</li>
+        </ol>
+        <p>This boiling point sequence can be quantitatively calculated using the <a href="javascript:void(0)">MPA Boiling Point Prediction</a> method, with specific prediction results recorded in the <a href="javascript:void(0)">Pentane Boiling Point Prediction Experiment</a>.</p>
+        <span class="ref-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> 2</span>
+      </div>
+    </div>
+
+    <!-- Method: Cube File Generation -->
+    <div class="page-screen" id="page-method-cube">
+      <div class="content">
+        <span class="content-back" onclick="showPage('overview')">«</span>
+        <h1>Cube File Generation Workflow</h1>
+        <p>This workflow converts a molecular SMILES into electron density <em>ρ</em>(<strong>r</strong>) and electrostatic potential ESP cube files for visualization analysis in software such as VMD, ChimeraX, and Multiwfn.</p>
+
+        <h2>Overall Workflow</h2>
+        <div class="flowchart">
+          <div class="flow-node">Input molecular SMILES</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node">XTB fast geometry optimization</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node">DFT single-point calculation<br><span style="font-size:11px;color:var(--accent)">(save_mo=True)</span></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-arrow-label">Can .molden be generated?</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node">Multiwfn generate cube files<br><span style="font-size:11px;color:var(--fg4)">--only-cubes mode</span></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node">Verify and package for delivery</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Method: Feature Selection -->
+    <div class="page-screen" id="page-method-feature">
+      <div class="content">
+        <span class="content-back" onclick="showPage('overview')">«</span>
+        <h1>Multispectral Feature Selection and Ranking</h1>
+        <p>This method defines a complete pipeline for reducing high-dimensional multispectral feature sets to a compact, informative subset while controlling overfitting and respecting data grouping structure.</p>
+
+        <h2>Pipeline</h2>
+        <div class="flowchart">
+          <div class="flow-node">Load feature matrix & scene groups</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node">Remove near-constant features</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node">Remove highly correlated features (|r|>0.9)</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node">Score via MI / F-test / Lasso / RF</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node">RFECV with GroupKFold</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node">Borda rank aggregation</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-arrow-label">If further reduction needed</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node">Greedy forward selection (optional)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Experiment: Benzyl Alcohol -->
+    <div class="page-screen" id="page-exp-benzyl">
+      <div class="content">
+        <span class="content-back" onclick="showPage('overview')">«</span>
+        <h1>Benzyl Alcohol Cube File Generation Experiment</h1>
+        <p>This experiment takes benzyl alcohol as the target molecule and executes the <a href="javascript:void(0)" onclick="showPage('method-cube')">Cube File Generation Workflow</a> to produce total electron density and electrostatic potential cube files for visualization.</p>
+
+        <h2>Molecular Information</h2>
+        <ul>
+          <li><strong>Molecule</strong>: Benzyl alcohol</li>
+          <li><strong>SMILES</strong>: <code>OCC1=CC=CC=C1</code></li>
+          <li><strong>Number of atoms</strong>: 16</li>
+          <li><strong>Molecular formula</strong>: <em>C₇H₈O</em></li>
+        </ul>
+
+        <h2>Execution Workflow</h2>
+        <table>
+          <tr><th>Step</th><th>Method</th><th>Result</th></tr>
+          <tr><td>1. Geometry optimization</td><td>XTB (GFN2-xTB), local CPU</td><td>Energy = −346.7716 Ha</td></tr>
+          <tr><td>2. DFT single-point</td><td>wb97x-d4/def2-svpd, cloud GPU, <code>save_mo=True</code></td><td>Energy = −346.5481 Ha, wavefunction file generated</td></tr>
+          <tr><td>3. Cube generation</td><td>Multiwfn, high grid, <code>--only-cubes</code> mode</td><td><a href="javascript:void(0)">density.cub</a> and <a href="javascript:void(0)">totesp.cub</a> generated</td></tr>
+        </table>
+
+        <p>A key decision point arose during the calculation: the XTB wrapper does not support <code>save_mo</code> / <code>gen_molden</code> functionality, necessitating a switch to the DFT path. After a walltime estimation (≈ 4 s) and user confirmation, the DFT single-point calculation was completed on a cloud GPU using the VOLCQC framework.</p>
+
+        <h2>Generated Files</h2>
+        <table>
+          <tr><th>File</th><th>Content</th><th>Grid points</th><th>Size</th></tr>
+          <tr><td><a href="javascript:void(0)">density.cub</a></td><td>Total electron density ρ(<strong>r</strong>)</td><td>1,783,334</td><td>25 MB</td></tr>
+          <tr><td><a href="javascript:void(0)">totesp.cub</a></td><td>Total electrostatic potential</td><td>1,783,334</td><td>25 MB</td></tr>
+        </table>
+        <ul>
+          <li><strong>Grid quality</strong>: high (grid spacing 0.1755 Å, 118 × 127 × 120 grid)</li>
+        </ul>
+        <span class="ref-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> 3</span>
+      </div>
+    </div>
+
+    <!-- Question & Decision: Batch Effect -->
+    <div class="page-screen" id="page-qd-batch">
+      <div class="content">
+        <span class="content-back" onclick="showPage('overview')">«</span>
+        <h1>Batch Effect Correction in RNA-Seq Models</h1>
+        <p>The <a href="javascript:void(0)">RNA-Seq Differential Expression Demo</a> dataset includes batch metadata (samples prepared in batches B1 and B2), but the current <a href="javascript:void(0)">RNA-Seq Differential Expression Analysis Workflow</a> does not model batch effects.</p>
+
+        <h2>Current Status</h2>
+        <ul>
+          <li>The batch variable was observed but not included in the design matrix.</li>
+          <li>The PCA plot showed clear treatment-group separation, suggesting batch effects are not dominant in this small dataset.</li>
+          <li>However, unmodeled batch effects can inflate or deflate significance in larger real datasets.</li>
+        </ul>
+
+        <h2>Open Questions</h2>
+        <ol>
+          <li>Should batch be added as a covariate in the negative binomial GLM design (treatment + batch), or should a more sophisticated approach like RUV-seq or Combat-seq be adopted?</li>
+          <li>At what sample size does batch correction become essential rather than optional?</li>
+        </ol>
+
+        <h2>Decision Pending</h2>
+        <p>For future larger datasets, the decision on batch correction method (design-matrix covariate vs. dedicated batch-correction tool) should be made before running the pipeline, based on batch-treatment confounding assessment.</p>
+      </div>
+    </div>
+
+    <!-- Log -->
+    <div class="page-screen" id="page-log">
+      <div class="content">
+        <span class="content-back" onclick="showPage('overview')">«</span>
+        <h1>编译日志</h1>
+        <p>MoonLog 每次自动编译后记录知识库的变更摘要。</p>
+
+        <h2 style="display:flex;align-items:center;gap:8px">2026.06.23 <span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:9999px;background:var(--accent-light);color:var(--accent)">最新</span></h2>
+        <p style="font-size:12px;color:var(--fg4);margin-bottom:12px">基于 3 轮新对话 · 编译耗时 12s</p>
+        <table>
+          <tr><th>变更</th><th>内容</th><th>来源</th></tr>
+          <tr><td><span style="color:#297a3a;font-weight:600">+ 新增</span></td><td>RNA-Seq Differential Expression Analysis 研究对象页</td><td>Session #7 对话</td></tr>
+          <tr><td><span style="color:#297a3a;font-weight:600">+ 新增</span></td><td>RNA-Seq 差异表达分析工作流 方法页</td><td>Session #7 对话</td></tr>
+          <tr><td><span style="color:#297a3a;font-weight:600">+ 新增</span></td><td><a href="javascript:void(0)" onclick="showPage('qd-batch')">Batch Effect Correction</a> Q&D 页（待决策）</td><td>Session #8 对话</td></tr>
+          <tr><td><span style="color:#0068d6;font-weight:600">↑ 更新</span></td><td>Overview 增加 RNA-Seq 主题摘要及导航表</td><td>自动合并</td></tr>
+          <tr><td><span style="color:#0068d6;font-weight:600">↑ 更新</span></td><td>探索路径脑图新增 RNA-Seq 节点 + Batch Effect 待解决分支</td><td>自动生成</td></tr>
+        </table>
+
+        <h2>2026.06.22</h2>
+        <p style="font-size:12px;color:var(--fg4);margin-bottom:12px">基于 5 轮新对话 · 编译耗时 18s</p>
+        <table>
+          <tr><th>变更</th><th>内容</th><th>来源</th></tr>
+          <tr><td><span style="color:#297a3a;font-weight:600">+ 新增</span></td><td><a href="javascript:void(0)" onclick="showPage('obj-benzyl')">Benzyl Alcohol Electronic Structure</a> 研究对象页</td><td>Session #3 对话</td></tr>
+          <tr><td><span style="color:#297a3a;font-weight:600">+ 新增</span></td><td><a href="javascript:void(0)" onclick="showPage('method-cube')">Cube File Generation Workflow</a> 方法页</td><td>Session #3 对话</td></tr>
+          <tr><td><span style="color:#297a3a;font-weight:600">+ 新增</span></td><td><a href="javascript:void(0)" onclick="showPage('exp-benzyl')">Benzyl Alcohol Cube Experiment</a> 实验页</td><td>Session #4 对话</td></tr>
+          <tr><td><span style="color:#297a3a;font-weight:600">+ 新增</span></td><td><a href="javascript:void(0)" onclick="showPage('obj-pentane')">Pentane Isomer Boiling Points</a> 研究对象页</td><td>Session #1 对话</td></tr>
+          <tr><td><span style="color:#297a3a;font-weight:600">+ 新增</span></td><td><a href="javascript:void(0)" onclick="showPage('method-feature')">Multispectral Feature Selection</a> 方法页</td><td>Session #5 对话</td></tr>
+          <tr><td><span style="color:#297a3a;font-weight:600">+ 新增</span></td><td>Pine Wood Nematode Feature Selection Experiment 实验页</td><td>Session #6 对话</td></tr>
+          <tr><td><span style="color:#0068d6;font-weight:600">↑ 更新</span></td><td>Overview 首次生成：4 主题摘要 + 探索路径脑图</td><td>自动合并</td></tr>
+          <tr><td><span style="color:#e8590c;font-weight:600">✕ 标记放弃</span></td><td>Rank Truncation 方法（探索路径中标记为 abandoned）</td><td>Session #6 决策</td></tr>
+        </table>
+
+        <h2 style="color:var(--fg4)">2026.06.20</h2>
+        <p style="font-size:12px;color:var(--fg4);margin-bottom:12px">初始编译 · 编译耗时 4s</p>
+        <table>
+          <tr><th>变更</th><th>内容</th><th>来源</th></tr>
+          <tr><td><span style="color:#297a3a;font-weight:600">+ 新增</span></td><td>知识库创建，空 Overview 页面</td><td>用户创建</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function showPage(id) {
+  document.querySelectorAll('.page-screen').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-' + id);
+  if (target) target.classList.add('active');
+  document.querySelectorAll('.sidebar .nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.sidebar .nav-item[onclick]').forEach(n => {
+    if (n.getAttribute('onclick').includes("'" + id + "'")) {
+      n.classList.add('active');
+    }
+  });
+  document.querySelector('.main').scrollTop = 0;
+  return false;
+}
+
+function toggleSection(el) {
+  el.classList.toggle('collapsed');
+  const child = el.nextElementSibling;
+  if (child && child.classList.contains('nav-child')) {
+    child.classList.toggle('collapsed');
+  }
+}
+
+function toggleVersionDropdown() {
+  const dd = document.getElementById('versionDropdown');
+  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('versionDropdown');
+  const btn = document.getElementById('versionBtn');
+  if (dd && !dd.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+    dd.style.display = 'none';
+  }
+});
+</script>
+</body>
+</html>

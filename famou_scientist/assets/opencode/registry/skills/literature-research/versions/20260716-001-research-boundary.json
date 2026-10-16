@@ -1,0 +1,18 @@
+{
+  "version": "20260716-001-research-boundary",
+  "created_at": "2026-07-16",
+  "title": "Clarify literature-research synthesis boundary",
+  "description": "Clarifies that literature-research owns field understanding, subtopic clustering, evidence-backed gap discovery, research direction recommendation, and idea ranking, while literature-search remains a retrieval subroutine.",
+  "source_file": "registry/skills/literature-research/files/SKILL.20260716-001-research-boundary.md",
+  "runtime_file": "skill/experiment/literature-research/SKILL.md",
+  "changes": [
+    "Rewrite the skill description around research synthesis and direction selection.",
+    "Add a boundary section explaining that literature-search is only a retrieval subroutine here.",
+    "Add research-direction comparison to the positive triggers.",
+    "Add simple related-paper listing to non-goals so lightweight retrieval does not trigger this workflow."
+  ],
+  "rollback": {
+    "target": "20260715-001-literature-research-workflow",
+    "notes": "Restore the initial literature-research workflow wording."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "version": "20260715-003-web-first-unified-routing",
+  "created_at": "2026-07-15",
+  "title": "Unify literature-search routing without prompt coupling",
+  "description": "Expands literature-search into a unified routing skill that handles specific paper lookup, fuzzy paper lookup, topic literature search, systematic review, and corpus reading without relying on AGENTS.md to decide tool order.",
+  "source_file": "registry/skills/literature-search/files/SKILL.20260715-003-web-first-unified-routing.md",
+  "runtime_file": "skill/experiment/literature-search/SKILL.md",
+  "changes": [
+    "Introduce an intent matrix for specific paper lookup, fuzzy paper lookup, topic search, systematic review, and corpus reading.",
+    "Keep concrete paper lookup web-first at the skill level while delegating the actual web search to native websearch/webfetch.",
+    "Allow arc_search_literature as academic metadata enrichment and topic search, instead of treating it as a hard fallback rejection path.",
+    "Keep retrieval policy versioned in the skill rather than in AGENTS.md."
+  ],
+  "rollback": {
+    "target": "20260715-002-disable-lookup-paper-fallback",
+    "notes": "Restore the previous narrower literature-search guidance."
+  }
+}

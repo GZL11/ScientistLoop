@@ -1,0 +1,20 @@
+{
+  "version": "20260808-001-venue-template-rules",
+  "created_at": "2026-08-08",
+  "title": "Validate venue templates through declarative rules",
+  "description": "Generalizes the final LaTeX template gate beyond ASME using class and style-marker rules while preserving the existing compile checks.",
+  "source_file": "registry/source/tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "implementation_files": [
+    "scripts/latex_check.py"
+  ],
+  "changes": [
+    "Validate class-based templates such as ASME, IEEE, ACM, and ECCV.",
+    "Validate style-marker templates such as NeurIPS, ICML, CVPR, ACL, ICLR, TMLR, AAAI, and Interspeech.",
+    "Keep unsupported venue semantics out of the hard gate until a verified rule is added."
+  ],
+  "rollback": {
+    "target": "20260716-001-latex-check",
+    "notes": "Restore the previous compile checker with ASME-only template validation."
+  }
+}

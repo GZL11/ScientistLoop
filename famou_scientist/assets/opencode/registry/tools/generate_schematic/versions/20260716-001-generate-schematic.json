@@ -1,0 +1,14 @@
+{
+  "version": "20260716-001-generate-schematic",
+  "created_at": "2026-07-16",
+  "title": "Split out schematic generator",
+  "description": "Creates a standalone registry record for arc_generate_schematic so concept figure generation gets its own version history.",
+  "source_file": "tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Expose arc_generate_schematic as an independent tool entry.",
+    "Keep schematic generation separate from data figure rendering.",
+    "Preserve the runtime image generation flow."
+  ]
+}
+

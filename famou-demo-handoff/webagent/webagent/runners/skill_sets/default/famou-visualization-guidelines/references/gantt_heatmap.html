@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>生产排程总览</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: Inter, -apple-system, sans-serif;
+        background: #f8fafc;
+        color: #1e293b;
+        padding: 16px;
+      }
+      .card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.1);
+        padding: 16px;
+        margin-bottom: 12px;
+      }
+      h2 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+      /* 时间轴 */
+      .timeline { display: flex; margin-left: 90px; margin-bottom: 4px; }
+      .tl-label {
+        flex: 1; text-align: center; font-size: 11px; color: #64748b;
+        border-left: 1px solid #e2e8f0;
+      }
+      /* 甘特行 */
+      .g-row { display: flex; align-items: center; margin-bottom: 4px; height: 34px; }
+      .row-label {
+        width: 90px; font-size: 12px; color: #64748b;
+        text-align: right; padding-right: 8px; flex-shrink: 0;
+      }
+      .g-track {
+        flex: 1; height: 100%; position: relative;
+        background: #f1f5f9; border-radius: 4px; overflow: hidden;
+      }
+      .g-track::before {
+        content: ""; position: absolute; inset: 0;
+        background-image: repeating-linear-gradient(
+          90deg, transparent calc(8.333% - 1px),
+          #e2e8f0 calc(8.333% - 1px), #e2e8f0 8.333%
+        );
+        pointer-events: none;
+      }
+      .task {
+        position: absolute; top: 3px; height: calc(100% - 6px);
+        border-radius: 4px; padding: 0 6px; font-size: 11px; color: #fff;
+        font-weight: 500; display: flex; align-items: center;
+        overflow: hidden; white-space: nowrap;
+        cursor: pointer; transition: filter .15s, outline .15s;
+      }
+      .task:hover { filter: brightness(1.15); outline: 2px solid rgba(255,255,255,.6); }
+      .task.sel { outline: 2px solid #fff; filter: brightness(1.2); }
+      .task.dep-pre { outline: 2px solid #3b82f6; opacity: .85; }
+      .task.dep-suc { outline: 2px solid #f97316; opacity: .85; }
+      .task.done    { background: #16a34a; }
+      .task.normal  { background: #2563eb; }
+      .task.vip     { background: #dc2626; }
+      .task.warning { background: #d97706; }
+      .now-line { position: absolute; top: 0; bottom: 0; width: 2px; background: #dc2626; z-index: 10; }
+      /* 热力图 */
+      .h-row { display: flex; align-items: center; margin-bottom: 3px; height: 30px; }
+      .h-track { flex: 1; display: flex; gap: 2px; }
+      .h-cell {
+        flex: 1; border-radius: 3px; cursor: pointer;
+        position: relative; transition: outline .1s;
+      }
+      .h-cell:hover { outline: 2px solid rgba(0,0,0,.25); }
+      .h-cell:hover::after {
+        content: attr(data-tip); position: absolute;
+        bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%);
+        background: #1e293b; color: #fff; font-size: 10px;
+        padding: 2px 6px; border-radius: 4px; white-space: nowrap; z-index: 99;
+      }
+      /* 统计卡 */
+      .stats { display: flex; gap: 10px; margin-top: 12px; }
+      .stat {
+        flex: 1; background: #f8fafc; border: 1px solid #e2e8f0;
+        border-radius: 8px; padding: 10px 12px;
+      }
+      .stat-label { font-size: 11px; color: #64748b; margin-bottom: 4px; }
+      .stat-val   { font-size: 18px; font-weight: 600; }
+      /* 页面标题 */
+      .page-header { margin-bottom: 14px; }
+      .page-header h1 { font-size: 18px; font-weight: 600; color: #1e293b; }
+      .page-header .subtitle { font-size: 13px; color: #64748b; margin-top: 4px; }
+      /* Tab */
+      .tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+      .tab {
+        padding: 6px 18px; border-radius: 8px; border: 2px solid #e2e8f0;
+        background: #fff; font-size: 13px; cursor: pointer;
+        font-weight: 500; color: #64748b; transition: all .15s;
+      }
+      .tab.active { border-color: #2563eb; background: #eff6ff; color: #2563eb; }
+      .tab-panel { display: none; }
+      .tab-panel.active { display: block; }
+      /* 工序链侧板 */
+      #chainPanel {
+        position: fixed; right: 16px; top: 80px; width: 240px;
+        background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+        padding: 14px; z-index: 500; box-shadow: 0 8px 24px rgba(0,0,0,.12);
+        font-size: 12px;
+      }
+      #chainPanel .cp-head {
+        font-size: 13px; font-weight: 600; margin-bottom: 10px;
+        display: flex; align-items: center; justify-content: space-between;
+      }
+      #chainPanel .cp-close {
+        cursor: pointer; color: #94a3b8; font-size: 16px; line-height: 1;
+      }
+      #chainPanel .cp-row {
+        display: flex; justify-content: space-between;
+        padding: 3px 0; border-bottom: 1px solid #f1f5f9;
+        font-size: 11px; color: #475569;
+      }
+      #chainPanel .cp-row:last-of-type { border-bottom: none; }
+      #chainPanel .cp-label { color: #94a3b8; }
+      #chainPanel .chain-section { margin-top: 8px; }
+      #chainPanel .chain-title { font-size: 10px; color: #94a3b8; font-weight: 600; margin-bottom: 4px; }
+      #chainPanel .chain-item {
+        display: flex; align-items: center; gap: 4px;
+        padding: 2px 0; font-size: 11px;
+      }
+      #chainPanel .chain-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+      #chainPanel .btn-ask {
+        margin-top: 10px; width: 100%; padding: 6px;
+        border-radius: 8px; border: none;
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
+        color: #fff; cursor: pointer; font-size: 11px; font-weight: 600;
+        font-family: inherit;
+      }
+      #chainPanel .btn-ask:hover { opacity: .9; }
+    </style>
+  </head>
+  <body>
+    <div class="page-header">
+      <h1>生产排程总览</h1>
+      <p class="subtitle">排程窗口: 08:00–20:00 · 5 张工序 · 3 台设备</p>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('gantt',this)">📋 甘特图</button>
+      <button class="tab" onclick="switchTab('heat',this)">🌡️ 负载热力图</button>
+    </div>
+    <div class="tab-panel active" id="panel-gantt">
+      <div class="card">
+        <div class="timeline" id="tl"></div>
+        <div id="gantt"></div>
+      </div>
+    </div>
+    <div class="tab-panel" id="panel-heat">
+      <div class="card">
+        <div class="timeline" id="tl2"></div>
+        <div id="heatmap"></div>
+        <div class="stats" id="stats"></div>
+      </div>
+    </div>
+
+    <script>
+      // ── Agent 回调 ──────────────────────────────────────────
+      function sendToAgent(message, context) {
+        window.parent.postMessage(
+          { type: 'famou-agent-query', message, context },
+          '*'
+        );
+      }
+
+      // ── 数据（含前置/后续工序） ──────────────────────────
+      const DATA = {
+        time_range: { start: "08:00", end: "20:00" },
+        now: "10:30",
+        tasks: [
+          { name: "P-001", resource: "CNC-01", start: 8,    end: 9.5,  status: "done",    predecessors: [],        successors: ["P-002"] },
+          { name: "P-002", resource: "CNC-01", start: 9.5,  end: 11,   status: "vip",     predecessors: ["P-001"], successors: ["P-005"] },
+          { name: "P-003", resource: "CNC-02", start: 8,    end: 10.5, status: "done",    predecessors: [],        successors: ["P-004"] },
+          { name: "P-004", resource: "CNC-02", start: 10.5, end: 13,   status: "warning", predecessors: ["P-003"], successors: [] },
+          { name: "P-005", resource: "焊接站",  start: 11.5, end: 14,   status: "normal",  predecessors: ["P-002"], successors: [] },
+        ],
+        load: {
+          resources: ["CNC-01", "CNC-02", "焊接站"],
+          slots: ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"],
+          data: [
+            [0.3, 0.9, 0.95, 0.7, 0.6, 0.85, 0.4, 0.5, 0.8, 0.75, 0.3, 0.2],
+            [0.8, 0.95, 1.0, 0.9, 0.7, 0.8, 0.85, 0.6, 0.4, 0.5, 0.7, 0.8],
+            [0.1, 0.6, 0.9, 0.85, 0.4, 0.3, 0.7, 0.9, 0.6, 0.2, 0.1, 0.1],
+          ],
+          thresholds: { overload: 0.9, idle: 0.2 },
+        },
+      };
+
+      const HOURS = 12, S = 8;
+      const pct  = h => `${(((h - S) / HOURS) * 100).toFixed(2)}%`;
+      const lerp = (a, b, t) => Math.round(a + (b - a) * t);
+      function heatColor(r) {
+        if (r < 0.6) {
+          const t = r / 0.6;
+          return `rgb(${lerp(22,217,t)},${lerp(163,119,t)},${lerp(74,6,t)})`;
+        }
+        const t = (r - 0.6) / 0.4;
+        return `rgb(${lerp(217,220,t)},${lerp(119,38,t)},${lerp(6,38,t)})`;
+      }
+
+      // ── 时间轴 ─────────────────────────────────────────────
+      ["tl", "tl2"].forEach(id => {
+        const el = document.getElementById(id);
+        DATA.load.slots.forEach(s => {
+          const d = document.createElement("div");
+          d.className = "tl-label";
+          d.textContent = s;
+          el.appendChild(d);
+        });
+      });
+
+      // ── 甘特图：任务条 + 工序链侧板 ──────────────────────
+      const taskMap = {};
+      DATA.tasks.forEach(t => { taskMap[t.name] = t; });
+
+      let selectedTask = null;
+      const allBarEls = {};
+
+      const res = [...new Set(DATA.tasks.map(t => t.resource))];
+      const ganttEl = document.getElementById("gantt");
+      res.forEach(r => {
+        const row = document.createElement("div");
+        row.className = "g-row";
+        row.innerHTML = `<div class="row-label">${r}</div>`;
+        const track = document.createElement("div");
+        track.className = "g-track";
+        const nowPct = (((parseFloat(DATA.now) - S) / HOURS) * 100).toFixed(2);
+        track.innerHTML = `<div class="now-line" style="left:${nowPct}%"></div>`;
+        DATA.tasks.filter(t => t.resource === r).forEach(t => {
+          const bar = document.createElement("div");
+          bar.className = `task ${t.status}`;
+          bar.style.left  = pct(t.start);
+          bar.style.width = `calc(${pct(t.end)} - ${pct(t.start)})`;
+          bar.textContent = t.name;
+          bar.title = "点击查看工序链 & 问 AI";
+          bar.addEventListener('click', ev => {
+            ev.stopPropagation();
+            if (selectedTask && selectedTask.name === t.name) {
+              clearSelection();
+            } else {
+              selectTask(t);
+            }
+          });
+          track.appendChild(bar);
+          allBarEls[t.name] = bar;
+        });
+        row.appendChild(track);
+        ganttEl.appendChild(row);
+      });
+
+      document.getElementById("gantt").addEventListener('click', () => clearSelection());
+
+      document.addEventListener('click', e => {
+        if (!selectedTask) return;
+        const panel = document.getElementById('chainPanel');
+        if (panel && panel.contains(e.target)) return;
+        if (e.target.classList.contains('task')) return;
+        clearSelection();
+      });
+
+      function selectTask(t) {
+        clearSelection();
+        selectedTask = t;
+        // 高亮自身
+        allBarEls[t.name]?.classList.add('sel');
+        // 高亮前置（蓝）
+        t.predecessors.forEach(pid => allBarEls[pid]?.classList.add('dep-pre'));
+        // 高亮后续（橙）
+        t.successors.forEach(sid => allBarEls[sid]?.classList.add('dep-suc'));
+        showChainPanel(t);
+      }
+
+      function clearSelection() {
+        selectedTask = null;
+        Object.values(allBarEls).forEach(el => el.classList.remove('sel','dep-pre','dep-suc'));
+        const p = document.getElementById('chainPanel');
+        if (p) p.remove();
+      }
+
+      function fmtTime(h) {
+        const hh = Math.floor(h);
+        const mm = Math.round((h - hh) * 60);
+        return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+      }
+
+      const STATUS_LABEL = { done:'已完成', vip:'VIP紧急', warning:'延迟风险', normal:'正常' };
+
+      function showChainPanel(t) {
+        const old = document.getElementById('chainPanel');
+        if (old) old.remove();
+
+        const panel = document.createElement('div');
+        panel.id = 'chainPanel';
+
+        const preHtml = t.predecessors.length
+          ? t.predecessors.map(pid => {
+              const pt = taskMap[pid];
+              return `<div class="chain-item">
+                <div class="chain-dot" style="background:#3b82f6"></div>
+                <span style="color:#3b82f6">${pid}</span>
+                <span style="color:#94a3b8;margin-left:auto">${pt ? fmtTime(pt.start)+'~'+fmtTime(pt.end) : ''}</span>
+              </div>`;
+            }).join('')
+          : '<div style="color:#94a3b8;font-size:11px">无前置工序</div>';
+
+        const sucHtml = t.successors.length
+          ? t.successors.map(sid => {
+              const st = taskMap[sid];
+              return `<div class="chain-item">
+                <div class="chain-dot" style="background:#f97316"></div>
+                <span style="color:#f97316">${sid}</span>
+                <span style="color:#94a3b8;margin-left:auto">${st ? fmtTime(st.start)+'~'+fmtTime(st.end) : ''}</span>
+              </div>`;
+            }).join('')
+          : '<div style="color:#94a3b8;font-size:11px">无后续工序</div>';
+
+        panel.innerHTML = `
+          <div class="cp-head">
+            <span>工序详情</span>
+            <span class="cp-close" id="cpClose">✕</span>
+          </div>
+          <div class="cp-row"><span class="cp-label">任务</span><span style="font-weight:600">${t.name}</span></div>
+          <div class="cp-row"><span class="cp-label">机器</span><span>${t.resource}</span></div>
+          <div class="cp-row"><span class="cp-label">时间</span><span>${fmtTime(t.start)} ~ ${fmtTime(t.end)}</span></div>
+          <div class="cp-row"><span class="cp-label">状态</span><span>${STATUS_LABEL[t.status] || t.status}</span></div>
+          <div class="chain-section">
+            <div class="chain-title">▲ 前置工序</div>
+            ${preHtml}
+          </div>
+          <div class="chain-section" style="margin-top:8px">
+            <div class="chain-title">▼ 后续工序</div>
+            ${sucHtml}
+          </div>
+          <button class="btn-ask" id="cpAsk">🤖 问 AI 分析 / 重排</button>`;
+
+        document.body.appendChild(panel);
+
+        document.getElementById('cpClose').onclick = () => clearSelection();
+        document.getElementById('cpAsk').onclick = () => {
+          const preCtx = t.predecessors.length
+            ? `前置工序：${t.predecessors.map(p => { const pt = taskMap[p]; return `${p}（${STATUS_LABEL[pt?.status] || pt?.status}，${pt ? fmtTime(pt.start)+'~'+fmtTime(pt.end) : ''}）`; }).join('、')}；`
+            : '';
+          const sucCtx = t.successors.length
+            ? `后续工序：${t.successors.map(s => { const st = taskMap[s]; return `${s}（${st ? fmtTime(st.start)+'~'+fmtTime(st.end) : ''}）`; }).join('、')}；`
+            : '无后续工序；';
+          sendToAgent(
+            `任务"${t.name}"排在 ${t.resource}，时间 ${fmtTime(t.start)}~${fmtTime(t.end)}，状态：${STATUS_LABEL[t.status] || t.status}。${preCtx}${sucCtx}请分析该安排是否合理，或建议重排方案。`,
+            { taskName: t.name, resource: t.resource, start: t.start, end: t.end, status: t.status,
+              predecessors: t.predecessors, successors: t.successors }
+          );
+        };
+      }
+
+      // ── 热力图 ──────────────────────────────────────────────
+      const heatEl = document.getElementById("heatmap");
+      if (!DATA.load || !DATA.load.resources) {
+        heatEl.innerHTML = '<div style="padding:24px;color:#94a3b8;text-align:center">暂无负载数据</div>';
+      } else {
+      const { resources, data, thresholds } = DATA.load;
+
+      // 2D 索引，供拖选聚合使用
+      const cellGrid = [];
+
+      resources.forEach((r, ri) => {
+        cellGrid[ri] = [];
+        const row = document.createElement("div");
+        row.className = "h-row";
+        row.innerHTML = `<div class="row-label">${r}</div>`;
+        const track = document.createElement("div");
+        track.className = "h-track";
+        data[ri].forEach((v, ci) => {
+          const cell = document.createElement("div");
+          cell.className = "h-cell";
+          cell.style.background = heatColor(v);
+          cell.style.opacity = 0.3 + v * 0.7;
+          cell.dataset.ri = ri;
+          cell.dataset.ci = ci;
+          const pctLabel = Math.round(v * 100);
+          const slot = DATA.load.slots[ci];
+          cell.dataset.tip = `${slot} ${pctLabel}%${v >= thresholds.overload ? ' ⚠过载' : ''}`;
+          cell.title = '单击询问 AI';
+          cell.addEventListener('click', () => {
+            if (v >= thresholds.overload) {
+              sendToAgent(
+                `${r} 在 ${slot} 时段负载 ${pctLabel}%，超出过载阈值（${Math.round(thresholds.overload * 100)}%），请分析过载原因并建议缓解方案。`,
+                { resource: r, slot, loadRate: v, threshold: thresholds.overload, isOverload: true }
+              );
+            } else {
+              sendToAgent(
+                `${r} 在 ${slot} 时段负载为 ${pctLabel}%，请分析该时段的资源利用情况及优化建议。`,
+                { resource: r, slot, loadRate: v, isOverload: false }
+              );
+            }
+          });
+          cellGrid[ri][ci] = { el: cell, v, r, slot };
+          track.appendChild(cell);
+        });
+        row.appendChild(track);
+        heatEl.appendChild(row);
+      });
+
+      // ── 统计卡 ──────────────────────────────────────────────
+      const allVals = data.flat();
+      const avg      = allVals.reduce((a, b) => a + b, 0) / allVals.length;
+      const overload = allVals.filter(v => v >= thresholds.overload).length;
+      const idle     = allVals.filter(v => v <= thresholds.idle).length;
+      const maxRes   = resources[data.map(r => Math.max(...r)).reduce((mi, v, i, a) => (v > a[mi] ? i : mi), 0)];
+      document.getElementById("stats").innerHTML = `
+        <div class="stat"><div class="stat-label">平均负载率</div><div class="stat-val" style="color:#D97706">${Math.round(avg*100)}%</div></div>
+        <div class="stat"><div class="stat-label">过载时段</div><div class="stat-val" style="color:#DC2626">${overload} 个</div></div>
+        <div class="stat"><div class="stat-label">空闲时段</div><div class="stat-val" style="color:#16A34A">${idle} 个</div></div>
+        <div class="stat"><div class="stat-label">最高负载机器</div><div class="stat-val" style="font-size:14px">${maxRes}</div></div>`;
+      } // end if DATA.load
+
+      function switchTab(key, btn) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('panel-' + key).classList.add('active');
+      }
+    </script>
+  </body>
+</html>

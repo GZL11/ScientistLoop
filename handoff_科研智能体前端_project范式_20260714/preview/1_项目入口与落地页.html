@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 入口 · 完整链路原型</title>
+<link rel="stylesheet" href="./src/styles.css">
+<style>
+  html,body{margin:0;height:100%}
+  body{font-family:-apple-system,"PingFang SC",sans-serif;background:var(--bg);color:var(--text)}
+  .banner{background:#fff8ec;border-bottom:1px solid #ffe3ad;color:#92600a;font-size:12px;padding:7px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  :root.dark .banner{background:#2a2410;border-color:#4a3d18;color:#e0c07a}
+  .themebtn{background:var(--accent);color:#fff;border:none;border-radius:100px;padding:3px 12px;font-size:12px;cursor:pointer;margin-left:auto}
+  .app{display:flex;height:calc(100vh - 30px)}
+  /* ===== 左栏 ===== */
+  .sidebar{width:250px;flex:0 0 250px;border-right:1px solid var(--border);background:var(--bg-soft);display:flex;flex-direction:column}
+  .sb-head{display:flex;align-items:center;gap:9px;padding:14px 14px 10px}
+  .sb-head .logo{width:30px;height:30px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:15px;font-weight:700;flex:0 0 auto}
+  .sb-head .tt .n{font-weight:700;font-size:15px}.sb-head .tt .s{font-size:11px;color:var(--text-dim)}
+  .sb-head .col{margin-left:auto;color:var(--text-dim);cursor:pointer}
+  .sb-pad{padding:0 12px}
+  .search{border:1px solid var(--border);border-radius:10px;padding:8px 11px;font-size:12.5px;color:var(--text-dim);margin-bottom:10px;cursor:text}
+  .switcher{border:1px solid var(--border);border-radius:10px;padding:9px 11px;font-size:13px;display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg)}
+  .switcher .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .switcher .car{margin-left:auto;color:var(--text-dim)}
+  .fx{margin-top:12px}
+  .fx-item{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;padding:11px 12px;border-radius:10px;cursor:pointer;color:var(--text)}
+  .fx-item:hover{background:var(--bg)}
+  .fx-item .ct{margin-left:auto;font-size:12px;font-weight:700;background:var(--accent);color:#fff;min-width:20px;height:20px;border-radius:10px;display:grid;place-items:center;padding:0 6px}
+  .divider{height:1px;background:var(--border);margin:12px}
+  .sb-sec{font-size:11px;color:var(--text-dim);padding:4px 14px;font-weight:600}
+  .newchat{margin:2px 12px 8px;font-size:12.5px;color:var(--text-dim);border:1px solid var(--border);border-radius:9px;padding:8px 11px;cursor:pointer;display:flex;gap:7px;align-items:center;justify-content:center}
+  .newchat:hover{color:var(--text);border-color:var(--accent)}
+  .sb-scroll{flex:1;overflow-y:auto}
+  .sess{font-size:13px;color:var(--text-dim);padding:9px 12px;margin:0 8px;border-radius:8px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;gap:8px;align-items:center}
+  .sess.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .sess:hover{background:var(--bg)}
+  .sess .mv{margin-left:auto;font-size:11px;color:var(--accent);opacity:0;flex:0 0 auto}
+  .sess:hover .mv{opacity:1}
+  .sb-empty{padding:20px 16px;font-size:12px;color:var(--text-dim);line-height:1.8}
+  .sb-foot{border-top:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-dim)}
+  .sb-foot .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+  .sb-foot .dark{margin-left:auto;border:1px solid var(--border);border-radius:8px;padding:3px 9px;cursor:pointer}
+  /* ===== 主区 ===== */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .pane{display:none;height:100%;overflow-y:auto}.pane.on{display:block}
+  .home-pad{padding:28px 40px}
+  .home-top{display:flex;align-items:center;margin-bottom:6px}
+  .home-top h2{font-size:22px;margin:0}.home-top .cnt{color:var(--text-dim);font-size:14px;margin-left:10px}
+  .home-top .acts{margin-left:auto}
+  .btn{border:1px solid var(--border);background:var(--bg-soft);border-radius:10px;padding:8px 15px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text);display:inline-flex;align-items:center;gap:7px}
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .home-sub{color:var(--text-dim);font-size:13px;margin-bottom:20px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:15px;max-width:1120px}
+  .pcard{border:1px solid var(--border);border-radius:14px;padding:16px 18px;cursor:pointer;background:var(--bg-soft);transition:.15s;position:relative}
+  .pcard:hover{border-color:var(--accent)}
+  .pcard .nm{font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:7px}
+  .pcard .meta{color:var(--text-dim);font-size:12px;margin-top:10px;display:flex;gap:14px}
+  .pcard .dots{position:absolute;top:12px;right:12px;color:var(--text-dim);opacity:0;cursor:pointer;font-weight:700;padding:2px 6px;border-radius:6px}
+  .pcard:hover .dots{opacity:1}
+  .pcard .dots:hover{background:var(--bg)}
+  .pcard.unarch{border-style:dashed}.pcard.unarch .nm{color:var(--text-dim)}
+  /* 大新建项目卡（主区第一张） */
+  .pcard.newproj{background:var(--accent);color:#fff;border:none;display:grid;place-items:center;min-height:110px;text-align:center}
+  .pcard.newproj .big{font-size:26px;font-weight:300;line-height:1}
+  .pcard.newproj .lb{font-weight:700;font-size:15px;margin-top:8px}
+  .pcard.newproj:hover{filter:brightness(1.05)}
+  .work-fill{height:100%;display:grid;place-items:center;color:var(--text-dim);font-size:14px;text-align:center;line-height:2;padding:30px}
+  .work-fill .hl{color:var(--accent)}
+  .work-fill .up{margin-top:14px;border:1px dashed var(--border);border-radius:12px;padding:16px 22px;color:var(--text-dim);cursor:pointer}
+  .work-fill .up:hover{border-color:var(--accent);color:var(--text)}
+  .lib-pad{padding:26px 40px}.lib-pad h2{font-size:19px;margin:0 0 12px}.lib-pad p{color:var(--text-dim);font-size:13px;line-height:2}
+  /* 下拉/菜单/弹窗 */
+  .dropdown,.ctx{position:absolute;background:var(--bg-soft);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.28);padding:6px;z-index:30;display:none;min-width:180px}
+  .dropdown.on,.ctx.on{display:block}
+  .dropdown{top:150px;left:20px;width:230px}
+  .dd-item{padding:8px 10px;font-size:13px;border-radius:8px;cursor:pointer;display:flex;gap:8px;align-items:center}.dd-item:hover{background:var(--bg)}.dd-item.cur{color:var(--accent);font-weight:600}.dd-item.danger{color:#dc2626}
+  .dd-sep{border-top:1px solid var(--border);margin:5px 0}
+  .modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;place-items:center;z-index:40}
+  .modal-mask.on{display:grid}
+  .modal{background:var(--bg-soft);border:1px solid var(--border);border-radius:16px;padding:22px 24px;width:440px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+  .modal h3{margin:0 0 4px;font-size:17px}
+  .modal .sub{color:var(--text-dim);font-size:12.5px;margin-bottom:16px}
+  .modal label{font-size:12px;color:var(--text-dim);display:block;margin:12px 0 6px;font-weight:600}
+  .modal input[type=text]{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;background:var(--bg);color:var(--text);box-sizing:border-box}
+  .modal .drop{border:1.5px dashed var(--border);border-radius:12px;padding:20px;text-align:center;color:var(--text-dim);font-size:13px;cursor:pointer;margin-top:2px}
+  .modal .drop:hover{border-color:var(--accent);color:var(--text)}
+  .modal .drop .picked{color:var(--accent);font-weight:600;margin-top:6px;font-size:12px}
+  .modal-acts{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+  .modal .hint{font-size:11.5px;color:var(--text-dim);margin-top:10px}
+  .radio{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+  .radio label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin:0;font-weight:400;cursor:pointer;border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+  .radio label:hover{border-color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="banner">
+  🧭 完整链路可点原型：新建项目(命名→可选上传)、临时对话→移入项目、项目内新会话、补传文件、删除/重命名。
+  <button class="themebtn" onclick="document.documentElement.classList.toggle('dark')">切换深/浅</button>
+</div>
+
+<div class="app">
+  <!-- 左栏 -->
+  <div class="sidebar">
+    <div class="sb-head"><span class="logo">伐</span><span class="tt"><div class="n">百度伐谋</div><div class="s">AutoResearch · 科研搭子</div></span><span class="col">‹</span></div>
+    <div class="sb-pad">
+      <div class="search">🔍 搜项目 / 对话</div>
+      <div class="switcher" onclick="toggleDD(event)"><span>📁</span><span class="nm" id="curName">全部项目</span><span class="car">▾</span></div>
+      <div class="fx">
+        <div class="fx-item" onclick="go('lib')">📚 文献库 <span class="ct">128</span></div>
+        <div class="fx-item" onclick="go('moon')">🌙 MoonLog <span class="ct">4</span></div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div id="sbSessWrap">
+      <div class="sb-empty" id="sbEmpty">选一个项目进入，<br>这里显示该项目的会话。</div>
+      <div id="sbSess" style="display:none">
+        <div class="sb-sec" id="sessSec">本项目会话</div>
+        <div class="newchat" id="newChatBtn" onclick="newSession()">＋ 新会话</div>
+        <div class="sb-scroll" id="sessList"></div>
+      </div>
+    </div>
+    <div class="sb-foot"><span class="dot"></span>Danni<span class="dark">🌙 深色</span></div>
+  </div>
+
+  <!-- 切换器下拉 -->
+  <div class="dropdown" id="dd">
+    <div class="dd-item" style="color:var(--accent);font-weight:600" onclick="go('home')">⊞ 全部项目</div>
+    <div class="dd-sep"></div>
+    <div class="dd-item" onclick="enterProj('GNN 风阻预测')">📁 GNN 风阻预测</div>
+    <div class="dd-item" onclick="enterProj('强化学习·润滑油配方')">📁 强化学习·润滑油配方</div>
+    <div class="dd-item" onclick="enterProj('鱼群集体行为调研')">📁 鱼群集体行为调研</div>
+    <div class="dd-sep"></div>
+    <div class="dd-item" style="color:var(--text-dim)" onclick="enterUnarch()">💬 未归档对话</div>
+  </div>
+
+  <!-- 卡片右键菜单 -->
+  <div class="ctx" id="ctx">
+    <div class="dd-item" onclick="renameProj()">✎ 重命名</div>
+    <div class="dd-item" onclick="alert('已置顶（原型）')">⭐ 收藏置顶</div>
+    <div class="dd-sep"></div>
+    <div class="dd-item danger" onclick="deleteProj()">🗑 删除项目</div>
+  </div>
+
+  <!-- 主区 -->
+  <div class="main">
+    <!-- 落地页 -->
+    <div class="pane on" id="pane-home">
+      <div class="home-pad">
+        <div class="home-top">
+          <h2>全部项目</h2><span class="cnt" id="projCnt">5</span>
+          <span class="acts"><button class="btn" onclick="enterUnarch()">＋ 临时对话</button></span>
+        </div>
+        <div class="home-sub">研究以项目为单位沉淀（workspace + 会话 + 文献）。随手散聊 →「临时对话」，落入「未归档对话」，之后可移入正式项目。</div>
+        <div class="grid" id="projGrid"></div>
+      </div>
+    </div>
+    <!-- 工作区 -->
+    <div class="pane" id="pane-work"><div class="work-fill" id="workFill"></div></div>
+    <div class="pane" id="pane-lib"><div class="lib-pad"><h2>📚 文献库（账号级 · 跨项目）</h2><p>所有项目引用过的文献汇总；每条可看被哪些项目引用。左栏固化常驻。</p></div></div>
+    <div class="pane" id="pane-moon"><div class="lib-pad"><h2>🌙 MoonLog（每日知识摘要）</h2><p>每天凌晨自动编译的研究知识日志，左栏固化常驻。</p></div></div>
+  </div>
+</div>
+
+<!-- 新建项目 弹窗 -->
+<div class="modal-mask" id="mNew">
+  <div class="modal">
+    <h3>新建项目</h3>
+    <div class="sub">给项目起名，可上传初始文件开启，也可留空直接开始。</div>
+    <label>项目名称 *</label>
+    <input type="text" id="npName" placeholder="如：GNN 风阻预测">
+    <label>初始内容（可选）</label>
+    <div class="drop" id="npDrop" onclick="pickFiles()">
+      📁 点击 / 拖拽 上传文件或整个文件夹<div class="picked" id="npPicked"></div>
+    </div>
+    <div class="hint">上传的文件进项目 workspace，会标记为「原始输入」（受保护，agent 改动前需授权）。不传也能建空项目。</div>
+    <div class="modal-acts">
+      <button class="btn" onclick="closeModal('mNew')">取消</button>
+      <button class="btn primary" onclick="createProj()">创建并进入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 移入项目 弹窗 -->
+<div class="modal-mask" id="mMove">
+  <div class="modal">
+    <h3>移入项目</h3>
+    <div class="sub" id="mvSub">把这条对话及其产物迁入一个正式项目。</div>
+    <div class="radio" id="mvList">
+      <label><input type="radio" name="mv" checked> 📁 GNN 风阻预测</label>
+      <label><input type="radio" name="mv"> 📁 强化学习·润滑油配方</label>
+      <label><input type="radio" name="mv"> 📁 鱼群集体行为调研</label>
+      <label><input type="radio" name="mv"> ＋ 新建项目并移入</label>
+    </div>
+    <div class="modal-acts">
+      <button class="btn" onclick="closeModal('mMove')">取消</button>
+      <button class="btn primary" onclick="doMove()">移入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 删除确认 弹窗 -->
+<div class="modal-mask" id="mDel">
+  <div class="modal">
+    <h3>删除项目？</h3>
+    <div class="sub" id="delSub">此操作会删除项目及其 workspace 全部文件与会话，不可恢复。</div>
+    <div class="modal-acts">
+      <button class="btn" onclick="closeModal('mDel')">取消</button>
+      <button class="btn" style="background:#dc2626;color:#fff;border-color:#dc2626" onclick="doDelete()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<script src="./project入口预览.js"></script>
+</body>
+</html>

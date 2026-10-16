@@ -1,0 +1,18 @@
+{
+  "version": "20260810-001-async-wakeup",
+  "created_at": "2026-08-10",
+  "title": "Asynchronous idempotent Agent wakeups",
+  "description": "Accept heartbeat wakeups without waiting for the full Agent turn, preventing retries from creating duplicate internal messages.",
+  "source_file": "registry/plugins/heartbeat/files/heartbeat.20260810-001-async-wakeup.ts",
+  "runtime_file": "plugins/heartbeat.ts",
+  "changes": [
+    "Deliver terminal experiment notifications with client.session.promptAsync.",
+    "Deliver semantic checkpoint wakeups with client.session.promptAsync.",
+    "Finalize the atomic sent marker as soon as OpenCode accepts the wakeup.",
+    "Keep ordinary progress file-backed for the Process panel instead of adding chat turns."
+  ],
+  "rollback": {
+    "target": "registry/source/plugins/heartbeat.ts",
+    "notes": "Restore 20260809-001-singleton-backoff if the installed OpenCode SDK does not support promptAsync."
+  }
+}

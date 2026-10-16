@@ -1,0 +1,52 @@
+{
+  "goal": {
+    "id": "dummy_algorithm_innovation",
+    "name": "dummy_algorithm_innovation"
+  },
+  "benchmarks": [
+    {
+      "name": "dummy_classification_bench",
+      "adapter": {
+        "type": "dummy"
+      },
+      "official_metric": {
+        "name": "accuracy",
+        "direction": "higher_is_better"
+      },
+      "hidden_test_access": "forbidden"
+    }
+  ],
+  "baselines": [
+    {"name": "baseline_A", "repo": "baselines/A"}
+  ],
+  "objective_brief": {
+    "primary_goal": "官方 accuracy 达到或接近 baseline，同时形成有论文价值的新机制。",
+    "official_metric": {
+      "name": "accuracy",
+      "source": "benchmark_adapter",
+      "direction": "higher_is_better"
+    },
+    "preference_description": "用户更偏好机制清晰、可解释、可复现的方法；不希望只做 HPO、ensemble 或 benchmark trick。",
+    "allow_examples": [
+      "accuracy 基本持平，但模型更快、更简单，并有清晰可解释机制。"
+    ],
+    "reject_examples": [
+      "只通过 HPO 获得小幅提升。",
+      "直接 ensemble 多个 baseline，但没有新算法贡献。"
+    ],
+    "tie_breakers": [
+      "分数相近时，优先选择新颖性、可解释性、证据链更强的方案。"
+    ]
+  },
+  "constraints": {
+    "max_wall_time_hours": 1,
+    "max_evaluator_submissions": 1,
+    "max_parallel_evaluations": 1,
+    "max_experiment_retries": 0,
+    "hidden_test_access": "forbidden",
+    "external_data_policy": "declare_and_approve"
+  },
+  "outputs": {
+    "required": ["method_code", "experiment_report", "evidence_bundle"]
+  }
+}

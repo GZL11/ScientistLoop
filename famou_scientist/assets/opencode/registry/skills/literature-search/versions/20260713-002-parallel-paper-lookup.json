@@ -1,0 +1,19 @@
+{
+  "version": "20260713-002-parallel-paper-lookup",
+  "created_at": "2026-07-13",
+  "title": "Parallel paper lookup protocol",
+  "description": "Updates literature-search guidance so specific-paper requests use academic lookup and native websearch/webfetch in parallel before asking the user for more clues.",
+  "source_file": "registry/skills/literature-search/files/SKILL.20260713-002-parallel-paper-lookup.md",
+  "runtime_file": "skill/experiment/literature-search/SKILL.md",
+  "changes": [
+    "Rename Paper Lookup first to Parallel Paper Lookup first.",
+    "Require arc_lookup_paper with the original phrase and native websearch with focused query variants.",
+    "Require webfetch verification of trusted paper pages.",
+    "Forbid listing candidates that only match versions, years, numbers, or generic words.",
+    "Ask the user for more clues only after both academic and web lookup fail."
+  ],
+  "rollback": {
+    "target": "20260713-001-paper-lookup",
+    "notes": "Restore the prior Paper Lookup first skill version."
+  }
+}

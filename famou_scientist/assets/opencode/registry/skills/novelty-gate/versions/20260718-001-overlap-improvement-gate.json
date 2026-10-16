@@ -1,0 +1,19 @@
+{
+  "version": "20260718-001-overlap-improvement-gate",
+  "created_at": "2026-07-18",
+  "title": "Overlap-aware novelty and improvement gate",
+  "description": "Changes novelty-gate from a strict novelty-only filter into an overlap-aware research value gate that distinguishes direct duplication from improvable baselines and related-but-different ideas.",
+  "source_file": "registry/skills/novelty-gate/files/SKILL.20260718-001-overlap-improvement-gate.md",
+  "runtime_file": "skill/experiment/novelty-gate/SKILL.md",
+  "changes": [
+    "Add targeted literature check requirements before each idea is shown to the user.",
+    "Add overlap matrix and improvement opportunity requirements.",
+    "Add compute/time/data cost estimation to the gate.",
+    "Replace REPETITIVE-only rejection with DUPLICATE, OVERLAP BUT DIFFERENT, and IMPROVABLE BASELINE categories.",
+    "Forbid treating related work as automatic rejection."
+  ],
+  "rollback": {
+    "target": null,
+    "notes": "Restore the previous runtime novelty-gate SKILL.md from repository history if needed."
+  }
+}

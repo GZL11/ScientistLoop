@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>Famou Agent Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<style>
+:root {
+  --bg: #F1F0EC;
+  --surface: #FFFFFF;
+  --border: #E5E4DF;
+  --border-subtle: #EDECE9;
+  --nav-bg: #0D0D0C;
+  --sidebar-bg: #FFFFFF;
+  --text-primary: #0D0D0C;
+  --text-secondary: #65645D;
+  --text-tertiary: #A3A29B;
+  --blue: #4F46E5;
+  --blue-dark: #4338CA;
+  --blue-light: #EEF2FF;
+  --blue-border: #C7D2FE;
+  --green: #059669;
+  --green-light: #ECFDF5;
+  --red: #E11D48;
+  --red-light: #FFF1F2;
+  --purple: #7C3AED;
+  --purple-light: #F5F3FF;
+  --purple-border: #EDE9FE;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --shadow-sm: 0 1px 2px rgba(13,13,12,0.05);
+  --shadow-md: 0 4px 16px rgba(13,13,12,0.08), 0 1px 3px rgba(13,13,12,0.05);
+  --shadow-lg: 0 8px 28px rgba(13,13,12,0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  background: var(--bg);
+  color: var(--text-primary);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── nav ── */
+nav {
+  background: var(--nav-bg);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 56px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.brand {
+  font-weight: 700; font-size: 12px;
+  letter-spacing: 0.09em; text-transform: uppercase;
+  color: #fff; margin-right: 20px;
+  display: flex; align-items: center; gap: 9px;
+  text-decoration: none; white-space: nowrap;
+}
+.brand-mark {
+  width: 26px; height: 26px; border-radius: 7px;
+  background: var(--blue);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 800; color: #fff; letter-spacing: -0.5px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 2px 6px rgba(79,70,229,0.5);
+}
+nav a.nav-link {
+  color: rgba(255,255,255,0.4); text-decoration: none;
+  font-size: 13px; font-weight: 500;
+  padding: 6px 12px; border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+  letter-spacing: -0.01em;
+}
+nav a.nav-link:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+nav a.nav-link.active { background: rgba(255,255,255,0.1); color: #fff; font-weight: 600; }
+
+/* ── layout ── */
+.main { flex: 1; display: flex; overflow: hidden; }
+
+/* ── sidebar ── */
+.sidebar {
+  width: 264px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  flex-shrink: 0;
+}
+.sidebar-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.sidebar-section-label {
+  font-size: 10px; font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase; letter-spacing: .7px;
+  margin-bottom: 10px;
+}
+.new-session { display: flex; flex-direction: column; gap: 6px; }
+.new-session select {
+  font-size: 12px; font-weight: 500;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+  cursor: pointer;
+}
+.new-session select:focus { border-color: var(--blue); }
+.new-session select:hover { border-color: #C8C7C2; }
+.btn-new-session {
+  font-size: 12px; font-weight: 700;
+  padding: 9px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--blue);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+  box-shadow: 0 1px 3px rgba(79,70,229,0.35);
+  letter-spacing: -0.01em;
+}
+.btn-new-session:hover { background: var(--blue-dark); box-shadow: 0 2px 6px rgba(79,70,229,0.4); }
+.btn-new-session:disabled { background: var(--blue-border); cursor: not-allowed; box-shadow: none; }
+.session-list { flex: 1; overflow-y: auto; padding: 10px; }
+.session-item {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 5px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.session-item:hover { border-color: #A5B4FC; background: #FAFAFF; box-shadow: var(--shadow-sm); }
+.session-item.active { border-color: var(--blue); background: var(--blue-light); }
+.session-item .s-id {
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 11px; font-weight: 600; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.session-item .s-meta { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.session-item.is-fork { margin-left: 16px; border-left: 2px solid var(--border); padding-left: 10px; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.session-item.is-fork:hover { border-left-color: #A5B4FC; }
+.session-item.is-fork.active { border-left-color: var(--blue); }
+.s-frozen-tag {
+  display: inline-flex; align-items: center;
+  font-size: 9px; padding: 1px 6px;
+  border-radius: 4px; font-weight: 700;
+  background: var(--bg); color: var(--text-tertiary);
+  border: 1px solid var(--border);
+  letter-spacing: 0.3px;
+}
+
+/* ── chat area ── */
+.chat-area { flex: 1; display: flex; flex-direction: column; background: var(--bg); min-width: 0; }
+
+/* toolbar */
+.chat-toolbar {
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  flex-shrink: 0;
+}
+.toolbar-session-id {
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 12px; font-weight: 600;
+  color: var(--text-primary);
+}
+.toolbar-hint { font-size: 12px; color: var(--text-tertiary); }
+.toolbar-spacer { flex: 1; }
+
+/* toolbar buttons */
+.toolbar-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px; border-radius: var(--radius-sm);
+  font-size: 11px; font-weight: 700; font-family: inherit;
+  cursor: pointer; transition: all 0.15s; border: 1px solid transparent;
+  letter-spacing: -0.01em;
+}
+.toolbar-btn-upload {
+  background: var(--blue-light); color: var(--blue-dark);
+  border-color: var(--blue-border);
+}
+.toolbar-btn-upload:hover { background: #E0E7FF; }
+.toolbar-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.toolbar-btn-trace {
+  background: var(--blue-light); color: var(--blue-dark);
+  border-color: var(--blue-border);
+}
+.toolbar-btn-trace:hover { background: #E0E7FF; }
+.upload-status { font-size: 11px; color: var(--text-tertiary); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.upload-progress { font-size: 11px; color: var(--text-tertiary); display: flex; align-items: center; gap: 6px; }
+.upload-progress-bar { width: 80px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.upload-progress-fill { height: 100%; background: var(--blue); border-radius: 2px; transition: width 0.2s; }
+
+/* messages */
+.messages { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 4px; }
+.msg { max-width: 78%; }
+.msg.user { margin-left: auto; }
+.msg.assistant { margin-right: auto; }
+.msg-meta { font-size: 10px; color: var(--text-tertiary); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+.msg.user .msg-meta { text-align: right; }
+.bubble {
+  padding: 11px 15px;
+  border-radius: var(--radius-lg);
+  font-size: 13px; line-height: 1.72;
+  word-break: break-word;
+}
+.msg.user .bubble {
+  background: var(--blue);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+  white-space: pre-wrap;
+  box-shadow: 0 2px 8px rgba(79,70,229,0.28);
+}
+.msg.assistant .bubble {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-bottom-left-radius: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* streaming */
+.thinking-indicator {
+  display: flex; gap: 4px; align-items: center;
+  padding: 4px 0;
+}
+.thinking-indicator span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text-tertiary); display: inline-block;
+  animation: thinking-bounce 1.2s infinite;
+}
+.thinking-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.thinking-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes thinking-bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-4px)} }
+
+/* tool events in chat */
+.tool-events { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 3px; }
+.clarify-card { margin-top: 12px; padding: 12px 16px; background: #f0f7ff; border: 1px solid #90caf9; border-radius: 8px; }
+.clarify-question { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #e3f2fd; }
+.clarify-question:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.evolve-card { margin-top: 12px; padding: 10px 14px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; }
+.artifacts-card { margin-top: 12px; padding: 10px 14px; background: #f3f4f6; border: 1px solid var(--border-subtle); border-radius: 8px; }
+.streaming-line {
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 11px; color: var(--text-tertiary);
+  padding: 2px 0; line-height: 1.4;
+}
+.streaming-line.tool { color: var(--purple); font-weight: 600; }
+.streaming-line.error { color: var(--red); }
+
+/* ── markdown ── */
+.md p { margin-bottom: 8px; line-height: 1.78; }
+.md p:last-child { margin-bottom: 0; }
+.md h1,.md h2,.md h3,.md h4 { font-weight: 800; margin: 12px 0 5px; line-height: 1.3; color: var(--text-primary); letter-spacing: -0.3px; }
+.md h1 { font-size: 16px; } .md h2 { font-size: 15px; } .md h3 { font-size: 14px; } .md h4 { font-size: 13px; }
+.md ul,.md ol { padding-left: 20px; margin-bottom: 8px; }
+.md li { margin-bottom: 3px; line-height: 1.65; }
+.md code { background: var(--bg); padding: 1px 5px; border-radius: 5px; font-family: ui-monospace, 'SF Mono', Consolas, monospace; font-size: 12px; color: #5B5B53; border: 1px solid var(--border); }
+.msg.user .md code { background: rgba(255,255,255,.15); color: #fff; border-color: rgba(255,255,255,.2); }
+.md pre { background: #0D0D0C; color: #E2E1DA; padding: 14px 16px; border-radius: var(--radius-md); overflow-x: auto; margin: 10px 0; }
+.md pre code { background: none; color: inherit; padding: 0; font-size: 12px; border-radius: 0; border: none; }
+.md blockquote { border-left: 3px solid #D1D0CA; padding: 4px 12px; color: var(--text-secondary); margin: 8px 0; font-style: italic; }
+.md table { border-collapse: collapse; margin: 8px 0; font-size: 12px; width: 100%; }
+.md th,.md td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
+.md th { background: var(--bg); font-weight: 700; color: var(--text-secondary); }
+.md a { color: var(--blue); }
+.msg.user .md a { color: #C7D2FE; }
+.md hr { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+.md strong { font-weight: 700; }
+
+/* ── input bar ── */
+.input-bar {
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  display: flex; gap: 8px; align-items: flex-end;
+  flex-shrink: 0;
+}
+.input-bar textarea {
+  flex: 1; resize: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 13px; font-family: inherit;
+  min-height: 44px; max-height: 120px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  color: var(--text-primary);
+  background: var(--bg);
+  line-height: 1.5;
+}
+.input-bar textarea:focus { border-color: var(--blue); background: var(--surface); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+.input-bar textarea::placeholder { color: var(--text-tertiary); }
+.input-bar textarea:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-send {
+  padding: 10px 20px;
+  background: var(--blue);
+  color: #fff; border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer; font-size: 13px; font-weight: 700;
+  transition: background 0.15s, transform 0.1s;
+  font-family: inherit;
+  box-shadow: 0 1px 3px rgba(79,70,229,0.35);
+  flex-shrink: 0;
+  align-self: flex-end;
+  height: 44px;
+  letter-spacing: -0.01em;
+}
+.btn-send:hover { background: var(--blue-dark); transform: translateY(-1px); box-shadow: 0 2px 6px rgba(79,70,229,0.4); }
+.btn-send:active { transform: translateY(0); }
+.btn-send:disabled { background: var(--blue-border); cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ── empty state ── */
+.empty-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  height: 100%; gap: 12px;
+  color: var(--text-tertiary); font-size: 14px;
+  text-align: center;
+}
+.empty-state-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-tertiary);
+}
+
+/* ── trace modal ── */
+.trace-modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(13,13,12,0.5);
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+.trace-modal-box {
+  position: absolute; inset: 32px;
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+}
+.trace-modal-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg);
+}
+.trace-modal-title {
+  font-size: 14px; font-weight: 800;
+  flex: 1; color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+.trace-modal-close {
+  padding: 5px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer; font-size: 12px; font-weight: 600;
+  color: var(--text-secondary); font-family: inherit;
+  transition: all 0.15s;
+  letter-spacing: -0.01em;
+}
+.trace-modal-close:hover { background: var(--bg); color: var(--text-primary); }
+.trace-modal-tabs {
+  display: flex; gap: 4px;
+  padding: 8px 20px 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  overflow-x: auto;
+}
+.trace-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px 9px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px; font-weight: 600; font-family: inherit;
+  color: var(--text-secondary);
+  transition: all 0.12s;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+  margin-bottom: -1px;
+}
+.trace-tab:hover { background: var(--surface); color: var(--text-primary); }
+.trace-tab.active {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+.trace-tab .t-name { font-weight: 700; }
+.trace-tab .t-meta { font-weight: 500; color: var(--text-tertiary); font-size: 11px; }
+.trace-tab .t-sub-mark {
+  font-size: 9px; padding: 1px 5px;
+  background: var(--purple-light); color: #6D28D9;
+  border-radius: 4px; font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.trace-modal-body {
+  flex: 1; overflow-y: auto; padding: 16px 20px;
+}
+
+/* trace turn in modal */
+.trace-turn {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 6px; overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.trace-turn-header {
+  padding: 7px 14px;
+  background: var(--bg);
+  font-size: 12px;
+  display: flex; gap: 8px; align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+.trace-tool {
+  border: 1px solid var(--purple-border);
+  border-radius: var(--radius-sm);
+  margin-top: 5px; overflow: hidden;
+}
+.trace-tool summary {
+  padding: 6px 12px;
+  background: var(--purple-light);
+  cursor: pointer; font-size: 12px;
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-weight: 700; display: flex; align-items: center; gap: 6px;
+  color: #5B21B6;
+}
+.trace-tool-body {
+  padding: 10px 14px;
+  font-size: 11px; font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  background: #FAF9F7; white-space: pre-wrap; word-break: break-all;
+  max-height: 300px; overflow-y: auto;
+  border-top: 1px solid var(--purple-border);
+  line-height: 1.6; color: var(--text-secondary);
+}
+.trace-session-summary {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px; margin-bottom: 12px;
+}
+.trace-session-summary .title {
+  font-size: 13px; font-weight: 700; margin-bottom: 8px;
+  color: var(--text-primary);
+}
+.trace-session-summary .stats {
+  display: flex; gap: 16px; font-size: 12px; color: var(--text-secondary); flex-wrap: wrap;
+}
+.trace-session-summary .stats strong { color: var(--text-primary); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="/"><span class="brand-mark">FB</span>Famou Bench</a>
+  <a href="/" class="nav-link">Dashboard</a>
+  <a href="/chat" class="nav-link active">Chat</a>
+</nav>
+
+<div class="main">
+  <!-- sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-section-label">New Session</div>
+      <div class="new-session">
+        <select id="runner-select"></select>
+        <select id="variant-select"></select>
+        <select id="skillset-select"></select>
+        <select id="model-select"></select>
+        <button class="btn-new-session" id="btn-new" onclick="createSession()">New Session</button>
+      </div>
+    </div>
+    <div class="session-list" id="session-list">
+      <div style="color:var(--text-tertiary);font-size:12px;padding:8px 2px;">Loading sessions…</div>
+    </div>
+  </div>
+
+  <!-- chat -->
+  <div class="chat-area">
+    <div class="chat-toolbar" id="chat-toolbar">
+      <span class="toolbar-hint" id="toolbar-info">Select or create a session</span>
+      <div class="toolbar-spacer"></div>
+      <div id="upload-area" style="display:none;align-items:center;gap:8px;flex-direction:row;flex-wrap:wrap;">
+        <input type="file" id="file-input" style="display:none;" multiple onchange="uploadFiles(this, false)">
+        <input type="file" id="folder-input" style="display:none;" webkitdirectory multiple onchange="uploadFiles(this, true)">
+        <label for="file-input" class="toolbar-btn toolbar-btn-upload">Upload Files</label>
+        <label for="folder-input" class="toolbar-btn toolbar-btn-upload">Upload Folder</label>
+        <span class="upload-status" id="upload-status"></span>
+        <div id="upload-progress" class="upload-progress" style="display:none;">
+          <div class="upload-progress-bar"><div class="upload-progress-fill" id="upload-progress-fill" style="width:0%"></div></div>
+          <span id="upload-progress-text"></span>
+        </div>
+      </div>
+      <button id="btn-fork" style="display:none;" class="toolbar-btn toolbar-btn-trace" onclick="forkSession()">Fork</button>
+      <button id="btn-trace" style="display:none;" class="toolbar-btn toolbar-btn-trace" onclick="viewTrace()">View Trace</button>
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"/>
+          </svg>
+        </div>
+        <div>Create or select a session to start</div>
+      </div>
+    </div>
+
+    <div class="input-bar">
+      <textarea id="msg-input" placeholder="Send a message…" rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();sendMsg();}" disabled></textarea>
+      <button class="btn-send" id="btn-send" onclick="sendMsg()" disabled>Send</button>
+    </div>
+  </div>
+</div>
+
+<!-- trace modal -->
+<div id="trace-modal" class="trace-modal-overlay">
+  <div class="trace-modal-box">
+    <div class="trace-modal-header">
+      <h3 class="trace-modal-title" id="trace-modal-title">Trace</h3>
+      <button class="trace-modal-close" onclick="closeTraceModal()">Close</button>
+    </div>
+    <div class="trace-modal-tabs" id="trace-modal-tabs"></div>
+    <div class="trace-modal-body" id="trace-modal-body"></div>
+  </div>
+</div>
+
+<script>
+marked.setOptions({ breaks: true, gfm: true });
+
+let _currentSession = null;
+let _messages = {};
+let _sending = {};  // session_id -> bool，每个 session 独立发送状态
+let _sessionsCache = [];  // 最近一次 GET /sessions 的结果，用于本地推导 frozen 等
+// session_id -> {text, events}：进行中的流式状态。
+// 跟 _messages 解耦，切换 session 后回来仍能恢复 in-progress 显示。
+let _streamingState = {};
+
+// 保证 #messages 末尾有一个 #streaming-bubble，没有就 append 一个空的。
+// renderMessages 会清掉整个 #messages，所以每次需要时都要重新 ensure。
+function ensureStreamingBubble() {
+  let bubble = document.getElementById('streaming-bubble');
+  if (bubble) return bubble;
+  const messagesEl = document.getElementById('messages');
+  // 如果 messages 还是 empty-state，先清掉
+  if (messagesEl.querySelector('.empty-state')) messagesEl.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'msg assistant';
+  div.innerHTML = `<div class="msg-meta">Assistant</div>
+    <div class="bubble" id="streaming-bubble">
+      <div class="thinking-indicator"><span></span><span></span><span></span></div>
+    </div>`;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return document.getElementById('streaming-bubble');
+}
+
+loadOptions();
+(async () => {
+  const sessions = await loadSessions();
+  const lastSid = localStorage.getItem('lastSessionId');
+  if (lastSid) {
+    const found = sessions.find(s => s.session_id === lastSid);
+    if (found) {
+      _currentSession = found.session_id;
+      if (!_messages[found.session_id]) _messages[found.session_id] = [];
+      renderSessionList(sessions);
+      try {
+        const r = await fetch(`/api/chat/sessions/${found.session_id}/messages`);
+        if (r.ok) { const d = await r.json(); _messages[found.session_id] = d.messages || []; }
+      } catch (_) {}
+      activateChat(found.session_id);
+    }
+  }
+})();
+
+async function loadOptions() {
+  try {
+    const res = await fetch('/api/options');
+    const opts = await res.json();
+    _fillSelect('runner-select', opts.runners, 'opencode_famou');
+    _fillSelect('variant-select', opts.prompt_variants, 'default', 'prompt: ');
+    _fillSelect('skillset-select', opts.skill_sets, 'default', 'skill: ');
+    _fillSelect('model-select', opts.models, 'sonnet', 'model: ');
+  } catch (e) { console.warn('Failed to load options:', e); }
+}
+
+function _fillSelect(id, values, defaultVal, prefix) {
+  const el = document.getElementById(id);
+  el.innerHTML = values.map(v => {
+    const label = prefix ? prefix + v : v;
+    return `<option value="${v}"${v === defaultVal ? ' selected' : ''}>${label}</option>`;
+  }).join('');
+}
+
+async function loadSessions() {
+  const res = await fetch('/api/chat/sessions');
+  _sessionsCache = await res.json();
+  renderSessionList(_sessionsCache);
+  return _sessionsCache;
+}
+
+// 把扁平 session 列表组织成"parent 顶层 + child 紧跟其后"的渲染顺序。
+// 顶层 = parent_session_id 为空（或父 session 不在列表里）；按 created_at 倒序。
+// 同一 parent 下的 fork 按 created_at 正序（看到 fork 的时间顺序）。
+function _orderSessionsAsTree(sessions) {
+  const byId = new Map(sessions.map(s => [s.session_id, s]));
+  const childrenOf = new Map();
+  const tops = [];
+  for (const s of sessions) {
+    const p = s.parent_session_id;
+    if (p && byId.has(p)) {
+      if (!childrenOf.has(p)) childrenOf.set(p, []);
+      childrenOf.get(p).push(s);
+    } else {
+      tops.push(s);
+    }
+  }
+  tops.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+  for (const arr of childrenOf.values()) {
+    arr.sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
+  }
+  const ordered = [];
+  function visit(s) {
+    ordered.push(s);
+    const kids = childrenOf.get(s.session_id) || [];
+    for (const k of kids) visit(k);
+  }
+  for (const t of tops) visit(t);
+  return ordered;
+}
+
+function renderSessionList(sessions) {
+  const el = document.getElementById('session-list');
+  if (!sessions.length) {
+    el.innerHTML = '<div style="color:var(--text-tertiary);font-size:12px;padding:8px 2px;">No sessions yet</div>';
+    return;
+  }
+  const ordered = _orderSessionsAsTree(sessions);
+  el.innerHTML = ordered.map(s => {
+    const cls = [];
+    if (s.session_id === _currentSession) cls.push('active');
+    if (s.parent_session_id) cls.push('is-fork');
+    const frozenTag = s.child_count > 0 ? '<span class="s-frozen-tag">frozen</span>' : '';
+    return `<div class="session-item ${cls.join(' ')}" onclick="selectSession('${s.session_id}')">
+      <div class="s-id">${s.session_id}</div>
+      <div class="s-meta">${s.runner_type} · ${s.prompt_variant || 'default'} ${frozenTag}</div>
+    </div>`;
+  }).join('');
+}
+
+function _findSession(sid) {
+  return _sessionsCache.find(s => s.session_id === sid);
+}
+
+async function createSession() {
+  const btn = document.getElementById('btn-new');
+  btn.disabled = true;
+  btn.textContent = 'Creating…';
+  const runner = document.getElementById('runner-select').value;
+  const variant = document.getElementById('variant-select').value;
+  const skillset = document.getElementById('skillset-select').value;
+  const model = document.getElementById('model-select').value;
+  try {
+    const res = await fetch('/api/chat/sessions', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({runner_type: runner, prompt_variant: variant, skill_set: skillset, model: model}),
+    });
+    const data = await res.json();
+    _currentSession = data.session_id;
+    _messages[_currentSession] = [];
+    localStorage.setItem('lastSessionId', data.session_id);
+    await loadSessions();
+    activateChat(data.session_id);
+  } catch (e) {
+    alert('Failed to create session: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'New Session';
+  }
+}
+
+async function selectSession(sid) {
+  _currentSession = sid;
+  if (!_messages[sid]) _messages[sid] = [];
+  localStorage.setItem('lastSessionId', sid);
+  // 该 session 正在 send 时跳过 fetch——本地 _messages 才是 source of truth：
+  // 如果这时 fetch，可能拿到 server 已存盘的 assistant_msg，
+  // 而 sendMsg 流结束后又会 push 一次，造成消息重复。
+  if (!_sending[sid]) {
+    try {
+      const r = await fetch(`/api/chat/sessions/${sid}/messages`);
+      if (r.ok) { const d = await r.json(); _messages[sid] = d.messages || []; }
+    } catch (_) {}
+  }
+  await loadSessions();
+  activateChat(sid);
+}
+
+function activateChat(sid) {
+  const meta = _findSession(sid);
+  const isFrozen = !!(meta && meta.child_count > 0);
+
+  const info = document.getElementById('toolbar-info');
+  const frozenLabel = isFrozen ? ' <span class="s-frozen-tag" style="margin-left:6px;">frozen seed</span>' : '';
+  info.innerHTML = `<span class="toolbar-session-id">${sid}</span>${frozenLabel}`;
+
+  document.getElementById('upload-area').style.display = isFrozen ? 'none' : 'flex';
+  const forkBtn = document.getElementById('btn-fork');
+  forkBtn.style.display = 'inline-flex';
+  document.getElementById('btn-trace').style.display = 'inline-flex';
+
+  // 输入框：被 fork 过 → 禁用并提示；否则只在 agent 正在处理本轮时禁用
+  const isBusy = !!_sending[sid];
+  // Fork 在 send 进行中禁用，避免 fork 出未完成的对话状态
+  forkBtn.disabled = isBusy;
+  const input = document.getElementById('msg-input');
+  const btn = document.getElementById('btn-send');
+  if (isFrozen) {
+    input.disabled = true;
+    btn.disabled = true;
+    input.placeholder = 'This session has been forked. Click "Fork" above to start a new branch.';
+  } else {
+    input.disabled = isBusy;
+    btn.disabled = isBusy;
+    input.placeholder = 'Send a message…';
+  }
+
+  renderMessages();
+
+  // 切回一个仍在 stream 的 session：补一个 streaming bubble，画出当前的 in-progress 内容。
+  // 后续 SSE 事件会更新这个新 bubble；不会有"中间状态停滞"的问题。
+  const stState = _streamingState[sid];
+  if (stState) {
+    const bubble = ensureStreamingBubble();
+    bubble.innerHTML = renderBubble(stState.text, stState.events);
+    const messagesEl = document.getElementById('messages');
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  if (!isFrozen && !isBusy) input.focus();
+}
+
+async function forkSession() {
+  if (!_currentSession) return;
+  const btn = document.getElementById('btn-fork');
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = 'Forking…';
+  try {
+    const res = await fetch(`/api/chat/sessions/${_currentSession}/fork`, {method: 'POST'});
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert('Fork failed: ' + (err.detail || res.statusText));
+      return;
+    }
+    const data = await res.json();
+    const newSid = data.session_id;
+    _currentSession = newSid;
+    _messages[newSid] = [];
+    localStorage.setItem('lastSessionId', newSid);
+    // 刷新 sidebar 让新 fork 出现 + parent 变成 frozen
+    await loadSessions();
+    // 加载新 fork 的消息历史（应该等于 parent 的历史）
+    try {
+      const r = await fetch(`/api/chat/sessions/${newSid}/messages`);
+      if (r.ok) { const d = await r.json(); _messages[newSid] = d.messages || []; }
+    } catch (_) {}
+    activateChat(newSid);
+  } catch (e) {
+    alert('Fork failed: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
+
+function renderMessages() {
+  const el = document.getElementById('messages');
+  const msgs = _messages[_currentSession] || [];
+  if (!msgs.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"/>
+        </svg>
+      </div>
+      <div>Send a message to start the conversation</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = msgs.map(m => {
+    const cls = m.role === 'user' ? 'user' : 'assistant';
+    const label = m.role === 'user' ? 'You' : 'Assistant';
+    let content;
+    if (m.role === 'assistant') {
+      const { clean, artifacts, evolve, clarify, clarifyRaw } = extractSpecialTags(m.content || '');
+      content = `<div class="md">${marked.parse(clean)}</div>` + renderSpecialTags(artifacts, evolve, clarify, clarifyRaw);
+    } else {
+      content = esc(m.content);
+    }
+    return `<div class="msg ${cls}">
+      <div class="msg-meta">${label}</div>
+      <div class="bubble">${content}</div>
+    </div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function sendMsg() {
+  // 在函数入口立即捕获当前 session，后续所有操作都用 sid，不再读 _currentSession
+  const sid = _currentSession;
+  if (!sid || _sending[sid]) return;
+  const input = document.getElementById('msg-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  _sending[sid] = true;
+  input.value = '';
+  input.style.height = '';
+  // 只有当前视图是这个 session 时才 disable UI
+  if (_currentSession === sid) {
+    document.getElementById('btn-send').disabled = true;
+    document.getElementById('btn-fork').disabled = true;
+    input.disabled = true;
+  }
+
+  if (!_messages[sid]) _messages[sid] = [];
+  _messages[sid].push({role: 'user', content: text});
+
+  // 初始化流式状态——切走再切回时靠它恢复显示
+  _streamingState[sid] = {text: '', events: []};
+
+  if (_currentSession === sid) {
+    renderMessages();           // 把刚 push 的 user msg 显示出来
+    ensureStreamingBubble();    // 在末尾加一个空的 thinking-indicator bubble
+  }
+
+  let streamText = '';
+  const events = _streamingState[sid].events;
+  let errored = false;
+
+  function paintIfVisible() {
+    if (_currentSession !== sid) return;
+    const bubble = ensureStreamingBubble();
+    bubble.innerHTML = renderBubble(streamText, events);
+    const messagesEl = document.getElementById('messages');
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  try {
+    const res = await fetch(`/api/chat/sessions/${sid}/send`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message: text}),
+    });
+    if (res.status === 409) {
+      // 服务端已在处理中（并发 send 保护）
+      errored = true;
+      if (_currentSession === sid) {
+        ensureStreamingBubble().innerHTML = `<span style="color:var(--red);">Session is busy, please wait.</span>`;
+      }
+      _messages[sid].pop(); // 移除刚 push 的 user message
+      return;
+    }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream: true});
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (line.startsWith('data:')) {
+          const raw = line.slice(5).trim();
+          if (!raw) continue;
+          try {
+            const evt = JSON.parse(raw);
+            if (evt.status) continue;
+            events.push(evt);
+            if (evt.type === 'text' || evt.type === 'text_chunk') streamText += evt.content;
+            _streamingState[sid].text = streamText;
+            paintIfVisible();
+          } catch (_) {}
+        }
+      }
+    }
+    // 用 sid（闭包变量）而非 _currentSession 存消息，避免串台
+    _messages[sid].push({role: 'assistant', content: streamText || ''});
+  } catch (e) {
+    errored = true;
+    if (_currentSession === sid) {
+      ensureStreamingBubble().innerHTML = `<span style="color:var(--red);">Error: ${esc(e.message)}</span>`;
+    }
+  } finally {
+    _sending[sid] = false;
+    delete _streamingState[sid];
+    // 刷新 sidebar 让新 fork / message_count 等元信息更新
+    try { await loadSessions(); } catch (_) {}
+    // 只在当前视图仍是该 session 时恢复 UI
+    if (_currentSession === sid) {
+      // 正常完成时重新渲染（清掉 streaming-bubble，画出最终 assistant 消息）。
+      // 错误/409 路径下保留 streaming-bubble 里的红色错误文案，让用户看到——
+      // 直到用户下一个动作（再发送、切换 session）触发 renderMessages 才会清掉。
+      if (!errored) renderMessages();
+      document.getElementById('btn-send').disabled = false;
+      document.getElementById('btn-fork').disabled = false;
+      document.getElementById('msg-input').disabled = false;
+      document.getElementById('msg-input').focus();
+    }
+  }
+}
+
+function extractSpecialTags(text) {
+  // 提取 <artifacts>、<evolve>、<clarify> 标签内容，从正文中移除
+  let artifacts = [], evolve = null, clarify = null, clean = text;
+  // artifacts
+  const artRe = /<artifacts>\s*([\s\S]*?)\s*<\/artifacts>/g;
+  let m;
+  while ((m = artRe.exec(text)) !== null) {
+    try { artifacts = JSON.parse(m[1]); } catch(_) {}
+  }
+  clean = clean.replace(/<artifacts>[\s\S]*?<\/artifacts>/g, '');
+  // evolve
+  const evoRe = /<evolve>\s*([\s\S]*?)\s*<\/evolve>/;
+  const evoM = evoRe.exec(clean);
+  if (evoM) {
+    try { evolve = JSON.parse(evoM[1]); } catch(_) {}
+  }
+  clean = clean.replace(/<evolve>[\s\S]*?<\/evolve>/g, '');
+  // clarify
+  const claRe = /<clarify>\s*([\s\S]*?)\s*<\/clarify>/;
+  const claM = claRe.exec(clean);
+  let clarifyRaw = null;
+  if (claM) {
+    try {
+      clarify = JSON.parse(claM[1]);
+    } catch(_) {
+      // 尝试修复：把 string value 内裸的英文双引号替换为中文引号
+      try {
+        const fixed = repairJsonQuotes(claM[1]);
+        clarify = JSON.parse(fixed);
+      } catch(_) {
+        clarifyRaw = claM[1];  // 修复也失败时保留原文，作为兜底渲染
+      }
+    }
+  }
+  clean = clean.replace(/<clarify>[\s\S]*?<\/clarify>/g, '');
+  return { clean: clean.trim(), artifacts, evolve, clarify, clarifyRaw };
+}
+
+// 修复 JSON 字符串中 string value 内未转义的双引号。
+// 启发式：在 "key": "..." 的 value 内，若出现非结尾的 "，且后面不是 ,/}/]/换行 等结构边界，则替换为中文引号。
+function repairJsonQuotes(s) {
+  let result = '';
+  let inString = false;
+  let escape = false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (escape) {
+      result += c;
+      escape = false;
+      continue;
+    }
+    if (c === '\\') {
+      result += c;
+      escape = true;
+      continue;
+    }
+    if (c === '"') {
+      if (!inString) {
+        inString = true;
+        result += c;
+      } else {
+        // 判断是否真正的字符串结尾：跳过空白后看是否是 , } ] : 结构字符
+        let j = i + 1;
+        while (j < s.length && /\s/.test(s[j])) {
+          j++;
+        }
+        const next = s[j];
+        if (next === ',' || next === '}' || next === ']' || next === ':' || j === s.length) {
+          inString = false;
+          result += c;
+        } else {
+          result += '「';  // 裸引号 → 中文引号
+        }
+      }
+      continue;
+    }
+    result += c;
+  }
+  return result;
+}
+
+function renderSpecialTags(artifacts, evolve, clarify, clarifyRaw) {
+  let html = '';
+  if (!clarify && clarifyRaw) {
+    html += `<div class="clarify-card">
+      <div style="font-weight:600;margin-bottom:8px;">⚠️ 澄清问题（解析失败，显示原文）</div>
+      <pre style="font-size:12px;white-space:pre-wrap;margin:0;">${esc(clarifyRaw)}</pre>
+    </div>`;
+  }
+  if (clarify && clarify.questions && clarify.questions.length) {
+    html += `<div class="clarify-card">`;
+    html += `<div style="font-weight:600;margin-bottom:8px;">${esc(clarify.title || '确认几个关键信息')}</div>`;
+    for (const q of clarify.questions) {
+      html += `<div class="clarify-question">`;
+      html += `<div style="font-weight:500;margin-bottom:4px;">${esc(q.label)}</div>`;
+      if (q.options && q.options.length) {
+        for (const opt of q.options) {
+          const isDefault = q.default && (
+            (typeof q.default === 'string' && q.default === opt) ||
+            (Array.isArray(q.default) && q.default.includes(opt))
+          );
+          const icon = q.multi
+            ? (isDefault ? '☑' : '☐')
+            : (isDefault ? '●' : '○');
+          html += `<div style="font-size:13px;padding:1px 0;${isDefault ? 'font-weight:500;' : 'color:#666;'}">${icon} ${esc(opt)}</div>`;
+        }
+      }
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+  if (evolve) {
+    let reasons = [];
+    if (Array.isArray(evolve.reasons)) {
+      reasons = evolve.reasons.filter(r => r);
+    } else if (typeof evolve.reasons === 'string' && evolve.reasons) {
+      reasons = [evolve.reasons];
+    } else if (typeof evolve.reason === 'string' && evolve.reason) {
+      reasons = [evolve.reason];
+    }
+    if (reasons.length) {
+      html += `<div class="evolve-card">
+        <div style="font-weight:600;margin-bottom:4px;">🔄 深度演化推荐</div>`;
+      if (reasons.length === 1) {
+        html += `<div style="font-size:13px;color:#666;">${esc(reasons[0])}</div>`;
+      } else {
+        html += `<ul style="font-size:13px;color:#666;margin:0;padding-left:20px;">`;
+        for (const r of reasons) {
+          html += `<li style="padding:1px 0;">${esc(r)}</li>`;
+        }
+        html += `</ul>`;
+      }
+      html += `</div>`;
+    }
+  }
+  if (artifacts && artifacts.length) {
+    html += '<div class="artifacts-card"><div style="font-weight:600;margin-bottom:4px;">📁 交付文件</div>';
+    for (const a of artifacts) {
+      const name = a.path ? a.path.split('/').pop() : '?';
+      html += `<div style="font-size:13px;padding:2px 0;">
+        <code>${esc(name)}</code> — ${esc(a.description || '')}
+      </div>`;
+    }
+    html += '</div>';
+  }
+  return html;
+}
+
+function renderBubble(text, events) {
+  let html = '';
+  if (text) {
+    const { clean, artifacts, evolve, clarify, clarifyRaw } = extractSpecialTags(text);
+    html += `<div class="md">${marked.parse(clean)}</div>`;
+    html += renderSpecialTags(artifacts, evolve, clarify, clarifyRaw);
+  } else {
+    html = '<div class="thinking-indicator"><span></span><span></span><span></span></div>';
+  }
+  const sideEvents = events.filter(e =>
+    e.type === 'tool_call' || (e.type === 'tool_result' && e.is_error) || e.type === 'info'
+  );
+  if (sideEvents.length) {
+    html += '<div class="tool-events">' + sideEvents.map(evt => {
+      if (evt.type === 'tool_call') {
+        const input = evt.tool_input ? ': ' + esc(String(evt.tool_input).slice(0, 100)) : '';
+        return `<div class="streaming-line tool">[tool] ${esc(evt.tool || '')}${input}</div>`;
+      }
+      if (evt.type === 'tool_result' && evt.is_error) {
+        return `<div class="streaming-line error">[error] ${esc(String(evt.content || '').slice(0, 200))}</div>`;
+      }
+      if (evt.type === 'info') {
+        return `<div class="streaming-line">${esc(evt.content || '')}</div>`;
+      }
+      return '';
+    }).join('') + '</div>';
+  }
+  return html;
+}
+
+async function uploadFiles(input, isFolder) {
+  if (!_currentSession || !input.files.length) return;
+  const files = Array.from(input.files);
+  const statusEl = document.getElementById('upload-status');
+  const progressEl = document.getElementById('upload-progress');
+  const fillEl = document.getElementById('upload-progress-fill');
+  const progressText = document.getElementById('upload-progress-text');
+
+  statusEl.textContent = '';
+  progressEl.style.display = 'flex';
+  fillEl.style.width = '0%';
+
+  // 批量上传：每次最多 20 个文件一批，避免请求体过大
+  const BATCH = 20;
+  let uploaded = 0;
+  let failed = 0;
+  const allResults = [];
+
+  for (let i = 0; i < files.length; i += BATCH) {
+    const batch = files.slice(i, i + BATCH);
+    const form = new FormData();
+    for (const f of batch) {
+      form.append('files', f);
+      // webkitRelativePath 保留文件夹结构；普通多文件时为空，退化成文件名
+      const relPath = f.webkitRelativePath || f.name;
+      form.append('relative_paths', relPath);
+    }
+    try {
+      const res = await fetch(`/api/chat/sessions/${_currentSession}/upload`, {method: 'POST', body: form});
+      if (!res.ok) { failed += batch.length; continue; }
+      const data = await res.json();
+      const batchResults = data.files || (data.filename ? [data] : []);
+      allResults.push(...batchResults);
+      uploaded += batchResults.length;
+    } catch (_) {
+      failed += batch.length;
+    }
+    const done = Math.min(i + BATCH, files.length);
+    fillEl.style.width = `${Math.round(done / files.length * 100)}%`;
+    progressText.textContent = `${done}/${files.length}`;
+  }
+
+  progressEl.style.display = 'none';
+  if (allResults.length > 0) {
+    const totalSize = allResults.reduce((s, r) => s + (r.size || 0), 0);
+    if (allResults.length === 1) {
+      statusEl.textContent = `${allResults[0].filename} (${fmtSize(allResults[0].size)})`;
+    } else {
+      statusEl.textContent = `${allResults.length} files (${fmtSize(totalSize)})`;
+    }
+    const names = allResults.slice(0, 5).map(r => r.filename).join(', ');
+    const extra = allResults.length > 5 ? ` … and ${allResults.length - 5} more` : '';
+    _messages[_currentSession].push({
+      role: 'assistant',
+      content: `[Uploaded ${allResults.length} file(s): ${names}${extra}; total ${fmtSize(totalSize)}]`
+    });
+    renderMessages();
+  }
+  if (failed > 0) statusEl.textContent += ` (${failed} failed)`;
+  input.value = '';
+}
+
+// 当前 trace modal 的会话数据，selectTraceTab 用来切换显示
+let _traceSessions = [];
+
+async function viewTrace() {
+  if (!_currentSession) return;
+  const modal = document.getElementById('trace-modal');
+  document.getElementById('trace-modal-title').textContent = `Trace — ${_currentSession}`;
+  const bodyEl = document.getElementById('trace-modal-body');
+  const tabsEl = document.getElementById('trace-modal-tabs');
+  tabsEl.innerHTML = '';
+  bodyEl.innerHTML = '<span style="color:var(--text-tertiary);">Loading…</span>';
+  modal.style.display = 'block';
+  try {
+    const res = await fetch(`/api/chat/sessions/${_currentSession}/trace`, {cache: 'no-store'});
+    if (!res.ok) {
+      bodyEl.innerHTML = '<span style="color:var(--red);">Failed to load trace.</span>';
+      return;
+    }
+    const data = await res.json();
+    if (!data.sessions || !data.sessions.length) {
+      bodyEl.innerHTML = '<span style="color:var(--text-tertiary);">No trace yet — send a message to generate one.</span>';
+      return;
+    }
+    // root（master）排到第一个，sub-agent 跟在后面，按 started_at 升序
+    _traceSessions = [...data.sessions].sort((a, b) => {
+      const aRoot = !(a.session && a.session.parent_id);
+      const bRoot = !(b.session && b.session.parent_id);
+      if (aRoot !== bRoot) return aRoot ? -1 : 1;
+      return (a.session?.started_at || '').localeCompare(b.session?.started_at || '');
+    });
+    renderTraceTabs();
+    selectTraceTab(0);
+  } catch (e) {
+    bodyEl.innerHTML = `<span style="color:var(--red);">Error: ${esc(e.message)}</span>`;
+  }
+}
+
+function closeTraceModal() {
+  document.getElementById('trace-modal').style.display = 'none';
+}
+
+function renderTraceTabs() {
+  const tabsEl = document.getElementById('trace-modal-tabs');
+  tabsEl.innerHTML = _traceSessions.map((session, idx) => {
+    const info = session.session || {};
+    const stats = session.stats || {};
+    const tok = stats.tokens || {};
+    const isSub = !!info.parent_id;
+    const agent = info.agent || (isSub ? 'sub-agent' : 'root');
+    const subMark = isSub ? '<span class="t-sub-mark">SUB</span>' : '';
+    return `<button class="trace-tab" data-idx="${idx}" onclick="selectTraceTab(${idx})">
+      ${subMark}
+      <span class="t-name">${esc(agent)}</span>
+      <span class="t-meta">${stats.turn_count || 0}t · ${fmtK(tok.total)} tok</span>
+    </button>`;
+  }).join('');
+}
+
+function selectTraceTab(idx) {
+  const tabsEl = document.getElementById('trace-modal-tabs');
+  tabsEl.querySelectorAll('.trace-tab').forEach((b, i) => {
+    b.classList.toggle('active', i === idx);
+  });
+  const session = _traceSessions[idx];
+  if (!session) return;
+  renderTraceSessionContent(session);
+  // 切到一个 tab 后，自动滚到该 session 的最新 turn（rAF 等布局完成）
+  const bodyEl = document.getElementById('trace-modal-body');
+  requestAnimationFrame(() => { bodyEl.scrollTop = bodyEl.scrollHeight; });
+}
+
+function renderTraceSessionContent(session) {
+  const body = document.getElementById('trace-modal-body');
+  const info = session.session || {};
+  const stats = session.stats || {};
+  const tok = stats.tokens || {};
+  const agent = info.agent || (info.parent_id ? 'sub-agent' : 'root');
+  const toolUsage = stats.tool_usage || {};
+  const turns = session.turns || [];
+
+  let html = `<div class="trace-session-summary">
+    <div class="title">${esc(agent)} <span style="font-weight:500;color:var(--text-tertiary);font-size:11px;">${info.id || ''}</span></div>
+    <div class="stats">
+      <span><strong>${stats.turn_count || 0}</strong> turns</span>
+      <span><strong>${fmtK(tok.input)}</strong> input</span>
+      <span><strong>${fmtK(tok.output)}</strong> output</span>
+      <span><strong>${fmtK(tok.total)}</strong> total</span>
+    </div>
+    ${Object.keys(toolUsage).length ? `<div style="margin-top:6px;font-size:11px;color:var(--text-tertiary);">Tools: ${Object.entries(toolUsage).map(([k,v]) => `<span style="color:var(--purple);font-weight:600;">${k}</span>:${v}`).join(', ')}</div>` : ''}
+  </div>`;
+
+  if (!turns.length) {
+    html += '<div style="color:var(--text-tertiary);font-size:12px;padding:12px 0;">(No turns)</div>';
+    body.innerHTML = html;
+    return;
+  }
+
+  for (const turn of turns) {
+    const role = turn.role || 'unknown';
+    const roleColor = role === 'user' ? 'var(--blue)' : 'var(--purple)';
+    html += `<div class="trace-turn">
+      <div class="trace-turn-header">
+        <span style="font-weight:800;color:${roleColor};font-size:10px;text-transform:uppercase;letter-spacing:.5px;">${role}</span>
+        <span style="color:var(--text-tertiary);">Turn ${turn.index}</span>
+      </div>
+      <div style="padding:12px 14px;">`;
+    if (turn.thinking) {
+      html += `<details style="margin-bottom:8px;">
+        <summary style="font-size:11px;color:#b45309;cursor:pointer;font-weight:700;">▸ thinking (${turn.thinking.length} chars)</summary>
+        <div style="background:#fffef0;border:1px solid #efe18a;border-radius:8px;padding:10px;font-size:11px;max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;color:#78350f;margin-top:6px;line-height:1.6;">${esc(turn.thinking)}</div>
+      </details>`;
+    }
+    if (turn.text) html += `<div class="md" style="font-size:13px;">${marked.parse(turn.text)}</div>`;
+    if (turn.tool_calls && turn.tool_calls.length) {
+      for (const tc of turn.tool_calls) {
+        const statusColor = tc.status === 'success' ? 'var(--green)' : tc.status === 'error' ? 'var(--red)' : '#ca8a04';
+        const statusIcon = tc.status === 'success' ? '✓' : tc.status === 'error' ? '✗' : '…';
+        const inputStr = JSON.stringify(tc.input || {}, null, 2);
+        const outputStr = String(tc.output || '').slice(0, 3000);
+        html += `<details class="trace-tool" style="margin-top:6px;">
+          <summary>${esc(tc.name)} <span style="color:${statusColor};font-weight:700;">${statusIcon} ${tc.status || ''}</span></summary>
+          <div class="trace-tool-body"><strong>Input:</strong>
+${esc(inputStr)}
+
+<strong>Output:</strong>
+${esc(outputStr)}</div>
+        </details>`;
+      }
+    }
+    html += '</div></div>';
+  }
+  body.innerHTML = html;
+}
+
+function fmtK(v) { return v ? (v >= 1000 ? (v/1000).toFixed(1) + 'k' : String(v)) : '0'; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(1) + ' MB';
+}
+</script>
+</body>
+</html>

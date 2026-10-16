@@ -1,0 +1,20 @@
+{
+  "version": "20260718-001-evidence-first-literature-map",
+  "created_at": "2026-07-18",
+  "title": "Evidence-first literature research with literature map",
+  "description": "Requires parallel native websearch/webfetch plus arc_search_literature retrieval, explicit rejection filtering, staged pauses in gradual mode, targeted checks before each idea, and a user-facing literature map over accepted papers.",
+  "source_file": "registry/skills/literature-research/files/SKILL.20260718-001-evidence-first-literature-map.md",
+  "runtime_file": "skill/experiment/literature-research/SKILL.md",
+  "changes": [
+    "Add evidence discipline rules: no empty-search novelty claims and no single-source conclusions.",
+    "Require parallel retrieval with native websearch/webfetch and arc_search_literature for literature research.",
+    "Require paper_cards.jsonl and rejected_papers.jsonl with relevance filtering.",
+    "Add literature_map.md for cluster, lineage, overlap, coverage, limitations, and improvement-space views.",
+    "Add targeted existence checks and cost estimates before presenting each idea.",
+    "Strengthen gradual/stepwise pause points so the agent does not cross phases without user approval."
+  ],
+  "rollback": {
+    "target": "20260716-001-research-boundary",
+    "notes": "Restore the previous synthesis-boundary-only literature-research workflow."
+  }
+}

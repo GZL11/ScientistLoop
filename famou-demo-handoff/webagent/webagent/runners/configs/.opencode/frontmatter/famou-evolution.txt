@@ -1,0 +1,7 @@
+---
+
+description: FM 演化诊断师，记录事实、诊断态势，不指挥方向
+mode: primary
+---
+
+

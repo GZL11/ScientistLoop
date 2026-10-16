@@ -1,0 +1,120 @@
+{
+  "tsp_local_search": {
+    "constraints_check": [
+      {
+        "constraint": "Tour visits every city exactly once and returns to the start (Hamiltonian cycle).",
+        "enforced": true,
+        "evidence": "assert len(best_route) == n, f\"Route length {len(best_route)} != n={n}\"; assert len(set(best_route)) == n, \"Route has duplicate cities\"; assert set(best_route) == set(range(n)), \"Route missing some cities\" ; route_distance closes the cycle via route[(i + 1) % n]"
+      },
+      {
+        "constraint": "Output schema must match evaluator: if benchmark is multi-instance, enumerate every instance and emit one tour per instance.",
+        "enforced": true,
+        "evidence": "multi = group_by_instance(data_file); if multi: for inst, (coords, ids) in multi.items(): tour, dist = solve_one_instance(...); ... w.writerow([\"instance_id\", \"sequence_number\", \"city_id\"]) ..."
+      },
+      {
+        "constraint": "Distance computation must be consistent between solver and evaluator (same metric, same rounding).",
+        "enforced": false,
+        "evidence": "DISTANCE_METRIC = \"euclidean\"  (hardcoded default; no verification against evaluator spec, no support for haversine or precomputed matrices despite the docstring mentioning them)"
+      }
+    ],
+    "potential_failures": [
+      "If the evaluator uses TSPLIB EUC_2D integer rounding, haversine, or a precomputed distance matrix, the solver's reported/optimized distance will diverge from the evaluator's score.",
+      "Closure to start: evaluator may require the starting city to be appended explicitly at the end of the tour; the template only relies on implicit closure and notes this without enforcing it.",
+      "load_nodes_csv / group_by_instance assume column names from a fixed list ('city_id'/'id'/'node_id', 'x'/'lon', 'y'/'lat'); a benchmark with different column names (e.g., 'X', 'Y', 'index') will silently produce None and crash on float(None).",
+      "Output schema column names ('sequence_number', 'city_id', 'instance_id') are assumed; evaluator may expect different headers (e.g., 'order', 'node_id', 'tour_index').",
+      "Multi-instance detection relies solely on presence of an 'instance_id' column; benchmarks using a different grouping key (e.g., 'problem_id', 'tsp_id') will be treated as single-instance and produce wrong output."
+    ],
+    "required_edits": [
+      {
+        "location": "Top-level constant DISTANCE_METRIC and compute_distance",
+        "change": "Before shipping, confirm the evaluator's metric (euclidean float vs EUC_2D int vs haversine vs precomputed matrix) and set DISTANCE_METRIC accordingly. Add a 'haversine' branch and a 'precomputed' path that loads the evaluator's distance matrix instead of recomputing."
+      },
+      {
+        "location": "solve_one_instance, after constraint asserts",
+        "change": "If the evaluator requires explicit closure, append the start city: `id_route = [ids[i] for i in best_route] + [ids[best_route[0]]]` — verify against evaluator spec and toggle accordingly."
+      },
+      {
+        "location": "load_nodes_csv and group_by_instance",
+        "change": "Inspect the actual CSV header at runtime; raise a clear error if expected columns are missing. Extend the alias list (e.g., 'X','Y','xcoord','ycoord','index') and allow a config override for column names. Validate that x/y parse to float before appending."
+      },
+      {
+        "location": "group_by_instance",
+        "change": "Generalize the instance-grouping key: try 'instance_id', 'problem_id', 'tsp_id', 'instance', 'group_id'. Confirm against the benchmark spec which key applies."
+      },
+      {
+        "location": "solve, output writer",
+        "change": "Confirm evaluator's expected header names and order; parameterize header (e.g., 'order'/'sequence_number', 'node_id'/'city_id') to match evaluator exactly."
+      }
+    ],
+    "ready_to_ship": false
+  },
+  "cvrp_cluster_then_route": {
+    "constraints_check": [
+      {
+        "constraint": "Per-vehicle load must not exceed capacity",
+        "enforced": true,
+        "evidence": "capacity_aware_kmeans rebalances: 'over = [i for i, w in enumerate(weights) if w > capacity]' and final guard: 'if load > capacity + 1e-6: ... split greedily'"
+      },
+      {
+        "constraint": "Each customer is served exactly once and routes start/end at depot",
+        "enforced": false,
+        "evidence": "nearest_neighbor_route starts with 'route = [0]' and appends '0' at end, but template is truncated at 'CONSTRAINT-CHECK: route starts' — no explicit verification that union of clusters == all customers and no duplicates after split/merge logic. Also 'served = set()' is declared but never populated/checked."
+      },
+      {
+        "constraint": "Number of routes must not exceed available vehicles",
+        "enforced": true,
+        "evidence": "'if len(clusters) > num_vehicles: ... while len(clusters) > num_vehicles: ...' and 'clusters = final_clusters[:num_vehicles]'"
+      },
+      {
+        "constraint": "All edges/moves checked against case-specific feasibility before acceptance",
+        "enforced": true,
+        "evidence": "edge_feasible used in nearest_neighbor_route ('if not edge_feasible(cur, c, points, forbidden): continue') and two_opt ('if not route_feasible(cand, points, forbidden): continue'); forbidden stored as 'frozenset({u, v})' undirected"
+      },
+      {
+        "constraint": "Travel time/cost computed with specified speed/service-time model consistently",
+        "enforced": true,
+        "evidence": "route_time_seconds uses trunk_kmh for depot edges and local_kmh otherwise plus service_s per non-depot stop; two_opt invokes the same route_time_seconds function"
+      }
+    ],
+    "potential_failures": [
+      "Template is truncated mid-function after 'CONSTRAINT-CHECK: route starts' — the final assembly of the result, customer-coverage check, and post-split reassignment to vehicle count are missing.",
+      "After greedy capacity split, len(final_clusters) may exceed num_vehicles and is hard-truncated by 'final_clusters[:num_vehicles]', dropping customers — violates 'each customer served exactly once'.",
+      "nearest_neighbor_route falls back to 'remaining.pop()' without checking edge_feasible, producing a forbidden edge in output (matches Failure Pattern #7: soft fallback emitting infeasible edges).",
+      "Closing edge to depot is appended unconditionally even when 'not edge_feasible(cur, 0, ...)'; comment says 'caller should validate' but there is no rejection — forbidden edge can ship to output.",
+      "edge_feasible only checks the explicit forbidden set; it does not enumerate restriction types from input data nor mask all cost matrices — risks Patterns #2/#8/#9 if hazmat-style restrictions are present.",
+      "two_opt uses route_time_seconds (time) for improvement but no consistency check that the same metric is used in any outer cost aggregation; risk if downstream uses distance.",
+      "Cluster merge step ('c.extend(small)') does not recompute or check feasibility of edges between merged customers."
+    ],
+    "required_edits": [
+      {
+        "location": "End of solve() after route construction loop (template truncated)",
+        "change": "Complete the function: collect routes, assert set(union of all non-depot nodes in routes) == set(range(1, n)) with no duplicates; raise/repair if mismatch. Return dict with routes, loads, times, and total cost."
+      },
+      {
+        "location": "solve(), after 'clusters = final_clusters[:num_vehicles]'",
+        "change": "Replace hard truncation with: if len(final_clusters) > num_vehicles, attempt to merge smallest clusters into others respecting capacity AND edge feasibility; if still > num_vehicles, raise an explicit infeasibility error rather than dropping customers."
+      },
+      {
+        "location": "nearest_neighbor_route, fallback branch 'if nxt < 0: nxt = remaining.pop()'",
+        "change": "Remove silent fallback. Instead: if no feasible next customer, return None or raise; let solve() reroute via insertion into a different cluster. Never emit a forbidden edge."
+      },
+      {
+        "location": "nearest_neighbor_route, final 'route.append(0)'",
+        "change": "Before appending depot, verify edge_feasible(cur, 0, ...). If not feasible, mark route infeasible and trigger repair (e.g., reorder via 2-opt with depot-return constraint or move offending tail customer to another cluster)."
+      },
+      {
+        "location": "edge_feasible()",
+        "change": "Extend to load forbidden_edges per restriction_type from input CSV; build FORBIDDEN_BY_TYPE mapping; default unknown types to 'ban for all'. Check undirected via frozenset on both (u,v) and (v,u). Apply same mask to any auxiliary cost matrices used."
+      },
+      {
+        "location": "Cluster merge loop ('while len(clusters) > num_vehicles')",
+        "change": "After 'c.extend(small)', verify a feasible route exists for the merged cluster (call nearest_neighbor_route + edge_feasible); if not, try next candidate cluster instead of forcing the merge."
+      },
+      {
+        "location": "solve(), after building routes",
+        "change": "Add explicit validation pass: for each route assert route_feasible(route, points, forbidden_edges) and route_load <= capacity; aggregate served customers and assert coverage == all customers."
+      }
+    ],
+    "ready_to_ship": false
+  }
+}

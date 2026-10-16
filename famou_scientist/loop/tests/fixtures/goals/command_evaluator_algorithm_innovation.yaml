@@ -1,0 +1,48 @@
+{
+  "goal": {
+    "id": "command_evaluator_algorithm_innovation",
+    "name": "command_evaluator_algorithm_innovation"
+  },
+  "benchmarks": [
+    {
+      "name": "fake_command_classification_bench",
+      "adapter": {
+        "type": "command",
+        "public_eval_cmd": "python ../evaluators/fake_classification_eval.py --mode public --submission {artifact}",
+        "official_eval_cmd": "python ../evaluators/fake_classification_eval.py --mode official --submission {artifact}",
+        "timeout_sec": 30
+      },
+      "official_metric": {
+        "name": "accuracy",
+        "direction": "higher_is_better"
+      },
+      "hidden_test_access": "forbidden"
+    }
+  ],
+  "baselines": [
+    {"name": "baseline_A", "repo": "baselines/A"}
+  ],
+  "objective_brief": {
+    "primary_goal": "Command evaluator smoke test.",
+    "official_metric": {
+      "name": "accuracy",
+      "source": "benchmark_adapter",
+      "direction": "higher_is_better"
+    },
+    "preference_description": "Prefer traceable command evaluator results.",
+    "allow_examples": ["Use public eval first, then official eval within budget."],
+    "reject_examples": ["Access hidden labels directly."],
+    "tie_breakers": ["Prefer stronger evidence trail."]
+  },
+  "constraints": {
+    "max_wall_time_hours": 1,
+    "max_evaluator_submissions": 1,
+    "max_parallel_evaluations": 1,
+    "max_experiment_retries": 0,
+    "hidden_test_access": "forbidden",
+    "external_data_policy": "declare_and_approve"
+  },
+  "outputs": {
+    "required": ["method_code", "experiment_report", "evidence_bundle"]
+  }
+}

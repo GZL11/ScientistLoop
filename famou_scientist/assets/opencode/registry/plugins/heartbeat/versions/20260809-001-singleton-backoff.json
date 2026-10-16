@@ -1,0 +1,18 @@
+{
+  "version": "20260809-001-singleton-backoff",
+  "created_at": "2026-08-09",
+  "title": "Singleton heartbeat with exponential polling backoff",
+  "description": "Prevents duplicate cross-workspace experiment notifications and reduces unchanged long-running job checks from every minute to bounded exponential backoff.",
+  "source_file": "registry/plugins/heartbeat/files/heartbeat.20260809-001-singleton-backoff.ts",
+  "runtime_file": "plugins/heartbeat.ts",
+  "changes": [
+    "Use one heartbeat scheduler per OpenCode process while all plugin instances share current session activity.",
+    "Claim completion and failure notifications atomically across processes before injecting an Agent turn.",
+    "Poll each unchanged running job after 1, 2, 4, 8, and subsequent doubled minute intervals, capped at 120 minutes.",
+    "Keep ordinary progress snapshots in the Process panel; only completion, failure, semantic checkpoints, or stall alerts may wake the Agent."
+  ],
+  "rollback": {
+    "target": "registry/source/plugins/heartbeat.ts",
+    "notes": "Restore 20260730-001-adaptive-progress if singleton ownership or delayed polling causes regressions."
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "version": "20260719-002-artifact-visibility-contract",
+  "created_at": "2026-07-19",
+  "title": "Artifact visibility contract",
+  "description": "Separates user-facing literature-research deliverables from diagnostic trace artifacts so the UI can show clean research outputs while keeping debugging files available for review.",
+  "source_file": "registry/skills/literature-research/files/SKILL.20260719-002-artifact-visibility-contract.md",
+  "runtime_file": "skill/experiment/literature-research/SKILL.md",
+  "changes": [
+    "Define user-facing artifacts: scope, paper cards, literature map, field map, gap map, verified idea bank, review notes, and final report.",
+    "Define diagnostic artifacts: queries, search diagnostics, seed/candidate/rejected papers, claim cards, and evidence edges.",
+    "Require diagnostic artifacts to remain available for trace review without being primary user deliverables."
+  ],
+  "rollback": {
+    "target": "20260719-001-pre-idea-prior-work-gate",
+    "notes": "Restore pre-idea prior-work gating without an explicit artifact visibility contract."
+  }
+}

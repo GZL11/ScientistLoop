@@ -1,0 +1,22 @@
+{
+  "version": "20260810-001-balanced-source-retries",
+  "created_at": "2026-08-10",
+  "title": "Use balanced retries for concurrent literature sources",
+  "description": "Retains concurrent three-source retrieval while allowing transient network failures more time to recover.",
+  "source_file": "registry/source/tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "implementation_files": [
+    "scripts/arxiv_client.py",
+    "scripts/openalex_client.py",
+    "scripts/semantic_scholar.py"
+  ],
+  "changes": [
+    "Retry each source up to three times.",
+    "Use a 15-second request timeout for OpenAlex and Semantic Scholar.",
+    "Preserve concurrent execution so one slow source does not serialize the other sources."
+  ],
+  "rollback": {
+    "target": "20260809-002-concurrent-three-source-retrieval",
+    "notes": "Restore the shorter source retry policy."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "version": "20260715-003-markdown-math-format",
+  "created_at": "2026-07-15",
+  "title": "Require LaTeX math in Markdown documents",
+  "description": "Adds Markdown document formatting rules so technical notes and paper explanations use standard LaTeX math delimiters instead of code blocks or Unicode pseudo-formulas.",
+  "source_file": "registry/prompts/agents/files/AGENTS.20260715-003-markdown-math-format.md",
+  "runtime_file": "AGENTS.md",
+  "changes": [
+    "Require inline math to use `$...$`.",
+    "Require block math to use `$$...$$`.",
+    "Disallow math formulas in code blocks unless the content is actual code or pseudocode.",
+    "Disallow Unicode pseudo-formulas as a replacement for LaTeX in Markdown documents."
+  ],
+  "rollback": {
+    "target": "20260715-002-agents-remove-paper-lookup-skill-gate",
+    "notes": "Restore the previous AGENTS snapshot if LaTeX formatting guidance has unwanted side effects."
+  }
+}

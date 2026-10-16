@@ -1,0 +1,66 @@
+{
+  "multi_period_replenishment_milp": {
+    "constraints_check": [
+      {
+        "constraint": "Order quantity variables must be declared as Integer (not Continuous)",
+        "enforced": true,
+        "evidence": "order = {(l, s, t): pulp.LpVariable(f\"order_{l}_{s}_{t}\", lowBound=0, cat=\"Integer\") for l in locations for s in skus for t in periods}"
+      },
+      {
+        "constraint": "Cold capacity constraint must be weighted by per-SKU cold_usage at every storage location",
+        "enforced": true,
+        "evidence": "prob += (pulp.lpSum(cold_usage.get(s, 1.0) * inv[(l, s, t)] for s in skus) <= cap), f\"cap_end_{l}_{t}\"  ... peak_terms.append(cold_usage.get(s, 1.0) * (prev + order[(l, s, t)]))"
+      },
+      {
+        "constraint": "Cold capacity must be enforced at PEAK occupancy (prev_inv + arrivals) AND end-of-period",
+        "enforced": true,
+        "evidence": "prob += pulp.lpSum(peak_terms) <= cap, f\"cap_peak_{l}_{t}\"  alongside cap_end_{l}_{t}"
+      },
+      {
+        "constraint": "Inventory non-negativity enforced at every period (no netting across periods)",
+        "enforced": true,
+        "evidence": "inv = {(l, s, t): pulp.LpVariable(f\"inv_{l}_{s}_{t}\", lowBound=0, cat=\"Integer\") ...}  and balance: inv[(l,s,t)] == prev_inv + order - fulfilled - waste"
+      },
+      {
+        "constraint": "Output CSV must contain a complete dense grid over all (period × SKU × location) including zero-order rows",
+        "enforced": true,
+        "evidence": "for t in periods: for s in skus: for l in locations: ... rows.append({...})"
+      },
+      {
+        "constraint": "Output column names must exactly match spec; integer cast before write",
+        "enforced": true,
+        "evidence": "qty = int(round(qty or 0))  # integer cast before write ... 'order_units': qty"
+      }
+    ],
+    "potential_failures": [
+      "repair_capacity() trims orders post-solve which can cause inventory balance equations to become inconsistent with reported inv/fulfilled values written elsewhere — but only orders are written here, so it is acceptable. However, trimming orders can leave shortage/fulfilled values implying impossible flows if those are also written by case-specific extensions.",
+      "Column names ('product','location','order_units') are placeholders; case-specific specs may require 'sku','dc','warehouse', etc. — template flags this with ADAPT HERE but does not guarantee correctness.",
+      "load_inputs raises NotImplementedError — the template itself cannot run without case-specific override; this is by design but means downstream correctness depends on adapter providing cold_usage and init_inv keys with correct semantics.",
+      "If the evaluator includes in-transit/throughput cold usage (Pattern #1, Patch #10), the peak constraint here only models prev_inv+arrivals at the receiving DC, not pipeline/in-transit — could under-constrain.",
+      "Perishability constraint uses a window-based proxy that may not exactly match a batch-level FIFO evaluator; per-batch cumulative non-negativity is not modeled."
+    ],
+    "required_edits": [
+      {
+        "location": "write_output() column names",
+        "change": "Confirm against evaluator spec and rename 'product'->'sku' or 'location'->'dc' as required by the specific case before shipping."
+      },
+      {
+        "location": "load_inputs()",
+        "change": "Provide a concrete case-specific implementation that returns cold_usage per SKU (default 1.0 only if spec says so), init_inv, shelf_life, and verify capacity[loc] units match cold_usage units."
+      },
+      {
+        "location": "build_and_solve() capacity block",
+        "change": "If evaluator includes in-transit/throughput cold load, add a third constraint: sum(cold_usage[s] * order[l,s,t] for s) <= throughput_cap[l] or include pipeline inventory in peak_terms."
+      },
+      {
+        "location": "repair_capacity()",
+        "change": "After trimming order.varValue, also recompute and overwrite inv/fulfilled/waste varValues to keep balance consistent, or skip repair entirely and re-solve if infeasible — current trim can desynchronize state if other outputs are added later."
+      },
+      {
+        "location": "build_and_solve() perishability",
+        "change": "For batch-level perishable cases, replace the window inequality with explicit per-batch variables and enforce Σ_{t'≤t} consumed[batch,t'] ≤ purchase[batch] for every prefix t."
+      }
+    ],
+    "ready_to_ship": false
+  }
+}

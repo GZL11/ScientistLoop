@@ -1,0 +1,18 @@
+{
+  "version": "20260730-001-adaptive-progress",
+  "created_at": "2026-07-30",
+  "title": "Adaptive async experiment progress heartbeat",
+  "description": "Changes running experiment progress from a fixed interval to policy-driven adaptive reporting for the Process panel.",
+  "source_file": "registry/plugins/heartbeat/files/heartbeat.20260730-001-adaptive-progress.ts",
+  "runtime_file": "plugins/heartbeat.ts",
+  "changes": [
+    "Read meta.progress_policy from async experiment job metadata.",
+    "Support adaptive intervals, fixed intervals, off mode, time milestones, log milestones, and quiet alerts.",
+    "Keep completion and failure notifications prioritized over running progress.",
+    "Tell the agent not to produce standalone user-facing replies for running progress; the frontend Process panel displays it."
+  ],
+  "rollback": {
+    "target": "registry/source/plugins/heartbeat.ts",
+    "notes": "Restore fixed ARC_PROGRESS_INTERVAL_MS progress behavior if adaptive reporting regresses."
+  }
+}

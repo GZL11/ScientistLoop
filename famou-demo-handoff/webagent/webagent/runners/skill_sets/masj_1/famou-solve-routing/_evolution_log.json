@@ -1,0 +1,10 @@
+{
+  "evolved_at": "2026-05-01T18:06:43.175541+00:00",
+  "model": "claude-opus-4-7",
+  "family": "routing",
+  "n_traces_success": 9,
+  "n_traces_failure": 0,
+  "regressions": [],
+  "changed_templates": [],
+  "dry_run": true
+}

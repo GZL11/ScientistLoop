@@ -1,0 +1,10 @@
+{
+  "evolved_at": "2026-05-06T18:40:12.431128+00:00",
+  "model": "claude-opus-4-7",
+  "family": "scheduling",
+  "n_traces_success": 6,
+  "n_traces_failure": 11,
+  "regressions": [],
+  "changed_templates": [],
+  "dry_run": false
+}

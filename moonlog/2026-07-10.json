@@ -1,0 +1,33 @@
+{
+  "date": "2026-07-10",
+  "summary": "今天的研究活动围绕「基于强化学习的 Agentic RAG / 多模态 Agent」方向展开，精读了多篇相关论文。主要涉及三条技术线：OThink-SRR1（RAG 推理中插入 Refine 阶段 + 分层奖励）、SimpleSearch-VL（多模态搜索 Agent + FAR 自适应 rollout 分配 + Evidence-Verified Reasoning）、Search-P1（路径中心奖励 + 双轨打分 + 软结果打分），以及 Biomni（通用生物医学 Agent）和 PACE（用静态 benchmark 预测 agent benchmark 表现的低成本评估框架）。整体进展以深度论文解读为主，两篇笔记已落盘，尚无实验产出。",
+  "sessions": [
+    {
+      "id": "ses_0b5128ee0ffew2NGihHBA7hlEC",
+      "title": "新对话（OThink-SRR1 + SimpleSearch-VL + Biomni + PACE）",
+      "highlights": "本会话精读了四篇论文。OThink-SRR1：讨论了 Refine 模块是否 freeze（与主模型共享权重、联合训练、不 freeze）、消融实验（去掉 Refine 掉 ~2 个点、去掉 r_count 掉 ~1.5 个点）及分层奖励各项贡献。SimpleSearch-VL：详细讨论了 FAR 机制（expand-only-all-wrong 规则）的 recovery rate——base 全错组中仅 11.7%~17.7% 能通过扩展救回混合正负信号，逾 80% 扩展采样无训练信号，是潜在低效点；最终按用户要求将该论文整理成完整笔记落盘。会话后段还覆盖了 Biomni（150 工具 + 59 数据库的通用生物医学 Agent，HLE 17.3%）和 PACE（用 100 道静态题以 1/100 成本预测 agent benchmark 排名，平均 Spearman 0.81、两两准确率 84.4%）的核心机制与实验结果。待跟进：SimpleSearch-VL 中 FAR 扩展低效问题是否有更好的采样策略；PACE 的能力签名分析能否迁移到生物医学 agent 场景。"
+    },
+    {
+      "id": "ses_0c89723ffffevDB9C1iZUXmhOb",
+      "title": "新对话（Search-P1 核心创新点精读）",
+      "highlights": "本会话聚焦 Search-P1（arXiv 2602.22576）的完整技术解析。核心创新为三点：① Path-Centric Reward 引入显式 Planner 使推理路径可评估；② Dual-Track Path Scoring 从自洽性（Track A）和参考规划器对齐（Track B）两轨打分并取最大值，内置效率比防止冗余步骤刷分；③ Soft Outcome Scoring 对答案错误样本给予部分奖励（α=0.8 加权准确性与推理质量），将失败轨迹变为有效训练信号。用户要求详细计算过程，会话给出了完整的数值示例（答案错误场景下三个奖励分量的逐步推导）。实验结果：7 个公开 QA 基准平均 +7.7 个点（vs Search-R1），收敛速度提升约 2.5 倍。会话结束后未生成独立笔记文件，内容仅留存于对话中。"
+    }
+  ],
+  "artifacts": [
+    {
+      "dir": "research-runs/search-p1-notes-0706-e514/planning",
+      "files": [
+        "biomni-paper-notes.md",
+        "simplesearch-vl-paper-notes.md"
+      ],
+      "note": "Agentic RAG / 多模态 Agent 方向论文精读笔记，分别对应 Biomni 通用生物医学 Agent 和 SimpleSearch-VL（含 FAR 机制详解）两篇论文"
+    }
+  ],
+  "open_questions": [
+    "SimpleSearch-VL 中 FAR 的 expand-only-all-wrong 规则导致超过 80% 的扩展采样无训练信号——是否存在更高效的难样本采样策略（如基于置信度的动态扩展）？",
+    "Search-P1 的参考规划器离线生成成本如何？在数据量大或问题复杂度高时是否存在扩展瓶颈？",
+    "OThink-SRR1 的 Refine 阶段信息丢失问题（作者提及的局限）——自适应过滤策略如何设计才能在去噪与保留隐蔽证据之间取得平衡？",
+    "PACE 的能力签名分析目前仅覆盖通用编程/信息检索类 agent benchmark，能否迁移或适配到 Biomni 这类垂直领域 agent 的评估场景？",
+    "Search-P1 笔记尚未落盘，若后续需要引用其技术细节应补充整理。"
+  ]
+}

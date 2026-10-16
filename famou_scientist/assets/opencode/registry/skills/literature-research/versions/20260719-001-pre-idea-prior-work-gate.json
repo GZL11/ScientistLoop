@@ -1,0 +1,18 @@
+{
+  "version": "20260719-001-pre-idea-prior-work-gate",
+  "created_at": "2026-07-19",
+  "title": "Pre-idea prior-work gate",
+  "description": "Hardens the literature-research idea phase so candidate ideas cannot be recommended before targeted prior-work checks, overlap classification, existing-defect analysis, improvement-space identification, and a non-duplication rationale.",
+  "source_file": "registry/skills/literature-research/files/SKILL.20260719-001-pre-idea-prior-work-gate.md",
+  "runtime_file": "skill/experiment/literature-research/SKILL.md",
+  "changes": [
+    "Add IdeaCard fields for status, targeted_checks_run, overlapping_work, overlap_class, existing_defects, improvement_space, why_not_duplicate, and confidence.",
+    "Require targeted existence checks before an idea is presented as a recommendation.",
+    "Separate direct duplicates from partial overlap and improvable baselines.",
+    "Keep incomplete ideas as draft_unverified instead of presenting them as ranked recommendations."
+  ],
+  "rollback": {
+    "target": "20260718-003-search-diagnostic-artifacts",
+    "notes": "Restore the search-diagnostic literature workflow without hard pre-idea prior-work gating."
+  }
+}

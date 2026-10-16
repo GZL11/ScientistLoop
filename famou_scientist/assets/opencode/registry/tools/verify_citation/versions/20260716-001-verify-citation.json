@@ -1,0 +1,14 @@
+{
+  "version": "20260716-001-verify-citation",
+  "created_at": "2026-07-16",
+  "title": "Split out citation verifier",
+  "description": "Creates a standalone registry record for arc_verify_citation so citation existence checks get their own history.",
+  "source_file": "tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Expose arc_verify_citation as an independent tool entry.",
+    "Keep single-citation existence checking separate from batch paper verification.",
+    "Preserve the runtime citation lookup flow."
+  ]
+}
+

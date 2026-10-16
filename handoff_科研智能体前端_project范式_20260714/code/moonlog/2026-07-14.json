@@ -1,0 +1,22 @@
+{
+  "date": "2026-07-14",
+  "summary": "用户当日主要在查找一篇名为 'InterAgent-1.5' 的论文。两个独立会话均围绕同一查找请求展开，助手通过学术数据库和网页检索，最终定位到最接近的候选论文 InterAgent（arXiv:2512.07410，CVPR 2026）。该论文是首个文本驱动、基于物理仿真的多智能体 humanoid 控制端到端框架，但其标题中并无 '1.5' 后缀。当日无新增产物文件，研究方向集中在多智能体具身智能与物理仿真控制领域。",
+  "sessions": [
+    {
+      "id": "ses_09f341531ffedQQzTG6Io4w35Y",
+      "title": "新对话——首次查找 InterAgent1.5",
+      "highlights": "用户请求查找 'InterAgent1.5' 论文，助手在学术数据库中未找到完全匹配结果。找到最接近的是 InterAgent（arXiv:2512.07410），但标题无版本号后缀且主题为物理仿真多智能体 humanoid 控制。助手推测 '1.5' 可能是版本号或记忆偏差，要求用户提供作者、会议或链接等额外线索。本次会话以待确认状态结束，未获得用户进一步反馈。"
+    },
+    {
+      "id": "ses_09f45d3f2ffeIhkJIgRJrmst3e",
+      "title": "新对话——重复查找 InterAgent-1.5",
+      "highlights": "用户连续三次发送相同请求 'InterAgent-1.5 这篇论文你找一下'，助手并行执行学术库与网页检索。最终确认最接近的论文为 InterAgent（arXiv:2512.07410，CVPR 2026，Bin Li 等），核心贡献是带 multi-stream block 的自回归扩散 transformer，结合 interaction graph 外感知表示与 sparse edge-based attention，建模多智能体细粒度关节级空间依赖。助手提供了论文主页与代码仓库链接，并再次请求用户提供额外线索以确认是否为目标论文。该论文标题中无 '1.5' 字样，是否存在同名姊妹版本仍未确认。"
+    }
+  ],
+  "artifacts": [],
+  "open_questions": [
+    "'InterAgent-1.5' 中的 '1.5' 究竟指什么——是项目版本号、另一篇姊妹论文，还是用户记忆偏差？",
+    "是否存在一篇以 'InterAgent-1.5' 为正式标题或代号的独立工作（区别于 arXiv:2512.07410）？",
+    "用户是否有该论文的 arXiv ID、DOI、作者姓名或发表场合等额外线索以精确定位？"
+  ]
+}

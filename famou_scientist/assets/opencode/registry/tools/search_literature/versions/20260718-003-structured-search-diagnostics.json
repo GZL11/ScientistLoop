@@ -1,0 +1,20 @@
+{
+  "version": "20260718-003-structured-search-diagnostics",
+  "created_at": "2026-07-18",
+  "title": "Structured literature search diagnostics",
+  "description": "Changes arc_search_literature from a flat candidate list to a structured retrieval object with accepted, rejected, uncertain, diagnostics, and retrieved_by edges, while preserving an output_format=array compatibility mode.",
+  "source_file": "registry/tools/search_literature/files/arc.20260718-003-structured-search-diagnostics.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Add lightweight relevance scoring based on title, abstract, metadata, and version-only mismatch detection.",
+    "Return accepted/rejected/uncertain buckets by default.",
+    "Return diagnostics with raw_count, accepted_count, rejected_count, uncertain_count, sources, and failure_mode.",
+    "Append best-effort search_diagnostics.jsonl and queries.jsonl records in the current workspace.",
+    "Emit retrieved_by graph edges for accepted papers.",
+    "Keep output_format=array for legacy callers."
+  ],
+  "rollback": {
+    "target": "20260715-004-unified-literature-search",
+    "notes": "Restore flat array output without diagnostic buckets."
+  }
+}

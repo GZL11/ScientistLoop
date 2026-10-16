@@ -1,0 +1,18 @@
+{
+  "version": "20260809-001-progressive-retrieval-batches",
+  "created_at": "2026-08-09",
+  "title": "Use progressive literature retrieval batches",
+  "description": "Prevents broad topic reviews from pre-queuing many slow searches before any evidence has been screened.",
+  "source_file": "registry/skills/literature-search/files/SKILL.20260809-001-progressive-retrieval-batches.md",
+  "runtime_file": "skill/experiment/literature-search/SKILL.md",
+  "changes": [
+    "Limit the initial interactive retrieval batch to one or two complementary queries.",
+    "Require screening the current batch before issuing a follow-up batch.",
+    "Limit follow-up batches to two queries and stop when evidence is sufficient.",
+    "Reserve exhaustive mode for explicit systematic-review requests."
+  ],
+  "rollback": {
+    "target": "20260716-001-retrieval-boundary",
+    "notes": "Restore retrieval routing without progressive batch limits."
+  }
+}

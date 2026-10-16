@@ -1,0 +1,24 @@
+\begin{thebibliography}{3}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Li et~al.(2025)Li, Wu, Ge, Chong, Hou, Cao, Ju, Wu, Li, Zhang, et~al.]{fmagent2025}
+Annan Li, Chufan Wu, Zengle Ge, Yee~Hin Chong, Zhinan Hou, Lizhe Cao, Cheng Ju, Jianmin Wu, Huaiming Li, Haobo Zhang, et~al.
+\newblock The {FM} agent.
+\newblock arXiv preprint arXiv:2510.26144, 2025.
+
+\bibitem[Novikov et~al.(2025)Novikov, V{\~u}, Eisenberger, Dupont, Huang, Wagner, Shirobokov, Kozlovskii, Ruiz, Mehrabian, et~al.]{alphaevolve2025}
+Alexander Novikov, Ng{\^a}n V{\~u}, Marvin Eisenberger, Emilien Dupont, Po-Sen Huang, Adam~Zsolt Wagner, Sergey Shirobokov, Borislav Kozlovskii, Francisco J.~R. Ruiz, Abbas Mehrabian, et~al.
+\newblock {AlphaEvolve}: A coding agent for scientific and algorithmic discovery.
+\newblock arXiv preprint arXiv:2506.13131, 2025.
+
+\bibitem[Romera-Paredes et~al.(2023)Romera-Paredes, Barekatain, Novikov, Balog, Kumar, Dupont, et~al.]{funsearch2023}
+Bernardino Romera-Paredes, Mohammadamin Barekatain, Alexander Novikov, Matej Balog, M.~Pawan Kumar, Emilien Dupont, et~al.
+\newblock Mathematical discoveries from program search with large language models.
+\newblock \emph{Nature}, 2023.
+\newblock \doi{10.1038/s41586-023-06924-6}.
+
+\end{thebibliography}

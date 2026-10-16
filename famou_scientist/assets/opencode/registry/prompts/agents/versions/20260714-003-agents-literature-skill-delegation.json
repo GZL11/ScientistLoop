@@ -1,0 +1,18 @@
+{
+  "version": "20260714-003-agents-literature-skill-delegation",
+  "created_at": "2026-07-14",
+  "title": "Delegate literature retrieval policy to skill",
+  "description": "Removes concrete literature retrieval tool order from AGENTS.md so paper lookup and topic search policy are owned by the literature-search skill and tool schema versions.",
+  "source_file": "registry/prompts/agents/files/AGENTS.20260714-003-agents-literature-skill-delegation.md",
+  "runtime_file": "AGENTS.md",
+  "changes": [
+    "Remove specific paper lookup tool order from AGENTS.md.",
+    "Remove topic-search tool invocation details from AGENTS.md, including truthfulness checklist references.",
+    "Keep only high-level task boundaries: real sources, no fabricated papers, no automatic upgrade from single-paper lookup to topic survey.",
+    "Delegate retrieval strategy, query variants, fallback policy, and candidate verification to the literature-search skill."
+  ],
+  "rollback": {
+    "target": "20260714-002-agents-web-first-paper-lookup",
+    "notes": "Restore the previous AGENTS snapshot if delegating too much to the skill reduces routing reliability."
+  }
+}

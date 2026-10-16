@@ -1,0 +1,18 @@
+{
+  "version": "20260714-002-agents-web-first-paper-lookup",
+  "created_at": "2026-07-14",
+  "title": "Align AGENTS with web-first paper lookup",
+  "description": "Updates the main agent prompt so specific-paper lookup starts with native websearch/webfetch and uses arc_lookup_paper only as fallback or metadata enrichment.",
+  "source_file": "registry/prompts/agents/files/AGENTS.20260714-002-agents-web-first-paper-lookup.md",
+  "runtime_file": "AGENTS.md",
+  "changes": [
+    "Remove the first-round requirement to call arc_lookup_paper for concrete paper names.",
+    "Require lightweight native websearch/webfetch first for specific-paper lookup.",
+    "Keep arc_lookup_paper as fallback or metadata enrichment.",
+    "Keep arc_search_literature reserved for topic-level literature review and survey tasks."
+  ],
+  "rollback": {
+    "target": "20260713-003-tool-schema-decoupling",
+    "notes": "Restore the previous AGENTS snapshot if web-first paper lookup reduces recall."
+  }
+}

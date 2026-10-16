@@ -1,0 +1,80 @@
+# Famou 多租户「标准化租户镜像」— 可复现构建
+#
+# 把现有「基础镜像 + 手动装 miniconda/node/opencode/TinyTeX + 挂 CFS 源码」这套
+# 手动流程固化成一个镜像。每个用户容器都从它起（DooD 兄弟容器）。
+#
+# 构建：
+#   docker build -f Dockerfile.famou-tenant \
+#     -t <你的镜像仓库>/famou-public/famou-tenant:v1 .
+#   docker push <你的镜像仓库>/famou-public/famou-tenant:v1
+#
+# 红线：镜像里绝不含任何模型 key —— ANTHROPIC_* 只在 `docker run -e` 运行时注入。
+# GPU：镜像不装驱动，靠宿主 nvidia-container-runtime 在 `--gpus` 时透传。
+
+# ── 基础镜像 ──────────────────────────────────────────────
+# 选项1（推荐）：复用你们已有的 coral-fm-job（已带 python3.12 + torch + cuda12.1）
+FROM <你的镜像仓库>/famou-public/coral-fm-job:v2
+# 选项2：干净 CUDA 基础（需自己装 python）
+#   FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
+
+ARG NODE_VERSION=24.16.0
+ARG OPENCODE_VERSION=1.17.11
+# 装依赖时若开发机不通外网，取消下面注释走代理（运行时不需要）
+# ARG HTTP_PROXY_BUILD=http://<proxy-host>:<port>
+# ENV http_proxy=$HTTP_PROXY_BUILD https_proxy=$HTTP_PROXY_BUILD
+
+SHELL ["/bin/bash", "-lc"]
+ENV DEBIAN_FRONTEND=noninteractive
+
+# ── 系统依赖 ──────────────────────────────────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      curl ca-certificates git bzip2 perl \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Node + opencode（固定版；对应现网 node v24.16.0 / opencode-ai 1.17.11） ──
+ENV NVM_DIR=/root/.nvm
+RUN mkdir -p $NVM_DIR \
+    && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash \
+    && source $NVM_DIR/nvm.sh \
+    && nvm install ${NODE_VERSION} \
+    && nvm alias default ${NODE_VERSION} \
+    && npm install -g opencode-ai@${OPENCODE_VERSION}
+# 让 node/opencode 进 PATH（非交互 shell 也能用）
+ENV PATH=$NVM_DIR/versions/node/v${NODE_VERSION}/bin:$PATH
+
+# ── miniconda + famou conda env（py3.12） ──
+# 若基础镜像已带 miniconda，可跳过安装、只建/复用 env。
+ENV CONDA_DIR=/opt/miniconda
+RUN if [ ! -x "$CONDA_DIR/bin/conda" ]; then \
+      curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/mc.sh \
+      && bash /tmp/mc.sh -b -p $CONDA_DIR && rm /tmp/mc.sh ; \
+    fi \
+    && $CONDA_DIR/bin/conda create -y -n famou python=3.12 \
+    && $CONDA_DIR/bin/conda clean -afy
+ENV PATH=$CONDA_DIR/envs/famou/bin:$PATH
+
+# ── TinyTeX（latex 编译；~200M） ──
+RUN curl -fsSL https://yihui.org/tinytex/install-bin-unix.sh | sh || true
+ENV PATH=/root/.TinyTeX/bin/x86_64-linux:$PATH
+
+# ── famou-scientist ──
+# 迭代期（默认）：不 COPY 源码；运行时 `-v <CFS源码>:/app` 挂载后本镜像已能 `pip install -e /app`。
+#   为让 `python -m famou_scientist` 直接可用，起容器时入口脚本会 pip install -e /app（见下 ENTRYPOINT）。
+# 稳定期：取消下面两行注释，把源码固化进镜像（可复现、不依赖 CFS）：
+#   COPY famou-scientist/ /app/
+#   RUN pip install /app  &&  famou-scientist --version
+
+# opencode 配置模板（用 {env:...} 占位，不含硬编码 key）
+# COPY opencode.jsonc /root/.config/opencode/opencode.jsonc
+
+# ── 入口 ──────────────────────────────────────────────────
+# 迭代期：若挂了 /app 源码但未安装，先 editable 安装再起 web。
+#   FAMOU_SRC 指向容器内挂载点；未挂则假定已固化安装。
+ENV FAMOU_SRC=/app
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+EXPOSE 8080
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# 默认起 web（对外 0.0.0.0，宿主/网关再反代）；可被 docker run 覆盖。
+CMD ["famou-scientist", "web", "--host", "0.0.0.0", "--port", "8080", "--no-open"]

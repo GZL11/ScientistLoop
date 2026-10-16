@@ -1,0 +1,6 @@
+{
+  "active": "explore.20260711-000-bounded-tool-output.md",
+  "active_file": "../agent/explore.md",
+  "change": "add bounded explore subagent prompt for tool-output and noisy generated files",
+  "changelog": "EXPLORE_AGENT_CHANGELOG.md"
+}

@@ -1,0 +1,2971 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>伐谋 · 科研智能体</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #f7f8fa; --sidebar-bg: #fff; --chat-bg: #fff; --panel-bg: #fff;
+  --primary: #0d7c66; --primary-light: #ecfdf5; --primary-border: #a7f3d0;
+  --green: #10b981; --green-light: #ecfdf5;
+  --orange: #f59e0b; --red: #ef4444;
+  --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb; --gray-300: #d1d5db;
+  --gray-400: #9ca3af; --gray-500: #6b7280; --gray-600: #4b5563; --gray-700: #374151;
+  --gray-800: #1f2937; --gray-900: #111827;
+  --radius: 12px; --radius-sm: 8px;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--gray-800); height: 100vh; overflow: hidden; font-size: 14px; line-height: 1.6; }
+.app { display: flex; height: 100vh; }
+
+/* Sidebar */
+.sidebar { width: 240px; background: var(--sidebar-bg); border-right: 1px solid var(--gray-200); display: flex; flex-direction: column; flex-shrink: 0; }
+.sidebar-logo { padding: 20px 20px 16px; display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; color: var(--primary); }
+.sidebar-logo svg { width: 28px; height: 28px; }
+.sidebar-nav { padding: 0 12px; }
+.sidebar-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); color: var(--gray-600); text-decoration: none; font-size: 14px; cursor: pointer; transition: all .15s; }
+.sidebar-nav a svg { flex-shrink: 0; }
+.sidebar-nav a:hover { background: var(--gray-100); }
+.sidebar-nav a.active { background: var(--primary-light); color: var(--primary); font-weight: 500; }
+.sidebar-section { padding: 16px 12px 8px; font-size: 11px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: .5px; }
+.sidebar-bottom { margin-top: auto; padding: 16px; border-top: 1px solid var(--gray-200); display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--gray-600); }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+.sidebar-history a.running::after { content: ''; width: 6px; height: 6px; background: var(--green); border-radius: 50%; margin-left: auto; animation: pulse 1.5s infinite; }
+
+/* Session items — famou style */
+.session-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); color: var(--gray-600); text-decoration: none; font-size: 13px; cursor: pointer; transition: all .15s; position: relative; }
+.session-item:hover { background: var(--gray-100); }
+.session-item.active { background: var(--primary-light); color: var(--primary); font-weight: 500; }
+.session-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.session-dot.done { background: #f97316; }
+.session-dot.running { background: #3b82f6; animation: pulse 1.5s infinite; }
+.session-dot.empty { background: var(--gray-300); }
+.session-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.session-more { width: 28px; height: 28px; border: none; background: none; color: var(--gray-400); border-radius: 6px; cursor: pointer; font-size: 16px; display: none; align-items: center; justify-content: center; flex-shrink: 0; transition: all .12s; letter-spacing: 1px; }
+.session-item:hover .session-more { display: flex; }
+.session-item.active .session-more { display: flex; color: var(--primary); opacity: .6; }
+.session-more:hover { background: rgba(0,0,0,.08); color: var(--gray-700); }
+.session-item.active .session-more:hover { background: rgba(13,124,102,.1); color: var(--primary); opacity: 1; }
+
+/* Session context menu — dropdown */
+.session-menu-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 200; }
+.session-menu { position: absolute; top: 100%; right: 0; margin-top: 4px; background: #fff; border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 6px; min-width: 160px; z-index: 201; animation: menuIn .15s ease; }
+@keyframes menuIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.session-menu-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 6px; font-size: 13px; color: var(--gray-700); cursor: pointer; transition: all .1s; white-space: nowrap; }
+.session-menu-item:hover { background: var(--gray-50); }
+.session-menu-item.danger { color: #dc2626; }
+.session-menu-item.danger:hover { background: #fef2f2; }
+.session-menu-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* Project section */
+.project-add-btn { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: var(--gray-400); transition: all .12s; }
+.project-add-btn:hover { background: var(--gray-200); color: var(--gray-700); }
+.sidebar-projects { padding: 0 12px 8px; }
+.project-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--radius-sm); font-size: 13px; color: var(--gray-600); cursor: pointer; transition: all .12s; }
+.project-item:hover { background: var(--gray-100); }
+.project-item .project-icon { display: flex; align-items: center; color: var(--gray-400); }
+
+/* New project modal */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.4); z-index: 300; justify-content: center; align-items: center; }
+.modal-overlay.open { display: flex; }
+.modal-box { background: #fff; border-radius: 14px; width: 440px; padding: 28px 32px; box-shadow: 0 20px 60px rgba(0,0,0,.2); animation: menuIn .2s ease; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.modal-title { font-size: 17px; font-weight: 700; color: var(--gray-900); }
+.modal-close { background: none; border: none; font-size: 18px; color: var(--gray-400); cursor: pointer; padding: 4px; border-radius: 6px; }
+.modal-close:hover { background: var(--gray-100); color: var(--gray-700); }
+.modal-desc { font-size: 13px; color: var(--gray-500); line-height: 1.6; margin-bottom: 20px; }
+.modal-input { width: 100%; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 14px; color: var(--gray-800); outline: none; transition: border .15s; }
+.modal-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(13,124,102,.1); }
+.modal-input::placeholder { color: var(--gray-400); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.modal-btn { padding: 9px 22px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .12s; }
+.modal-btn-cancel { background: #fff; color: var(--gray-700); border: 1px solid var(--gray-200); }
+.modal-btn-cancel:hover { background: var(--gray-50); }
+.modal-btn-primary { background: var(--gray-900); color: #fff; border: none; }
+.modal-btn-primary:hover { background: #000; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* Main */
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.topbar { height: 52px; border-bottom: 1px solid var(--gray-200); background: var(--chat-bg); display: flex; align-items: center; justify-content: center; padding: 0 20px; font-size: 14px; color: var(--gray-700); font-weight: 500; flex-shrink: 0; position: relative; }
+.topbar-actions { position: absolute; right: 20px; display: flex; gap: 12px; }
+.topbar-actions button { background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 13px; }
+.content { flex: 1; display: flex; overflow: hidden; }
+
+/* Chat */
+.chat-col { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--gray-50); }
+.chat-messages { flex: 1; overflow-y: auto; padding: 24px 32px; display: flex; flex-direction: column; gap: 16px; }
+
+/* Welcome */
+.welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center; padding: 40px; }
+.welcome h2 { font-size: 24px; color: var(--gray-900); margin-bottom: 8px; }
+.welcome p { font-size: 14px; color: var(--gray-500); margin-bottom: 24px; max-width: 480px; line-height: 1.7; }
+.welcome-examples { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 500px; }
+.example-btn { padding: 12px 16px; background: var(--chat-bg); border: 1px solid var(--gray-200); border-radius: var(--radius-sm); font-size: 13px; color: var(--gray-700); cursor: pointer; text-align: left; transition: all .15s; }
+.example-btn:hover { border-color: var(--primary-border); background: var(--primary-light); color: var(--primary); }
+
+/* Messages */
+.msg { max-width: 80%; animation: msgIn .3s ease; }
+@keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.msg-user { align-self: flex-end; background: var(--primary-light); border: 1px solid var(--primary-border); border-radius: var(--radius) var(--radius) 4px var(--radius); padding: 12px 16px; font-size: 14px; line-height: 1.7; }
+.msg-agent { max-width: 85%; }
+.msg-agent-text { font-size: 14px; line-height: 1.8; color: var(--gray-700); white-space: pre-wrap; }
+
+/* Plan card */
+.plan-card { background: var(--chat-bg); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.plan-card.confirmed { opacity: .7; }
+.plan-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+.plan-header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.plan-title { font-size: 16px; font-weight: 700; color: var(--gray-900); }
+.plan-steps { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+.plan-step { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; line-height: 1.7; color: var(--gray-700); }
+.plan-step-icon { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--gray-300); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--gray-400); }
+.plan-step span[contenteditable="true"] { outline: none; background: var(--primary-light); border-radius: 4px; padding: 2px 4px; }
+.plan-intent-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 600; margin-left: 8px; }
+.plan-intent-badge.deep_research { background: var(--primary-light); color: var(--primary); }
+.plan-intent-badge.auto_research { background: #d1fae5; color: #059669; }
+.plan-actions { display: flex; align-items: center; gap: 10px; }
+.plan-btn { padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; }
+.plan-btn-start { background: var(--gray-900); color: #fff; border: none; }
+.plan-btn-start:hover { background: #000; }
+.plan-btn-cancel { background: none; color: var(--gray-600); border: 1px solid var(--gray-300); }
+.plan-btn-edit { background: none; color: var(--gray-600); border: 1px solid var(--gray-300); margin-right: auto; }
+.plan-confirmed-msg { font-size: 13px; color: var(--green); font-weight: 500; }
+
+/* Plan card running state */
+.plan-footer { margin-top: 16px; }
+.plan-status { padding: 4px 0 8px; }
+.plan-status-text { font-size: 13px; color: var(--gray-400); animation: planStatusFade 2s ease-in-out infinite; }
+@keyframes planStatusFade { 0%,100%{opacity:.6} 50%{opacity:1} }
+.plan-progress-row { display: flex; align-items: center; gap: 12px; }
+.plan-progress-bar { flex: 1; height: 3px; background: var(--gray-200); border-radius: 2px; overflow: hidden; }
+.plan-progress-fill { height: 100%; background: var(--gray-800); border-radius: 2px; transition: width .8s ease; }
+.plan-stop-btn { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--gray-300); background: var(--chat-bg); color: var(--gray-600); font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s; }
+.plan-stop-btn:hover { background: var(--gray-100); border-color: var(--gray-400); color: var(--gray-800); }
+.plan-stop-btn.stopped { display: none; }
+.plan-step-icon.running { border-color: var(--gray-800); background: #fff; display: flex; align-items: center; justify-content: center; }
+.plan-step-spinner { width: 14px; height: 14px; border: 2px solid var(--gray-200); border-top-color: var(--gray-800); border-radius: 50%; animation: spin .8s linear infinite; }
+.plan-step-icon.done-icon { border-color: var(--gray-800); background: var(--gray-800); color: #fff; font-size: 12px; }
+
+/* Status bar */
+.ar-mini-bar { display: flex; align-items: center; gap: 10px; background: var(--chat-bg); border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: var(--gray-600); box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+.ar-mini-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: pulse 1.5s infinite; }
+.ar-mini-stage { font-weight: 600; color: var(--gray-800); }
+
+/* Thinking */
+.thinking { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--gray-400); }
+.thinking-pulse { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--primary); animation: areaPulse 2s cubic-bezier(.4,0,.6,1) infinite; }
+@keyframes areaPulse { 0%,100%{transform:scale(.7);opacity:.4} 50%{transform:scale(1);opacity:.65} }
+
+/* Thinking inline (during streaming) */
+.thinking-inline { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--gray-400); padding: 6px 0; }
+.thinking-stream { font-size: 11px; color: var(--gray-400); line-height: 1.5; max-height: 60px; overflow: hidden; }
+.streaming-cursor::after { content: '|'; color: var(--primary); animation: blink 1s step-end infinite; font-weight: 700; }
+@keyframes blink { 50%{opacity:0} }
+
+/* Chat input */
+.chat-input-area { padding: 16px 32px 20px; background: var(--gray-50); }
+.chat-input-box { background: var(--chat-bg); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 10px 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+.chat-input-box:focus-within { border-color: var(--primary-border); box-shadow: 0 0 0 3px rgba(13,124,102,.1); }
+.chat-input-box input { flex: 1; border: none; outline: none; font-size: 14px; color: var(--gray-700); background: transparent; min-width: 0; }
+.chat-input-box input::placeholder { color: var(--gray-400); }
+.send-btn { width: 32px; height: 32px; border-radius: 8px; background: var(--primary); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.send-btn:disabled { background: var(--gray-300); cursor: not-allowed; }
+.chat-input-hint { font-size: 11px; color: var(--gray-400); margin-top: 6px; padding-left: 4px; }
+
+/* Input toolbar */
+.input-toolbar { display: flex; align-items: center; gap: 2px; margin-top: 6px; }
+.toolbar-icon { height: 30px; border: none; background: none; color: var(--gray-400); border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all .12s; min-width: 30px; }
+.toolbar-icon:hover { background: var(--gray-100); color: var(--gray-700); }
+.toolbar-icon.active { background: var(--primary-light); color: var(--primary); }
+.toolbar-icon svg { flex-shrink: 0; }
+.toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 2px; }
+
+/* File drop hint */
+.file-drop-hint { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; margin-bottom: 10px; background: var(--gray-50); border: 1px dashed var(--gray-300); border-radius: var(--radius-sm); font-size: 12px; color: var(--gray-500); cursor: pointer; transition: all .15s; }
+.file-drop-hint:hover { background: var(--primary-light); border-color: var(--primary-border); color: var(--primary); }
+
+/* File preview chips */
+.file-preview-area { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.file-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--chat-bg); border: 1px solid var(--gray-200); border-radius: var(--radius-sm); font-size: 12px; color: var(--gray-700); animation: msgIn .2s ease; }
+.file-chip-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--gray-100); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.file-chip-icon svg { width: 16px; height: 16px; color: var(--gray-500); }
+.file-chip-info { display: flex; flex-direction: column; min-width: 0; }
+.file-chip-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
+.file-chip-size { font-size: 10px; color: var(--gray-400); }
+.file-chip-remove { width: 20px; height: 20px; border: none; background: none; color: var(--gray-400); border-radius: 4px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.file-chip-remove:hover { background: var(--gray-200); color: var(--gray-700); }
+
+/* Drag drop overlay */
+.chat-input-area.dragover { background: var(--primary-light); border-radius: var(--radius); outline: 2px dashed var(--primary); outline-offset: -2px; }
+
+/* Skills popover */
+.skills-popover { position: absolute; bottom: 100%; left: 0; margin-bottom: 8px; background: #fff; border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 8px; min-width: 240px; z-index: 50; animation: menuIn .15s ease; display: none; }
+.skills-popover.open { display: block; }
+.skills-popover-title { font-size: 11px; font-weight: 600; color: var(--gray-400); padding: 4px 8px 6px; text-transform: uppercase; letter-spacing: .3px; }
+.skills-popover-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 6px; font-size: 13px; color: var(--gray-700); cursor: pointer; transition: all .1s; }
+.skills-popover-item:hover { background: var(--gray-50); }
+.skills-popover-item .skill-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* Skills panel */
+.skills-bar { display: flex; align-items: center; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.skill-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 500; cursor: pointer; border: 1px solid var(--gray-200); background: var(--gray-50); color: var(--gray-600); transition: all .12s; }
+.skill-chip:hover { border-color: var(--primary-border); background: var(--primary-light); color: var(--primary); }
+.skill-chip .skill-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* Tool call card in chat */
+.tool-call-card { background: var(--gray-50); border: 1px solid var(--gray-100); border-radius: var(--radius-sm); margin: 14px 0; overflow: hidden; font-size: 12px; }
+
+/* File artifact card in chat */
+.file-artifact-card { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-sm); margin: 8px 0; cursor: pointer; transition: all .15s; }
+.file-artifact-card:hover { border-color: var(--primary-border); background: var(--primary-light); }
+.file-artifact-card.pending { opacity: .6; cursor: pointer; }
+.file-artifact-card.pending:hover { border-color: var(--primary-border); background: var(--primary-light); }
+.file-artifact-card.pending .file-artifact-size { color: var(--orange); }
+.file-artifact-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--primary); }
+.file-artifact-icon svg { width: 18px; height: 18px; }
+.file-artifact-info { flex: 1; min-width: 0; }
+.file-artifact-name { font-size: 13px; font-weight: 500; color: var(--gray-800); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-artifact-size { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+.file-artifact-open { font-size: 11px; color: var(--primary); flex-shrink: 0; }
+.tool-call-header { display: flex; align-items: center; gap: 8px; padding: 8px 12px; cursor: pointer; color: var(--gray-400); }
+.tool-call-header:hover { background: var(--gray-100); }
+.tool-call-icon { display: flex; align-items: center; color: var(--gray-500); }
+.tool-call-count { font-weight: 500; color: var(--gray-400); }
+.tool-call-expand { margin-left: auto; font-size: 9px; color: var(--gray-400); transition: transform .2s; }
+.tool-call-body { display: none; border-top: 1px solid var(--gray-100); }
+.tool-call-body.open { display: block; }
+.tool-call-item { padding: 6px 12px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; gap: 8px; }
+.tool-call-item:last-child { border-bottom: none; }
+.tool-call-name { font-size: 11px; font-weight: 500; padding: 1px 8px; border-radius: 4px; }
+.tool-call-name.memory { background: #fef3c7; color: #92400e; }
+.tool-call-name.skill { background: #dbeafe; color: #1e40af; }
+.tool-call-name.bash { background: #d1fae5; color: #065f46; }
+.tool-call-name.read { background: var(--primary-light); color: var(--primary); }
+.tool-call-io { font-size: 10px; color: var(--gray-400); }
+
+/* Thinking process in chat */
+.thinking-block { margin: 12px 0; }
+.thinking-header { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 11px; color: var(--gray-400); padding: 2px 0; }
+.thinking-header:hover { color: var(--gray-600); }
+.thinking-body { display: none; font-size: 11px; color: var(--gray-400); line-height: 1.5; padding: 4px 0 4px 18px; }
+.thinking-body.open { display: block; }
+
+/* Images in chat */
+.chat-images { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.chat-image-item { border: 1px solid var(--gray-200); border-radius: var(--radius-sm); overflow: hidden; max-width: 280px; cursor: pointer; transition: all .12s; }
+.chat-image-item:hover { border-color: var(--primary-border); box-shadow: 0 2px 8px rgba(13,124,102,.08); }
+.chat-image-item img { width: 100%; display: block; }
+.chat-image-meta { padding: 6px 10px; font-size: 10px; color: var(--gray-500); display: flex; align-items: center; justify-content: space-between; background: var(--gray-50); }
+.chat-image-dl { color: var(--primary); cursor: pointer; font-size: 11px; }
+
+/* Markdown basics */
+.msg-agent-text code { background: var(--gray-100); padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: 'SF Mono', Consolas, monospace; }
+.msg-agent-text pre { background: var(--gray-900); color: #e5e7eb; padding: 14px; border-radius: 8px; overflow-x: auto; font-size: 12px; line-height: 1.5; margin: 8px 0; }
+.msg-agent-text pre code { background: none; padding: 0; color: inherit; }
+.msg-agent-text strong { color: var(--gray-900); }
+.msg-agent-text blockquote { border-left: 3px solid var(--gray-300); padding-left: 12px; color: var(--gray-500); margin: 6px 0; }
+.msg-agent-text hr { border: none; border-top: 1px solid var(--gray-200); margin: 12px 0; }
+.msg-agent-text ul { padding-left: 18px; margin: 6px 0; }
+.msg-agent-text li { margin: 3px 0; }
+.msg-agent-text em { font-style: italic; color: var(--gray-600); }
+.msg-agent-text table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12px; }
+.msg-agent-text th { background: var(--gray-50); text-align: left; padding: 8px 10px; border: 1px solid var(--gray-200); font-weight: 600; color: var(--gray-600); }
+.msg-agent-text td { padding: 8px 10px; border: 1px solid var(--gray-200); }
+.msg-agent-text h1 { font-size: 18px; color: var(--gray-900); margin: 16px 0 8px; }
+.msg-agent-text h2 { font-size: 16px; color: var(--gray-900); margin: 14px 0 6px; }
+.msg-agent-text h3 { font-size: 14px; color: var(--gray-700); margin: 12px 0 4px; }
+
+/* ===== RIGHT PANEL ===== */
+.resize-handle { width: 4px; background: transparent; cursor: col-resize; flex-shrink: 0; position: relative; z-index: 10; transition: background .15s; }
+.resize-handle:hover, .resize-handle.active { background: var(--primary-border); }
+.right-panel { width: 520px; background: var(--panel-bg); border-left: 1px solid var(--gray-200); display: flex; flex-direction: column; flex-shrink: 0; }
+.rp-header { padding: 14px 20px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; }
+.rp-tabs { display: flex; gap: 0; flex: 1; }
+.rp-tab { padding: 6px 14px; font-size: 13px; color: var(--gray-400); cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; user-select: none; }
+.rp-tab:hover { color: var(--gray-600); }
+.rp-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+.rp-body { flex: 1; overflow-y: auto; padding: 20px; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Phase overview */
+.phase-overview { display: flex; gap: 0; margin-bottom: 24px; position: relative; background: var(--gray-50); border-radius: var(--radius-sm); padding: 14px 12px; border: 1px solid var(--gray-100); }
+.phase-item { flex: 1; text-align: center; position: relative; z-index: 1; }
+.phase-icon { width: 28px; height: 28px; border-radius: 50%; margin: 0 auto 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; border: 2px solid var(--gray-300); background: #fff; color: var(--gray-400); }
+.phase-item.done .phase-icon { border-color: var(--green); background: var(--green); color: #fff; }
+.phase-item.active .phase-icon { border-color: var(--primary); background: var(--primary); color: #fff; animation: phaseGlow 2s infinite; }
+.phase-item.pending .phase-icon { border-color: var(--gray-200); background: var(--gray-50); color: var(--gray-300); }
+@keyframes phaseGlow { 0%,100%{box-shadow:0 0 0 0 rgba(13,124,102,.3)} 50%{box-shadow:0 0 0 8px rgba(13,124,102,0)} }
+.phase-label { font-size: 10px; color: var(--gray-400); line-height: 1.3; }
+.phase-item.done .phase-label { color: var(--green); font-weight: 500; }
+.phase-item.active .phase-label { color: var(--primary); font-weight: 600; }
+.phase-connector { position: absolute; top: 27px; left: 0; right: 0; height: 2px; z-index: 0; }
+.phase-connector-bg { position: absolute; top: 0; left: 14%; right: 14%; height: 2px; background: var(--gray-200); }
+.phase-connector-fill { position: absolute; top: 0; left: 14%; height: 2px; background: var(--green); transition: width .5s; }
+
+/* Stats */
+.stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.stat-card { background: var(--gray-50); border: 1px solid var(--gray-100); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+.stat-value { font-size: 20px; font-weight: 700; }
+.stat-value.green { color: var(--green); }
+.stat-value.primary { color: var(--primary); }
+.stat-label { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+/* Timeline items — v6 style with explicit connectors */
+.phase-section { margin-bottom: 8px; }
+.phase-section-header { display: flex; align-items: center; gap: 8px; padding: 10px 10px; font-size: 13px; font-weight: 600; color: var(--gray-700); border-bottom: 1px solid var(--gray-100); margin-bottom: 0; }
+.phase-section-header .phase-summary { color: var(--gray-400); font-weight: 400; margin-left: auto; font-size: 11px; }
+.phase-steps-wrap { padding: 4px 0 8px 10px; }
+
+.tl-item { display: flex; gap: 12px; }
+.tl-line { display: flex; flex-direction: column; align-items: center; width: 20px; flex-shrink: 0; }
+.tl-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 7px; z-index: 2; }
+.tl-dot.search { background: #3b82f6; }
+.tl-dot.read { background: var(--primary); }
+.tl-dot.think { background: #f59e0b; }
+.tl-dot.code { background: #10b981; }
+.tl-dot.eval { background: #ef4444; }
+.tl-dot.run { background: #06b6d4; }
+.tl-dot.active { animation: activeDotPulse 2s ease-in-out infinite; }
+.tl-dot.active::before { content: ''; position: absolute; top: -4px; left: -4px; right: -4px; bottom: -4px; border-radius: 50%; border: 2px solid currentColor; opacity: 0; animation: ringExpand 2s ease-out infinite; }
+.tl-dot.active { position: relative; }
+.tl-dot.active.search::before { border-color: #3b82f6; }
+.tl-dot.active.read::before { border-color: var(--primary); }
+.tl-dot.active.think::before { border-color: #f59e0b; }
+@keyframes activeDotPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+@keyframes ringExpand { 0%{transform:scale(.8);opacity:.6} 100%{transform:scale(2);opacity:0} }
+
+/* Connector between dots */
+.tl-connector { width: 2px; flex: 1; min-height: 16px; background: var(--gray-200); }
+.tl-connector.done { background: var(--green); }
+.tl-connector.flowing { background: var(--gray-200); overflow: hidden; position: relative; }
+.tl-connector.flowing::before { content: ''; position: absolute; top: -100%; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, transparent 0%, var(--primary) 40%, var(--primary) 60%, transparent 100%); animation: flowDown 1.5s linear infinite; }
+@keyframes flowDown { 0%{top:-100%} 100%{top:100%} }
+
+.tl-content { padding-bottom: 14px; flex: 1; min-width: 0; }
+.tl-action { font-size: 12px; font-weight: 500; color: var(--gray-700); line-height: 1.5; cursor: pointer; }
+.tl-action:hover { color: var(--primary); }
+.expand-hint { font-size: 9px; color: var(--gray-300); margin-left: 4px; transition: transform .2s; display: inline-block; }
+
+/* Phase badge — v6 pill shape: done=green pill with ✓, active=purple pill with spinner */
+.phase-badge { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+.phase-badge.done { background: var(--green-light); color: var(--green); }
+.phase-badge.active { background: var(--primary-light); color: var(--primary); }
+.phase-spinner { width: 10px; height: 10px; border: 1.5px solid var(--primary-border); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.tl-action-type { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .3px; padding: 1px 6px; border-radius: 3px; margin-right: 6px; }
+.type-search { background: #dbeafe; color: #2563eb; }
+.type-read { background: var(--primary-light); color: var(--primary); }
+.type-think { background: #fef3c7; color: #d97706; }
+.type-code { background: #d1fae5; color: #059669; }
+.type-eval { background: #fee2e2; color: #dc2626; }
+.type-run { background: #cffafe; color: #0891b2; }
+.tl-time { font-size: 10px; color: var(--gray-400); margin-top: 2px; }
+/* Detail card — collapsible, click to toggle */
+.tl-detail { font-size: 12px; color: var(--gray-600); margin-top: 6px; line-height: 1.6; background: var(--gray-50); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--gray-100); display: none; }
+.tl-detail.open { display: block; }
+.tl-detail.active-detail { display: block; border: 1px solid transparent; background: linear-gradient(var(--gray-50), var(--gray-50)) padding-box, linear-gradient(90deg, var(--primary), #34d399, var(--primary)) border-box; background-size: 100% 100%, 200% 100%; animation: shimmerBorder 2s linear infinite; }
+@keyframes shimmerBorder { 0%{background-position:0 0,0% 0} 100%{background-position:0 0,200% 0} }
+
+/* Source cards */
+.source-count { font-size: 12px; color: var(--gray-400); margin-bottom: 16px; }
+.source-card { border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 10px; cursor: pointer; transition: all .15s; }
+.source-card:hover { border-color: var(--primary-border); }
+.source-header { display: flex; align-items: flex-start; gap: 8px; }
+.source-num { font-size: 11px; font-weight: 700; color: var(--primary); background: var(--primary-light); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.source-status { font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-left: auto; flex-shrink: 0; }
+.source-status.deep-read { background: var(--primary-light); color: var(--primary); }
+.source-status.scanned { background: var(--gray-100); color: var(--gray-500); }
+.source-title { font-size: 13px; font-weight: 600; color: var(--gray-800); line-height: 1.4; flex: 1; }
+.source-meta { font-size: 11px; color: var(--gray-400); margin-top: 6px; padding-left: 30px; }
+.source-excerpt { font-size: 12px; color: var(--gray-600); line-height: 1.5; background: var(--gray-50); padding: 10px; border-radius: 6px; border-left: 2px solid var(--primary-border); margin: 8px 0 0 30px; display: none; }
+.source-card.expanded .source-excerpt { display: block; }
+
+/* Artifact cards */
+.artifact-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); margin-bottom: 8px; cursor: pointer; transition: all .15s; animation: msgIn .3s ease; }
+.artifact-card:hover { border-color: var(--primary-border); background: var(--gray-50); }
+.artifact-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--gray-500); }
+.artifact-info { flex: 1; min-width: 0; }
+.artifact-name { font-size: 13px; font-weight: 600; color: var(--gray-800); }
+.artifact-desc { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+/* Footer */
+.rp-footer { padding: 10px 20px; border-top: 1px solid var(--gray-100); display: flex; flex-direction: column; gap: 6px; }
+.rp-progress-row { display: flex; align-items: center; gap: 10px; }
+.rp-progress-bar { flex: 1; height: 3px; background: var(--gray-200); border-radius: 2px; overflow: hidden; }
+.rp-progress-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--primary), #34d399); transition: width .5s; }
+.rp-progress-text { font-size: 11px; color: var(--gray-400); }
+.rp-footer-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--gray-400); }
+
+.empty-state { text-align: center; padding: 40px 20px; color: var(--gray-400); font-size: 13px; }
+
+/* Preview modal */
+.preview-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.5); z-index: 1000; justify-content: center; align-items: center; }
+.preview-overlay.open { display: flex; }
+.preview-modal { background: #fff; border-radius: 16px; width: 80vw; height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,.3); overflow: hidden; }
+.preview-header { display: flex; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--gray-200); flex-shrink: 0; }
+.preview-title { font-size: 15px; font-weight: 700; color: var(--gray-800); flex: 1; }
+.preview-close { background: none; border: none; font-size: 20px; color: var(--gray-400); cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+.preview-close:hover { background: var(--gray-100); color: var(--gray-700); }
+.preview-body { flex: 1; overflow-y: auto; padding: 32px 40px; font-size: 14px; line-height: 1.7; color: var(--gray-700); }
+.preview-body h1 { font-size: 22px; color: var(--gray-900); margin-bottom: 8px; }
+.preview-body h2 { font-size: 16px; color: var(--gray-800); margin: 24px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--gray-100); }
+.preview-body h3 { font-size: 14px; color: var(--gray-700); margin: 16px 0 8px; }
+.preview-body table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+.preview-body th { background: var(--gray-50); text-align: left; padding: 8px 12px; border: 1px solid var(--gray-200); font-weight: 600; color: var(--gray-600); }
+.preview-body td { padding: 8px 12px; border: 1px solid var(--gray-200); }
+.preview-body pre { background: var(--gray-900); color: #e5e7eb; padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 12px; line-height: 1.6; font-family: "SF Mono", "Fira Code", monospace; }
+.preview-body ul, .preview-body ol { padding-left: 20px; margin: 8px 0; }
+.preview-body li { margin: 4px 0; }
+.preview-body strong { color: var(--gray-900); }
+.preview-body code { background: var(--gray-100); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+.preview-body pre code { background: none; padding: 0; }
+.preview-body .metric-row { display: flex; gap: 24px; margin: 16px 0; }
+.preview-body .metric-box { flex: 1; background: var(--gray-50); border: 1px solid var(--gray-100); border-radius: 10px; padding: 16px; text-align: center; }
+.preview-body .metric-highlight { font-size: 28px; font-weight: 800; }
+.preview-body .metric-label { font-size: 11px; color: var(--gray-400); margin-top: 4px; }
+.preview-loading { display: flex; align-items: center; justify-content: center; height: 200px; color: var(--gray-400); font-size: 14px; gap: 8px; }
+.preview-loading .thinking-pulse { width: 14px; height: 14px; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+
+/* ===== DR Steps Area (main content column) ===== */
+.dr-steps-area { background: var(--chat-bg); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.04); animation: msgIn .3s ease; }
+.dr-steps-title { font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.dr-steps-title .collapse-icon { font-size: 10px; color: var(--gray-400); transition: transform .2s; }
+.dr-steps-area.collapsed .dr-steps-body { display: none; }
+.dr-steps-area.collapsed .collapse-icon { transform: rotate(-90deg); }
+.dr-step-card { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; background: var(--gray-50); border: 1px solid var(--gray-100); border-radius: var(--radius-sm); margin-bottom: 8px; transition: all .2s; }
+.dr-step-card.active { border-color: var(--primary-border); background: var(--primary-light); }
+.dr-step-card.done { opacity: .85; }
+.dr-step-icon { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; margin-top: 1px; }
+.dr-step-icon.pending { border: 2px solid var(--gray-300); color: var(--gray-400); background: #fff; }
+.dr-step-icon.active { border: 2px solid var(--primary); background: var(--primary); color: #fff; animation: phaseGlow 2s infinite; }
+.dr-step-icon.done { border: 2px solid var(--green); background: var(--green); color: #fff; }
+.dr-step-body { flex: 1; min-width: 0; }
+.dr-step-title { font-size: 13px; font-weight: 600; color: var(--gray-800); }
+.dr-step-summary { font-size: 12px; color: var(--gray-500); margin-top: 2px; line-height: 1.5; }
+.dr-step-tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 10px; border-radius: 10px; background: var(--primary-light); color: var(--primary); margin-left: auto; flex-shrink: 0; }
+
+/* ===== Literature Chips ===== */
+.dr-chips-area { background: var(--chat-bg); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 16px; animation: msgIn .3s ease; }
+.dr-chips-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.dr-chips-header-icon { display: flex; align-items: center; color: var(--gray-500); }
+.dr-chips-header-title { font-size: 13px; font-weight: 600; color: var(--gray-700); }
+.dr-chips-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: var(--green-light); color: var(--green); }
+.dr-chips-toggle { margin-left: auto; font-size: 12px; color: var(--gray-400); cursor: pointer; }
+.dr-chips-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.dr-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 20px; font-size: 12px; color: var(--gray-700); cursor: pointer; transition: all .15s; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dr-chip:hover { border-color: var(--primary-border); background: var(--primary-light); color: var(--primary); }
+.dr-chip-icon { display: flex; align-items: center; flex-shrink: 0; color: var(--gray-400); }
+.dr-chip-count { font-size: 10px; font-weight: 600; background: var(--primary-light); color: var(--primary); padding: 1px 6px; border-radius: 8px; flex-shrink: 0; }
+
+/* ===== Thinking Steps ===== */
+.thinking-steps { background: var(--chat-bg); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 16px; animation: msgIn .3s ease; }
+.thinking-steps-title { font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.thinking-step { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--gray-50); font-size: 13px; color: var(--gray-600); }
+.thinking-step:last-child { border-bottom: none; }
+.thinking-step-icon { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+.thinking-step-icon.done { background: var(--green); color: #fff; }
+.thinking-step-icon.active { background: var(--primary-light); color: var(--primary); border: 1.5px solid var(--primary); }
+.thinking-step-icon.active .phase-spinner { width: 10px; height: 10px; }
+.thinking-step-icon.pending { border: 1.5px solid var(--gray-300); color: var(--gray-300); }
+.thinking-step-label { flex: 1; }
+.thinking-step-label.active { color: var(--primary); font-weight: 500; }
+.thinking-step-detail { font-size: 11px; color: var(--gray-500); padding: 6px 0 4px 28px; line-height: 1.5; background: var(--gray-50); border-radius: 6px; margin: 4px 0 4px 28px; padding: 8px 12px; display: none; }
+.thinking-step-detail.open { display: block; }
+.thinking-steps.collapsed .thinking-steps-body { display: none; }
+
+/* ===== Citation Numbers ===== */
+.cite-num { color: var(--primary); font-size: 10px; font-weight: 700; cursor: pointer; vertical-align: super; padding: 0 1px; transition: all .15s; }
+.cite-num:hover { color: #065f46; text-decoration: underline; }
+
+/* ===== Source Fragment ===== */
+.source-fragments { margin-top: 8px; padding-left: 0; }
+.source-fragment { font-size: 12px; margin-bottom: 4px; }
+.source-fragment-header { display: flex; align-items: center; gap: 4px; cursor: pointer; color: var(--gray-500); padding: 4px 0; font-size: 12px; }
+.source-fragment-header:hover { color: var(--primary); }
+.source-fragment-text { font-size: 12px; color: var(--gray-600); line-height: 1.6; padding: 6px 0; display: none; }
+.source-fragment-text.open { display: block; }
+.source-card.highlight { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(13,124,102,.15); transition: all .3s; }
+
+/* ===== Evidence Chain Stats Badge ===== */
+.evidence-stats { font-size: 11px; color: var(--gray-500); font-weight: 400; margin-left: 4px; }
+.evidence-stats-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: var(--primary-light); color: var(--primary); }
+
+/* ===== DR Output Section ===== */
+.dr-output { animation: msgIn .3s ease; }
+.dr-output h2 { font-size: 16px; color: var(--gray-900); margin: 16px 0 10px; }
+.dr-output h3 { font-size: 14px; color: var(--gray-700); margin: 12px 0 6px; }
+
+/* ===== Follow-up Questions ===== */
+.followup-area { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; animation: msgIn .3s ease; }
+.followup-btn { width: 100%; text-align: left; padding: 11px 16px; background: var(--chat-bg); border: 1px solid var(--gray-200); border-radius: var(--radius-sm); font-size: 13px; color: var(--gray-700); cursor: pointer; transition: all .15s; line-height: 1.5; }
+.followup-btn:hover { border-color: var(--primary-border); background: var(--primary-light); color: var(--primary); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#0d7c66"/><path d="M8 16l6-8 6 8-6 8z" fill="#a7f3d0"/><path d="M14 16l6-8 6 8-6 8z" fill="#fff" opacity=".9"/></svg>
+      百度伐谋
+    </div>
+    <nav class="sidebar-nav">
+      <a class="active" onclick="newConversation()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z"/></svg> 新任务</a>
+      <a onclick="void(0)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5V12a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 14 12V6a1.5 1.5 0 0 0-1.5-1.5H8L6.5 3H3.5A1.5 1.5 0 0 0 2 4.5z"/></svg> 资产</a>
+    </nav>
+    <div class="sidebar-section" style="display:flex;align-items:center;justify-content:space-between">
+      知识库
+      <span class="project-add-btn" onclick="openNewProjectModal()" title="新建知识库">＋</span>
+    </div>
+    <div class="sidebar-projects" id="projectList">
+      <span style="font-size:12px;color:var(--gray-400);padding:4px 12px;display:block">暂无知识库</span>
+    </div>
+    <div class="sidebar-section">最近</div>
+    <nav class="sidebar-nav sidebar-history" id="historyNav"></nav>
+    <div class="sidebar-bottom">
+      <div class="avatar">D</div>
+      <span>Danyella</span>
+      <span style="margin-left:auto;font-size:11px;color:var(--gray-500);background:var(--gray-100);padding:2px 8px;border-radius:4px;">Famou</span>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar" id="topbarTitle">
+      <div class="topbar-actions"><button>⋯</button></div>
+    </div>
+    <div class="content">
+      <div class="chat-col">
+        <div class="chat-messages" id="chatMessages">
+          <div class="welcome" id="welcomeScreen">
+            <h2>伐谋 · 科研智能体</h2>
+            <p>描述你的需求，我来帮你完成。</p>
+            <div class="welcome-examples">
+              <div class="example-btn" onclick="sendExample(this)">帮我复现这篇GNN风阻预测论文的方法，用DrivAer数据集验证</div>
+              <div class="example-btn" onclick="sendExample(this)">调研强化学习在润滑油配方优化中的最新进展，给我一份综述</div>
+              <div class="example-btn" onclick="sendExample(this)">PEM电解槽仿真数据的故障诊断方法对比，需要文献支撑</div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-area" id="chatInputArea">
+          <div class="file-preview-area" id="uploadPreviewArea"></div>
+          <div class="chat-input-box">
+            <input type="text" id="chatInput" placeholder="描述你的科研问题，例如：调研岩爆预测领域的主流ML方法" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}">
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
+          </div>
+          <div class="chat-input-hint" id="inputHint"></div>
+          <div class="input-toolbar">
+            <button class="toolbar-icon" onclick="triggerFileUpload()" title="上传文件">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <div style="position:relative">
+              <button class="toolbar-icon" onclick="toggleSkillsPopover(event)" title="技能" style="font-size:12px;width:auto;padding:0 10px;gap:4px;color:var(--gray-500)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                技能
+              </button>
+              <div class="skills-popover" id="skillsPopover">
+                <div class="skills-popover-title">技能</div>
+                <div class="skills-popover-item" onclick="insertSkill('artifact-generator')">famou-artifact-generator</div>
+                <div class="skills-popover-item" onclick="insertSkill('data-analysis')">famou-data-analysis</div>
+                <div class="skills-popover-item" onclick="insertSkill('experiment-manager')">famou-experiment-manager</div>
+                <div class="skills-popover-item" onclick="insertSkill('result-visualization')">famou-result-visualization</div>
+                <div class="skills-popover-item" onclick="insertSkill('ppt-generator')">famou-ppt-generator</div>
+              </div>
+            </div>
+            <button class="toolbar-icon" id="deepResearchBtn" onclick="triggerDeepResearch()" title="深度研究" style="font-size:12px;width:auto;padding:0 10px;gap:4px;color:var(--gray-500)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              深度研究
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resize Handle -->
+      <div class="resize-handle" id="resizeHandle"></div>
+      <!-- ===== Right Panel (v6 style) ===== -->
+      <div class="right-panel">
+        <div class="rp-header">
+          <div class="rp-tabs">
+            <div class="rp-tab active" onclick="switchTab('sources')" id="tabSources">证据链 <span class="evidence-stats" id="sourceCount"></span></div>
+            <div class="rp-tab" onclick="switchTab('artifacts')" id="tabArtifacts">产物 <span id="artifactCount">(0)</span></div>
+          </div>
+        </div>
+        <div class="rp-body">
+          <div class="tab-content active" id="tab-sources">
+            <div class="source-count" id="sourcesSummary">知识证据链</div>
+            <div id="sourcesList"></div>
+          </div>
+          <div class="tab-content" id="tab-artifacts">
+            <div id="artifactsList">
+              <div class="empty-state">执行过程中产生的文件将在这里显示</div>
+            </div>
+            <div id="filePreviewArea" style="display:none">
+              <div id="filePreviewHeader" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--gray-200);margin-bottom:12px">
+                <button onclick="closeFilePreview()" style="background:none;border:1px solid var(--gray-200);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--gray-600)">← 返回</button>
+                <span id="filePreviewName" style="font-size:13px;font-weight:600;color:var(--gray-700)"></span>
+              </div>
+              <div id="filePreviewContent" style="font-size:13px;line-height:1.7;color:var(--gray-700);overflow-y:auto"></div>
+            </div>
+          </div>
+        </div>
+        <div class="rp-footer" id="rpFooter" style="display:none">
+          <div class="rp-progress-row"><div class="rp-progress-bar"><div class="rp-progress-fill" id="progressFill" style="width:0%"></div></div><span class="rp-progress-text" id="progressText">0%</span></div>
+          <div class="rp-footer-meta"><span id="footerTime">已运行 0s</span><span id="footerTokens"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="preview-overlay" id="previewOverlay" onclick="if(event.target===this)closePreview()">
+  <div class="preview-modal">
+    <div class="preview-header">
+      <span class="preview-title" id="previewTitle"></span>
+      <button class="preview-close" onclick="closePreview()">✕</button>
+    </div>
+    <div class="preview-body" id="previewBody"></div>
+  </div>
+</div>
+
+<!-- New Project Modal -->
+<div class="modal-overlay" id="projectModal" onclick="if(event.target===this)closeNewProjectModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">新建知识库</span>
+      <button class="modal-close" onclick="closeNewProjectModal()">✕</button>
+    </div>
+    <div class="modal-desc">知识库是你的科研工作空间。你可以在这里输入想法、上传资料，系统会帮你整理、分析并持续推进任务。</div>
+    <input class="modal-input" id="projectNameInput" placeholder="为你的知识库命名" onkeydown="if(event.key==='Enter')createProject()">
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeNewProjectModal()">取消</button>
+      <button class="modal-btn modal-btn-primary" onclick="createProject()">创建</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" multiple style="display:none" onchange="handleFileSelect(event)">
+
+<script>
+// ===== SVG Icon system (Vercel-style monochrome, currentColor) =====
+const _icons = {
+  file: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.5H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5.5L9 1.5z"/><path d="M9 1.5V5.5h4"/></svg>',
+  code: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 4.5L2 8l3.5 3.5"/><path d="M10.5 4.5L14 8l-3.5 3.5"/></svg>',
+  table: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M2 6h12M2 10h12M6 2v12"/></svg>',
+  json: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2.5C3 2.5 2.5 3 2.5 4v2c0 1-1 1.5-1 2s1 1 1 2v2c0 1 .5 1.5 1.5 1.5"/><path d="M12 2.5c1 0 1.5.5 1.5 1.5v2c0 1 1 1.5 1 2s-1 1-1 2v2c0 1-.5 1.5-1.5 1.5"/></svg>',
+  image: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="1"/><circle cx="5.5" cy="5.5" r="1"/><path d="M14 10.5l-3-3L3 14"/></svg>',
+  pdf: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.5H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5.5L9 1.5z"/><path d="M9 1.5V5.5h4"/><path d="M5.5 9h5M5.5 11.5h3"/></svg>',
+  globe: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M2 8h12"/><path d="M8 2a10 10 0 0 1 2.5 6A10 10 0 0 1 8 14"/><path d="M8 2a10 10 0 0 0-2.5 6A10 10 0 0 0 8 14"/></svg>',
+  report: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.5H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5.5L9 1.5z"/><path d="M9 1.5V5.5h4"/><path d="M5 8h6M5 10.5h6M5 13h3"/></svg>',
+  book: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12.5V3a1.5 1.5 0 0 1 1.5-1.5h9v10H3.5A1.5 1.5 0 0 0 2 13a1.5 1.5 0 0 0 1.5 1.5h9"/></svg>',
+  edit: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z"/></svg>',
+  plus: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>',
+  folder: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5V12a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 14 12V6a1.5 1.5 0 0 0-1.5-1.5H8L6.5 3H3.5A1.5 1.5 0 0 0 2 4.5z"/></svg>',
+  clip: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8.5l-4.5 4.5a3 3 0 0 1-4.24-4.24l6.36-6.37a2 2 0 0 1 2.83 2.83L6.05 11.6a1 1 0 0 1-1.41-1.41L9.5 5.33"/></svg>',
+};
+function svgIcon(name, size) {
+  const s = size || 16;
+  const svg = _icons[name] || _icons.file;
+  if (s === 16) return svg;
+  return svg.replace(/width="16"/,'width="'+s+'"').replace(/height="16"/,'height="'+s+'"');
+}
+function fileIcon(ext) {
+  const map = { py:'code', js:'code', ts:'code', sh:'code', csv:'table', xlsx:'table', json:'json', jpg:'image', jpeg:'image', png:'image', svg:'image', gif:'image', pdf:'pdf', html:'globe', htm:'globe', md:'report', txt:'file', docx:'file', bib:'book' };
+  return svgIcon(map[ext] || 'file');
+}
+
+// ===== State =====
+let isStreaming = false;
+let msgCount = 0;
+let stepCount = 0;
+let sourcesData = [];
+let artifactsData = [];
+let currentPhases = [];
+let startTime = null;
+let timerInterval = null;
+
+// ===== Tab switching =====
+function switchTab(tab) {
+  document.querySelectorAll('.rp-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  const tabMap = { sources: 'tabSources', artifacts: 'tabArtifacts' };
+  const tabEl = document.getElementById(tabMap[tab]);
+  if (tabEl) tabEl.classList.add('active');
+  const content = document.getElementById('tab-' + tab);
+  if (content) content.classList.add('active');
+}
+
+// ===== Trace panel updates (stubs — trace tab removed) =====
+function updatePhaseOverview(phases) {}
+
+function updateStats() {
+  updateEvidenceStats();
+  const ac = document.getElementById('artifactCount');
+  if (ac) ac.textContent = `(${artifactsData.length})`;
+}
+
+function updateProgress(pct) {
+  document.getElementById('rpFooter').style.display = '';
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = pct + '%';
+}
+
+function startTimer() {
+  startTime = Date.now();
+  timerInterval = setInterval(() => {
+    const s = Math.round((Date.now() - startTime) / 1000);
+    document.getElementById('footerTime').textContent = `已运行 ${s}s`;
+  }, 1000);
+}
+function stopTimer() { if (timerInterval) clearInterval(timerInterval); }
+
+// Add a phase section header to trace
+let currentPhaseDom = null;
+let currentPhaseSection = null;
+
+function addPhaseSection(label, status) {
+  return null;
+}
+
+function markPhaseDone(sec, summaryText) {
+  if (!sec) return;
+  const badge = sec.querySelector('.phase-badge');
+  if (badge) { badge.className = 'phase-badge done'; badge.innerHTML = '✓'; }
+  const summary = sec.querySelector('.phase-summary');
+  if (summary && summaryText) summary.textContent = summaryText;
+}
+
+// isActive: true = show flowing connector + pulsing dot
+// isLast: true = no connector after this dot
+function addTraceStep(type, actionText, detail, isActive, isLast) {
+  if (!currentPhaseDom) return;
+  stepCount++;
+  const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  const dotClass = isActive ? `${type} active` : type;
+  const hasDetail = !!detail;
+  const detailId = `detail-${stepCount}`;
+
+  // Connector: flowing if active, done(green) if completed, none if last
+  let connectorHtml = '';
+  if (!isLast) {
+    const connClass = isActive ? 'tl-connector flowing' : 'tl-connector done';
+    connectorHtml = `<div class="${connClass}"></div>`;
+  }
+
+  const item = document.createElement('div');
+  item.className = 'tl-item';
+  item.innerHTML = `
+    <div class="tl-line">
+      <div class="tl-dot ${dotClass}"></div>
+      ${connectorHtml}
+    </div>
+    <div class="tl-content">
+      <div class="tl-action" ${hasDetail ? `onclick="toggleDetail('${detailId}', this)"` : ''}>
+        <span class="tl-action-type type-${type}">${typeLabels[type] || type}</span>${actionText}${hasDetail ? ' <span class="expand-hint">▸</span>' : ''}
+      </div>
+      <div class="tl-time">${time}</div>
+      ${hasDetail ? `<div class="tl-detail ${isActive ? 'active-detail' : ''}" id="${detailId}">${detail}</div>` : ''}
+    </div>
+  `;
+  currentPhaseDom.appendChild(item);
+  updateStats();
+  document.querySelector('.rp-body').scrollTop = document.querySelector('.rp-body').scrollHeight;
+  return item;
+}
+
+function toggleDetail(id, actionEl) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('open');
+  if (actionEl) {
+    const hint = actionEl.querySelector('.expand-hint');
+    if (hint) {
+      if (el.classList.contains('open')) { hint.style.transform = 'rotate(90deg)'; hint.style.color = 'var(--gray-500)'; }
+      else { hint.style.transform = ''; hint.style.color = ''; }
+    }
+  }
+}
+
+const typeLabels = { search: '检索', read: '阅读', think: '推理', code: '编码', eval: '验证', run: '执行' };
+
+let fragmentCount = 0;
+
+function addSource(title, authors, venue, fragments, status) {
+  // fragments: array of {id, text} or string (backward compat)
+  let frags = [];
+  if (typeof fragments === 'string') {
+    fragmentCount++;
+    frags = [{ id: fragmentCount, text: fragments }];
+  } else if (Array.isArray(fragments)) {
+    frags = fragments.map(f => {
+      if (!f.id) { fragmentCount++; f.id = fragmentCount; }
+      return f;
+    });
+  }
+  sourcesData.push({ title, authors, venue, fragments: frags, status });
+  const idx = sourcesData.length;
+  const card = document.createElement('div');
+  card.className = 'source-card';
+  card.id = `source-card-${idx}`;
+  const fragsHtml = frags.length > 0 ? `
+    <div class="source-fragments">
+      ${frags.map(f => `
+        <div class="source-fragment" id="frag-${f.id}">
+          <div class="source-fragment-header" onclick="toggleFragment(${f.id})">
+            摘要片段
+          </div>
+          <div class="source-fragment-text" id="frag-text-${f.id}">${f.text}</div>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
+  card.innerHTML = `
+    <div class="source-header" onclick="this.parentElement.classList.toggle('expanded')">
+      <span class="source-num">${idx}</span>
+      <span class="source-title">${title}</span>
+      <span class="source-status ${status === '精读' ? 'deep-read' : 'scanned'}">${status}</span>
+    </div>
+    <div class="source-meta">${authors} · ${venue}</div>
+    ${fragsHtml}
+  `;
+  document.getElementById('sourcesList').appendChild(card);
+  updateEvidenceStats();
+  updateStats();
+}
+
+function toggleFragment(fragId) {
+  const el = document.getElementById('frag-text-' + fragId);
+  if (el) el.classList.toggle('open');
+}
+
+function updateEvidenceStats() {
+  const totalFrags = sourcesData.reduce((sum, s) => sum + (s.fragments ? s.fragments.length : 0), 0);
+  document.getElementById('sourceCount').innerHTML = totalFrags > 0
+    ? `<span class="evidence-stats-badge">${totalFrags} 片段 · ${sourcesData.length} 文献</span>`
+    : `(${sourcesData.length})`;
+  document.getElementById('sourcesSummary').textContent = `知识证据链 · ${sourcesData.length} 篇文献`;
+}
+
+function highlightSource(sourceIdx) {
+  // Switch to sources tab
+  document.querySelectorAll('.rp-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tabSources').classList.add('active');
+  document.getElementById('tab-sources').classList.add('active');
+  // Scroll and highlight
+  const card = document.getElementById('source-card-' + sourceIdx);
+  if (card) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    card.classList.add('highlight');
+    setTimeout(() => card.classList.remove('highlight'), 2000);
+    // Auto-expand first fragment
+    const firstFrag = card.querySelector('.source-fragment-text');
+    if (firstFrag) firstFrag.classList.add('open');
+  }
+}
+
+function addArtifact(icon, name, desc, content) {
+  const idx = artifactsData.length;
+  artifactsData.push({ name, desc, icon, content: content || null });
+  const card = document.createElement('div');
+  card.className = 'artifact-card';
+  card.onclick = () => openPreview(idx);
+  card.innerHTML = `
+    <div class="artifact-icon">${icon}</div>
+    <div class="artifact-info"><div class="artifact-name">${name}</div><div class="artifact-desc">${desc}</div></div>
+    <div style="margin-left:auto;font-size:11px;color:var(--gray-400);cursor:pointer">打开 →</div>
+  `;
+  const list = document.getElementById('artifactsList');
+  if (idx === 0) list.innerHTML = '';
+  list.appendChild(card);
+  updateStats();
+}
+
+// ===== Preview in right panel =====
+function openPreview(idx) {
+  const a = artifactsData[idx];
+  if (!a) return;
+
+  // Switch to artifacts tab
+  document.querySelectorAll('.rp-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tabArtifacts').classList.add('active');
+  document.getElementById('tab-artifacts').classList.add('active');
+
+  // Show preview area, hide list
+  document.getElementById('artifactsList').style.display = 'none';
+  const previewArea = document.getElementById('filePreviewArea');
+  const previewContent = document.getElementById('filePreviewContent');
+  document.getElementById('filePreviewName').textContent = `${a.name} — ${a.desc}`;
+  previewArea.style.display = '';
+
+  if (a.content) {
+    previewContent.innerHTML = renderMdFull(a.content);
+  } else {
+    previewContent.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray-400)"><span class="thinking-pulse"></span> 正在生成内容...</div>';
+    generateArtifactContent(idx);
+  }
+}
+
+function closePreview() {
+  document.getElementById('previewOverlay').classList.remove('open');
+}
+
+async function generateArtifactContent(idx) {
+  const a = artifactsData[idx];
+  const body = document.getElementById('filePreviewContent');
+
+  let prompt = '';
+  if (a.name.includes('report')) {
+    prompt = `你是科研助手。请基于之前的Deep Research过程，生成一份Markdown格式的研究报告。包含：
+1. 研究概述（一段话）
+2. 核心发现（3-5条要点）
+3. 方法对比表格（用Markdown表格）
+4. 关键数据/指标
+5. 下一步建议
+
+直接输出Markdown内容，不要包裹在代码块中。`;
+  } else if (a.name.includes('bib') || a.name.includes('reference')) {
+    prompt = `你是科研助手。请基于之前检索到的论文，生成BibTeX格式的引用文件内容。生成3-5条BibTeX条目，用\`\`\`包裹。每条前加注释说明。`;
+  } else {
+    prompt = `你是科研助手。请生成「${a.name}」的内容。描述：${a.desc}。以Markdown格式输出，包含适当的代码、表格或说明。`;
+  }
+
+  let full = '';
+  await callLLM(prompt,
+    (fullText) => {
+      full = fullText;
+      body.innerHTML = renderMdFull(full) + '<span class="streaming-cursor"></span>';
+    },
+    (fullText) => {
+      full = fullText;
+      body.innerHTML = renderMdFull(full);
+      artifactsData[idx].content = full;
+    }
+  );
+}
+
+// ===== Chat =====
+function addMsg(role, content) {
+  const c = document.getElementById('chatMessages');
+  const w = document.getElementById('welcomeScreen');
+  if (w) w.style.display = 'none';
+  const div = document.createElement('div');
+  if (role === 'user') {
+    div.className = 'msg msg-user';
+    div.textContent = content;
+  } else {
+    div.className = 'msg msg-agent';
+    div.innerHTML = `<div class="msg-agent-text" id="stream-${msgCount}"></div>`;
+  }
+  c.appendChild(div);
+  c.scrollTop = c.scrollHeight;
+  msgCount++;
+  return div;
+}
+
+function renderMd(text) {
+  // Strip all code blocks — remove fences, keep inner text as plain text
+  let t = text.replace(/```\w*\n?([\s\S]*?)```/g, '$1');
+  // Strip --- horizontal rules entirely
+  t = t.replace(/^\s*-{3,}\s*$/gm, '');
+  // Strip === rules
+  t = t.replace(/^\s*={3,}\s*$/gm, '');
+  // Tables
+  t = t.replace(/^(\|.+\|)\n\|[-| :]+\|\n((?:\|.+\|\n?)*)/gm, (match, header, body) => {
+    const ths = header.split('|').filter(c=>c.trim()).map(c => `<th>${c.trim()}</th>`).join('');
+    const rows = body.trim().split('\n').map(row => {
+      const tds = row.split('|').filter(c=>c.trim()).map(c => `<td>${c.trim()}</td>`).join('');
+      return `<tr>${tds}</tr>`;
+    }).join('');
+    return `<table><thead><tr>${ths}</tr></thead><tbody>${rows}</tbody></table>`;
+  });
+  // Headers (allow leading whitespace)
+  t = t.replace(/^\s*###\s+(.+)$/gm, '<div style="font-size:14px;font-weight:600;color:var(--gray-700);margin:16px 0 8px;line-height:1.5">$1</div>');
+  t = t.replace(/^\s*##\s+(.+)$/gm, '<div style="font-size:15px;font-weight:700;color:var(--gray-800);margin:20px 0 10px;line-height:1.4">$1</div>');
+  t = t.replace(/^\s*#\s+(.+)$/gm, '<div style="font-size:17px;font-weight:700;color:var(--gray-900);margin:24px 0 12px;line-height:1.3">$1</div>');
+  // Unordered lists
+  t = t.replace(/^(?:\s*- .+\n?)+/gm, (match) => {
+    const items = match.trim().split('\n').map(l => `<li style="margin:3px 0">${l.replace(/^\s*- /, '')}</li>`).join('');
+    return `<ul style="padding-left:18px;margin:8px 0;line-height:1.7">${items}</ul>`;
+  });
+  // Ordered lists
+  t = t.replace(/^(?:\s*\d+\. .+\n?)+/gm, (match) => {
+    const items = match.trim().split('\n').map(l => `<li style="margin:3px 0">${l.replace(/^\s*\d+\. /, '')}</li>`).join('');
+    return `<ol style="padding-left:18px;margin:8px 0;line-height:1.7">${items}</ol>`;
+  });
+  return t
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\[(\d+)\]/g, '<sup class="cite-num" onclick="highlightSource($1)" title="查看文献 $1">$1</sup>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
+
+// ===== LLM streaming call =====
+// convId: 用不同的id隔离内部调用和主对话
+let currentAbortController = null;
+
+async function callLLM(message, onText, onDone, convId) {
+  currentAbortController = new AbortController();
+  const resp = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, conversation_id: convId || 'default' }),
+    signal: currentAbortController.signal
+  }).catch(e => { if (e.name === 'AbortError') return null; throw e; });
+  if (!resp) return '';
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let full = '';
+  let buffer = '';
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const d = JSON.parse(line.slice(6));
+          if (d.type === 'text') { full += d.content; if (onText) onText(full, d.content); }
+          if (d.type === 'done' && onDone) onDone(full);
+        } catch(e) {}
+      }
+    }
+    if (buffer.startsWith('data: ')) {
+      try {
+        const d = JSON.parse(buffer.slice(6));
+        if (d.type === 'text') { full += d.content; if (onText) onText(full, d.content); }
+        if (d.type === 'done' && onDone) onDone(full);
+      } catch(e) {}
+    }
+  } catch(e) {
+    if (e.name === 'AbortError') return full;
+    throw e;
+  }
+  currentAbortController = null;
+  return full;
+}
+
+// ===== DR Steps Area (main content) =====
+let drStepsEl = null;
+
+function renderDRStepsArea(steps) {
+  const container = document.getElementById('chatMessages');
+  const w = document.getElementById('welcomeScreen');
+  if (w) w.style.display = 'none';
+  const area = document.createElement('div');
+  area.className = 'dr-steps-area';
+  area.id = 'drStepsArea';
+  area.innerHTML = `
+    <div class="dr-steps-title" onclick="document.getElementById('drStepsArea').classList.toggle('collapsed')">
+      <span>调研过程</span>
+      <span class="collapse-icon">▾</span>
+    </div>
+    <div class="dr-steps-body">
+      ${steps.map((s, i) => `
+        <div class="dr-step-card" id="dr-step-${i}">
+          <div class="dr-step-icon pending" id="dr-step-icon-${i}">${i + 1}</div>
+          <div class="dr-step-body">
+            <div class="dr-step-title">${s.title}</div>
+            <div class="dr-step-summary" id="dr-step-summary-${i}">${s.description || ''}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  container.appendChild(area);
+  container.scrollTop = container.scrollHeight;
+  drStepsEl = area;
+}
+
+function updateDRStep(index, status, summary) {
+  const card = document.getElementById('dr-step-' + index);
+  const icon = document.getElementById('dr-step-icon-' + index);
+  const summaryEl = document.getElementById('dr-step-summary-' + index);
+  if (!card) return;
+  card.className = 'dr-step-card ' + status;
+  if (icon) {
+    icon.className = 'dr-step-icon ' + status;
+    if (status === 'done') icon.innerHTML = '✓';
+    else if (status === 'active') icon.innerHTML = `<span class="phase-spinner"></span>`;
+    else icon.textContent = parseInt(icon.textContent) || (index + 1);
+  }
+  if (summary && summaryEl) summaryEl.textContent = summary;
+  // Add/remove tag
+  const existingTag = card.querySelector('.dr-step-tag');
+  if (status === 'active' && !existingTag) {
+    const tag = document.createElement('span');
+    tag.className = 'dr-step-tag';
+    tag.textContent = '进行中';
+    card.appendChild(tag);
+  } else if (status !== 'active' && existingTag) {
+    existingTag.remove();
+  }
+}
+
+function renderLiteratureChips(sources) {
+  const container = document.getElementById('chatMessages');
+  const area = document.createElement('div');
+  area.className = 'dr-chips-area';
+  area.innerHTML = `
+    <div class="dr-chips-header">
+      <span class="dr-chips-header-icon">${svgIcon('clip')}</span>
+      <span class="dr-chips-header-title">相关资料推荐</span>
+      <span class="dr-chips-badge">${sources.length} 个结果</span>
+    </div>
+    <div class="dr-chips-grid">
+      ${sources.map((s, i) => `
+        <div class="dr-chip" onclick="highlightSource(${i + 1})">
+          <span class="dr-chip-icon">${svgIcon('file')}</span>
+          <span>${s.title.substring(0, 30)}${s.title.length > 30 ? '...' : ''}</span>
+          <span class="dr-chip-count">${s.fragments ? s.fragments.length : 1}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  container.appendChild(area);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ===== Thinking Steps Component =====
+function renderThinkingSteps(steps, containerId) {
+  const container = containerId ? document.getElementById(containerId) : document.getElementById('chatMessages');
+  const el = document.createElement('div');
+  el.className = 'thinking-steps';
+  el.id = 'thinkingSteps';
+  el.innerHTML = `
+    <div class="thinking-steps-title" onclick="document.getElementById('thinkingSteps').classList.toggle('collapsed')">
+      AI 思考过程 <span class="collapse-icon">▾</span>
+    </div>
+    <div class="thinking-steps-body">
+      ${steps.map((s, i) => `
+        <div class="thinking-step" id="think-step-${i}">
+          <div class="thinking-step-icon pending" id="think-icon-${i}">○</div>
+          <span class="thinking-step-label" id="think-label-${i}">${s}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+  return el;
+}
+
+function updateThinkingStep(index, status, detail) {
+  const icon = document.getElementById('think-icon-' + index);
+  const label = document.getElementById('think-label-' + index);
+  if (!icon) return;
+  if (status === 'done') {
+    icon.className = 'thinking-step-icon done';
+    icon.innerHTML = '✓';
+    if (label) label.className = 'thinking-step-label';
+  } else if (status === 'active') {
+    icon.className = 'thinking-step-icon active';
+    icon.innerHTML = '<span class="phase-spinner"></span>';
+    if (label) label.className = 'thinking-step-label active';
+  }
+}
+
+function collapseThinkingSteps() {
+  const el = document.getElementById('thinkingSteps');
+  if (el) el.classList.add('collapsed');
+}
+
+let drStopped = false;
+
+function stopDeepResearch() {
+  drStopped = true;
+  // Abort any in-flight LLM request
+  if (currentAbortController) {
+    currentAbortController.abort();
+    currentAbortController = null;
+  }
+  updatePlanCardStatus('已暂停');
+  const stopBtn = document.getElementById('planStopBtn');
+  if (stopBtn) stopBtn.style.display = 'none';
+  isStreaming = false;
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('inputHint').textContent = 'Deep Research 已暂停 · 可继续对话';
+  stopTimer();
+}
+
+// ===== Deep Research execution =====
+async function runDeepResearch(topic) {
+  drStopped = false;
+  isStreaming = true;
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('inputHint').textContent = 'Deep Research 运行中 · 发消息可随时打断';
+  startTimer();
+  const rid = 'dr_' + Date.now();
+
+  // Hide trace tab, switch to evidence chain
+  { const _e = document.getElementById('tabTrace'); if (_e) _e.style.display = 'none'; }
+  document.querySelectorAll('.rp-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tabSources').classList.add('active');
+  document.getElementById('tab-sources').classList.add('active');
+
+  // --- Phase overview in right panel ---
+  const phases = [
+    { label: '文献检索', status: 'active' },
+    { label: '精读分析', status: 'pending' },
+    { label: '综合报告', status: 'pending' },
+  ];
+  updatePhaseOverview(phases);
+  updateProgress(5);
+
+  // === Step 1: 文献检索 ===
+  updatePlanCardStep(0, 'active');
+  updatePlanCardStatus('正在检索相关文献...');
+  updatePlanCardProgress(5);
+  let ph1 = addPhaseSection('阶段① 文献检索', 'active');
+  addTraceStep('search', `检索「${topic.substring(0, 30)}...」相关文献`, null, true, false);
+
+  const searchResult = await callLLM(
+    `你是科研文献检索助手。请针对以下研究主题，严格按如下格式列出5篇最相关的论文，每篇一行：
+序号. 论文标题 | 作者 | 年份 | 期刊/会议 | 一句话核心贡献
+
+只输出5行，不要多余的文字、标题或解释。
+
+研究主题：${topic}`,
+    null, null, rid + '_search'
+  );
+
+  // Parse sources
+  const allLines = searchResult.split('\n').filter(l => l.trim().length > 15);
+  let parsedCount = 0;
+  for (const line of allLines) {
+    if (parsedCount >= 5) break;
+    const clean = line.replace(/^[\d\.\)\-\*\s】]+/, '').trim();
+    if (clean.length > 10) {
+      const parts = clean.split('|').map(p => p.trim());
+      const title = (parts[0] || clean).substring(0, 80);
+      const authors = parts[1] || '—';
+      const venue = (parts[2] || '') + ' ' + (parts[3] || '');
+      const excerpt = parts[4] || clean;
+      parsedCount++;
+      addSource(title, authors, venue.trim() || '2024',
+        [{ id: parsedCount, text: excerpt }],
+        parsedCount <= 2 ? '精读' : '扫描');
+    }
+  }
+  if (parsedCount === 0) {
+    addSource(searchResult.substring(0, 80), '—', '2024',
+      [{ id: 1, text: searchResult.substring(0, 150) }], '精读');
+  }
+
+  currentPhaseDom.innerHTML = '';
+  addTraceStep('search', `检索完成，发现 ${sourcesData.length} 篇相关论文`,
+    `${sourcesData.map((s,i) => `${i+1}. ${s.title}`).join('<br>')}`, false, true);
+
+  updatePlanCardStep(0, 'done');
+  markPhaseDone(ph1, `${sourcesData.length} 篇文献`);
+  phases[0].status = 'done'; phases[1].status = 'active';
+  updatePhaseOverview(phases);
+  updateProgress(20);
+
+  if (drStopped) return;
+  // === Step 2: 精读分析 ===
+  updatePlanCardStep(1, 'active');
+  updatePlanCardStatus('精读核心论文中...');
+  updatePlanCardProgress(25);
+  let ph2 = addPhaseSection('阶段② 精读分析', 'active');
+  addTraceStep('read', '精读核心论文...', null, true, false);
+
+  const analysis = await callLLM(
+    `你是科研分析助手。基于以下研究主题和检索到的文献，请做一个精读分析（500字以内）。
+要求：
+1. 使用 [1] [2] [3] 等引用标记引用下方文献编号
+2. 按如下结构输出：
+
+## 核心结论
+[2-3段总结，关键词用**加粗**，引用对应文献编号]
+
+## 详细说明
+### 1. [第一个子主题]
+[带引用的分析]
+
+### 2. [第二个子主题]
+[带引用的分析]
+
+研究主题：${topic}
+检索到的文献：
+${sourcesData.map((s,i) => `[${i+1}] ${s.title} (${s.authors})`).join('\n')}`,
+    (full) => {},
+    null, rid + '_analysis'
+  );
+
+  currentPhaseDom.innerHTML = '';
+  addTraceStep('read', '精读完成', analysis.substring(0, 200) + '...', false, true);
+
+  updatePlanCardStep(1, 'done');
+  markPhaseDone(ph2, '精读完成');
+  phases[1].status = 'done'; phases[2].status = 'active';
+  updatePhaseOverview(phases);
+  updateProgress(55);
+
+  if (drStopped) return;
+  // === Step 3: 综合分析 ===
+  updatePlanCardStep(2, 'active');
+  updatePlanCardStatus('综合分析，生成研究报告...');
+  updatePlanCardProgress(55);
+  let ph3 = addPhaseSection('阶段③ 综合报告', 'active');
+  addTraceStep('think', '综合分析，形成报告...', null, true, false);
+
+  // Stream the final output into main content area
+  const outputDiv = document.createElement('div');
+  outputDiv.className = 'msg msg-agent dr-output';
+  outputDiv.innerHTML = '<div class="msg-agent-text" id="dr-final-output"></div>';
+  document.getElementById('chatMessages').appendChild(outputDiv);
+
+  const finalTarget = document.getElementById('dr-final-output');
+  finalTarget.innerHTML = '<div class="thinking"><span class="thinking-pulse"></span> 生成报告中...</div>';
+
+  const report = await callLLM(
+    `你是科研报告生成助手。请基于以下精读分析，生成一份结构化的研究报告。
+
+要求：
+1. 必须使用 [1] [2] [3] 等引用标记引用文献
+2. 严格按如下结构输出：
+
+## 核心结论
+[2-3段，把最重要的发现总结出来，关键词**加粗**]
+
+## 详细说明
+### 1. [子主题名称]
+[详细分析，带引用]
+
+### 2. [子主题名称]
+[详细分析，带引用]
+
+### 3. [子主题名称]
+[详细分析，带引用]
+
+## 研究空白与机会
+[现有方法不足、可能的创新方向]
+
+## 建议的下一步
+[具体可行的行动建议]
+
+研究主题：${topic}
+精读分析：${analysis}
+文献列表：
+${sourcesData.map((s,i) => `[${i+1}] ${s.title} (${s.authors}, ${s.venue})`).join('\n')}`,
+    (full) => {
+      finalTarget.innerHTML = '<span class="thinking-pulse" style="margin-right:8px;vertical-align:middle"></span>' + renderMd(full) + '<span class="streaming-cursor"></span>';
+      document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+    },
+    (full) => {
+      finalTarget.innerHTML = renderMd(full);
+    },
+    rid + '_report'
+  );
+
+  updatePlanCardStep(2, 'done');
+  currentPhaseDom.innerHTML = '';
+  addTraceStep('think', '报告生成完成', null, false, true);
+  markPhaseDone(ph3, '报告完成');
+
+  if (drStopped) return;
+  // === Step 4: 产物 ===
+  updatePlanCardStep(3, 'active');
+  updatePlanCardStatus('生成研究产物...');
+  updatePlanCardProgress(85);
+  updateProgress(90);
+
+  addArtifact(svgIcon('report'), 'deep_research_report.md', `研究报告 · ${topic.substring(0, 20)}...`,
+    `# Deep Research 报告\n\n## 研究主题\n${topic}\n\n${report}`);
+  addArtifact(svgIcon('book'), 'references.bib', `BibTeX 引用 · ${sourcesData.length} 篇文献`, null);
+  addArtifact(svgIcon('edit'), 'literature_notes.md', `精读笔记 · ${sourcesData.filter(s=>s.status==='精读').length} 篇`,
+    `# 文献精读笔记\n\n${sourcesData.map((s,i) => `## ${i+1}. ${s.title}\n- **来源:** ${s.authors} · ${s.venue}\n- **状态:** ${s.status}\n`).join('\n')}`);
+
+  updatePlanCardStep(3, 'done');
+  updatePlanCardStatus('Deep Research 完成');
+  updatePlanCardProgress(100);
+  phases[2].status = 'done';
+  updatePhaseOverview(phases);
+  updateProgress(100);
+
+  // Final message
+  const summaryDiv = addMsg('assistant', '');
+  document.getElementById(`stream-${msgCount - 1}`).innerHTML = renderMd(
+    `**Deep Research 完成！**\n\n` +
+    `检索了 ${sourcesData.length} 篇论文，精读了 ${sourcesData.filter(s => s.status === '精读').length} 篇\n` +
+    `生成了 ${artifactsData.length} 个产物文件\n\n` +
+    `你可以点击正文中的引用序号查看对应文献，或在右侧「证据链」面板浏览所有文献。`
+  );
+
+  // Generate follow-up questions
+  const followupContainer = document.createElement('div');
+  followupContainer.className = 'followup-area';
+  followupContainer.innerHTML = '<div style="font-size:12px;color:var(--gray-400);margin-bottom:2px">启发式追问：</div>';
+  document.getElementById('chatMessages').appendChild(followupContainer);
+
+  const followups = await callLLM(
+    `基于以下研究报告，生成3条启发式追问。要求：
+1. 每条一行，直接输出问题文本
+2. 问题要具体、基于报告内容、有深度
+3. 不要编号，不要多余文字，只输出3行问题
+
+报告摘要：${report.substring(0, 800)}`,
+    null, null, rid + '_followups'
+  );
+
+  const questions = followups.split('\n').filter(l => l.trim().length > 5).slice(0, 3);
+  questions.forEach(q => {
+    const btn = document.createElement('button');
+    btn.className = 'followup-btn';
+    btn.textContent = q.trim();
+    btn.onclick = () => {
+      document.getElementById('chatInput').value = q.trim();
+      sendMessage();
+    };
+    followupContainer.appendChild(btn);
+  });
+  document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+
+  stopTimer();
+  isStreaming = false;
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('chatInput').placeholder = '追问：哪个方法在小样本场景更稳定？';
+  document.getElementById('inputHint').textContent = 'Enter 发送 · Deep Research 已完成，可继续追问';
+}
+
+// ===== Session Management =====
+let currentSessionId = null;
+let pendingPlan = null; // stores { intent, title, steps, topic }
+
+async function createSession(title) {
+  try {
+    const resp = await fetch('/api/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: title || '新对话' })
+    });
+    if (!resp.ok) {
+      console.error('[createSession] HTTP error:', resp.status, resp.statusText);
+      const errText = await resp.text().catch(() => '');
+      throw new Error(`创建会话失败 (${resp.status}): ${errText}`);
+    }
+    const meta = await resp.json();
+    currentSessionId = meta.session_id;
+    if (!currentSessionId) {
+      console.error('[createSession] No session_id in response:', meta);
+      throw new Error('创建会话失败: 服务器未返回 session_id');
+    }
+    localStorage.setItem('lastSessionId', currentSessionId);
+    await refreshSessionList();
+    return meta;
+  } catch (e) {
+    console.error('[createSession] Error:', e);
+    throw e;
+  }
+}
+
+async function refreshSessionList() {
+  const resp = await fetch('/api/sessions');
+  const sessions = await resp.json();
+  const nav = document.getElementById('historyNav');
+  if (!sessions.length) {
+    nav.innerHTML = '<span style="font-size:12px;color:var(--gray-400);padding:8px 12px;display:block">暂无历史</span>';
+    return;
+  }
+  nav.innerHTML = sessions.map(s => {
+    const isActive = s.session_id === currentSessionId;
+    const dotClass = (s.message_count || 0) > 0 ? 'done' : 'empty';
+    return `
+    <div class="session-item ${isActive ? 'active' : ''}" onclick="loadSession('${s.session_id}')">
+      <span class="session-dot ${dotClass}"></span>
+      <span class="session-title">${s.title || '新对话'}</span>
+      <button class="session-more" onclick="event.stopPropagation();openSessionMenu('${s.session_id}',this)" title="更多">···</button>
+    </div>`;
+  }).join('');
+}
+
+// ===== Session Context Menu =====
+let activeMenuSid = null;
+
+function openSessionMenu(sid, btnEl) {
+  closeSessionMenu();
+  activeMenuSid = sid;
+  const item = btnEl.closest('.session-item');
+  const rect = item.getBoundingClientRect();
+
+  // Overlay to catch outside clicks
+  const overlay = document.createElement('div');
+  overlay.className = 'session-menu-overlay';
+  overlay.id = 'sessionMenuOverlay';
+  overlay.onclick = closeSessionMenu;
+  document.body.appendChild(overlay);
+
+  // Menu
+  const menu = document.createElement('div');
+  menu.className = 'session-menu';
+  menu.id = 'sessionMenu';
+  menu.innerHTML = `
+    <div class="session-menu-item" onclick="shareSession('${sid}')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+      分享
+    </div>
+    <div class="session-menu-item" onclick="renameSession('${sid}')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      重命名
+    </div>
+    <div class="session-menu-item danger" onclick="deleteSession('${sid}')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+      删除
+    </div>
+  `;
+  // Position relative to the session item
+  menu.style.position = 'fixed';
+  menu.style.top = (rect.bottom + 4) + 'px';
+  menu.style.left = Math.min(rect.left, window.innerWidth - 180) + 'px';
+  document.body.appendChild(menu);
+}
+
+function closeSessionMenu() {
+  const overlay = document.getElementById('sessionMenuOverlay');
+  const menu = document.getElementById('sessionMenu');
+  if (overlay) overlay.remove();
+  if (menu) menu.remove();
+  activeMenuSid = null;
+}
+
+function shareSession(sid) {
+  closeSessionMenu();
+  // Copy session link to clipboard
+  const url = window.location.origin + '?session=' + sid;
+  navigator.clipboard.writeText(url).then(() => {
+    alert('链接已复制到剪贴板');
+  }).catch(() => {
+    prompt('复制链接：', url);
+  });
+}
+
+async function deleteSession(sid) {
+  closeSessionMenu();
+  if (!confirm('确定删除这个会话？')) return;
+  await fetch('/api/sessions/' + sid, { method: 'DELETE' });
+  if (currentSessionId === sid) {
+    await newConversation();
+  }
+  await refreshSessionList();
+}
+
+async function renameSession(sid) {
+  closeSessionMenu();
+  const newTitle = prompt('输入新标题：');
+  if (!newTitle || !newTitle.trim()) return;
+  await fetch('/api/sessions/' + sid + '/title', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: newTitle.trim() })
+  });
+  await refreshSessionList();
+  if (sid === currentSessionId) {
+    document.getElementById('topbarTitle').innerHTML = `${newTitle.trim()} <div class="topbar-actions"><button>⋯</button></div>`;
+  }
+}
+
+async function loadSession(sid) {
+  if (sid === currentSessionId && stepCount > 0) return;
+  currentSessionId = sid;
+  localStorage.setItem('lastSessionId', sid);
+  stepCount = 0; sourcesData = []; artifactsData = []; pendingPlan = null; fragmentCount = 0;
+  ;(document.getElementById('traceTimeline')||{}).innerHTML = '<div class="empty-state">发送消息开始 Deep Research</div>';
+  ;(document.getElementById('statsRow')||{}).style.display = 'none';
+  ;(document.getElementById('phaseOverview')||{}).innerHTML = '';
+  document.getElementById('sourcesList').innerHTML = '';
+  document.getElementById('sourcesSummary').textContent = '知识证据链';
+  document.getElementById('artifactsList').innerHTML = '<div class="empty-state">执行过程中产生的文件将在这里显示</div>';
+  document.getElementById('rpFooter').style.display = 'none';
+  document.getElementById('sourceCount').innerHTML = '';
+  document.getElementById('artifactCount').textContent = '(0)';
+
+  const resp = await fetch(`/api/sessions/${sid}`);
+  const data = await resp.json();
+  const container = document.getElementById('chatMessages');
+
+  if (!data.messages || data.messages.length === 0) {
+    container.innerHTML = welcomeHTML();
+  } else {
+    container.innerHTML = '';
+    for (const m of data.messages) {
+      if (m.role === 'user') {
+        const div = document.createElement('div');
+        div.className = 'msg msg-user';
+        div.textContent = m.content;
+        container.appendChild(div);
+      } else if (m.role === 'assistant') {
+        const div = document.createElement('div');
+        div.className = 'msg msg-agent';
+        div.innerHTML = `<div class="msg-agent-text">${renderMd(stripJsonBlock(m.content))}</div>`;
+        container.appendChild(div);
+      }
+    }
+    container.scrollTop = container.scrollHeight;
+  }
+  document.getElementById('topbarTitle').innerHTML = `${data.meta?.title || '新对话'} <div class="topbar-actions"><button>⋯</button></div>`;
+  await refreshSessionList();
+}
+
+function welcomeHTML() {
+  return `<div class="welcome" id="welcomeScreen">
+    <h2>百度伐谋</h2>
+    <p>描述你的需求，我来帮你完成。</p>
+    <div class="welcome-examples">
+      <div class="example-btn" onclick="sendExample(this)">调研强化学习在润滑油配方优化中的最新进展</div>
+      <div class="example-btn" onclick="sendExample(this)">帮我复现这篇GNN风阻预测论文，用DrivAer数据集验证</div>
+      <div class="example-btn" onclick="sendExample(this)">GraphSAGE和GAT有什么区别？</div>
+    </div>
+  </div>`;
+}
+
+// Strip ```json...``` block from display text (plan is shown as card, not raw JSON)
+function stripJsonBlock(text) {
+  // Strip complete ```json...``` or ```...``` blocks that contain JSON-like content
+  let result = text.replace(/```json[\s\S]*?```/g, '');
+  result = result.replace(/```\s*\n?\s*\{[\s\S]*?```/g, '');
+  // Strip incomplete/streaming code blocks that look like JSON
+  const patterns = ['```json', '```\n{', '```\n {'];
+  for (const pat of patterns) {
+    const idx = result.indexOf(pat);
+    if (idx !== -1) {
+      result = result.substring(0, idx);
+      break;
+    }
+  }
+  // Also catch bare ``` followed by { on same or next line
+  const bareIdx = result.search(/```\s*\n?\s*\{/);
+  if (bareIdx !== -1) {
+    result = result.substring(0, bareIdx);
+  }
+  return result.trim();
+}
+
+// ===== Plan Card =====
+let planEditing = false;
+let planCardDiv = null; // track current plan card DOM element
+
+function renderPlanCard(plan, topic) {
+  // Remove old plan card if exists
+  if (planCardDiv && planCardDiv.parentNode) {
+    planCardDiv.remove();
+  }
+  pendingPlan = { ...plan, topic };
+  const intentLabel = plan.intent === 'deep_research' ? 'Deep Research' : '伐谋';
+  const intentClass = plan.intent;
+  const container = document.getElementById('chatMessages');
+  const cardDiv = document.createElement('div');
+  cardDiv.className = 'msg msg-agent';
+  cardDiv.innerHTML = `
+    <div class="plan-card" id="activePlanCard">
+      <div class="plan-header">
+        <div class="plan-title">${plan.title}</div>
+        <div class="plan-header-actions" id="planHeaderActions">
+          <button class="plan-btn plan-btn-edit" onclick="togglePlanEdit()">编辑</button>
+          <button class="plan-btn plan-btn-cancel" onclick="cancelPlan()">取消</button>
+          <button class="plan-btn plan-btn-start" onclick="confirmPlan()">开始</button>
+        </div>
+      </div>
+      <div class="plan-steps" id="planSteps">
+        ${plan.steps.map((s, i) => `
+          <div class="plan-step" id="plan-step-${i}">
+            <div class="plan-step-icon" id="plan-step-icon-${i}">${i + 1}</div>
+            <span><strong>${s.title}</strong>  ${s.description || ''}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="plan-footer" id="planFooter" style="display:none">
+        <div class="plan-status" id="planStatus">
+          <span class="plan-status-text" id="planStatusText"></span>
+        </div>
+        <div class="plan-progress-row">
+          <div class="plan-progress-bar">
+            <div class="plan-progress-fill" id="planProgressFill"></div>
+          </div>
+          <button class="plan-stop-btn" id="planStopBtn" onclick="stopDeepResearch()" title="暂停">■</button>
+        </div>
+      </div>
+    </div>
+  `;
+  container.appendChild(cardDiv);
+  container.scrollTop = container.scrollHeight;
+  planCardDiv = cardDiv;
+}
+
+// Update plan card step icons during execution
+function updatePlanCardStep(index, status) {
+  const icon = document.getElementById('plan-step-icon-' + index);
+  if (!icon) return;
+  if (status === 'active') {
+    icon.className = 'plan-step-icon running';
+    icon.innerHTML = '<span class="plan-step-spinner"></span>';
+  } else if (status === 'done') {
+    icon.className = 'plan-step-icon done-icon';
+    icon.innerHTML = '✓';
+  }
+}
+
+function updatePlanCardStatus(text) {
+  const textEl = document.getElementById('planStatusText');
+  if (textEl) textEl.textContent = text;
+}
+
+function updatePlanCardProgress(pct) {
+  const fill = document.getElementById('planProgressFill');
+  if (fill) fill.style.width = pct + '%';
+  // Hide stop button when complete
+  if (pct >= 100) {
+    const stopBtn = document.getElementById('planStopBtn');
+    if (stopBtn) stopBtn.style.display = 'none';
+  }
+}
+
+let isPlanEditing = false;
+
+function togglePlanEdit() {
+  if (!pendingPlan) return;
+  isPlanEditing = true;
+  const input = document.getElementById('chatInput');
+  input.value = '';
+  input.placeholder = '输入调整意见，如：增加一个对比实验步骤';
+  input.focus();
+  const hint = document.getElementById('inputHint');
+  hint.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;color:var(--gray-600)">↩ "${pendingPlan.topic.substring(0, 30)}${pendingPlan.topic.length > 30 ? '...' : ''}" <span style="color:var(--gray-400);cursor:pointer" onclick="clearEditContext()">✕</span></span>`;
+}
+
+function clearEditContext() {
+  isPlanEditing = false;
+  document.getElementById('inputHint').textContent = '';
+  document.getElementById('chatInput').placeholder = '描述你的科研问题，例如：调研岩爆预测领域的主流ML方法';
+}
+
+function cancelPlan() {
+  const card = document.getElementById('activePlanCard');
+  if (card) card.remove();
+  pendingPlan = null;
+  planEditing = false;
+}
+
+async function confirmPlan() {
+  if (!pendingPlan) return;
+  clearEditContext();
+
+  // Switch header actions to "更新" + show footer with stop
+  const headerActions = document.getElementById('planHeaderActions');
+  headerActions.innerHTML = '<button class="plan-btn plan-btn-edit" onclick="togglePlanEdit()">更新</button>';
+
+  // Show footer
+  document.getElementById('planFooter').style.display = '';
+  updatePlanCardStatus('正在研究...');
+  updatePlanCardProgress(5);
+
+  const { intent, topic } = pendingPlan;
+
+  if (intent === 'deep_research') {
+    document.getElementById('topbarTitle').innerHTML = `Deep Research · ${topic.substring(0, 30)}... <div class="topbar-actions"><button>⋯</button></div>`;
+    // Execute via coding agent
+    await runAgentTask(`请执行以下深度研究任务，按计划逐步完成：\n\n主题：${topic}\n\n计划步骤：\n${pendingPlan.steps.map((s,i) => (i+1)+'. '+s.title+'：'+s.description).join('\n')}\n\n请逐步执行，每完成一步输出阶段性结果。不要问交互节奏，直接开始。`);
+  } else if (intent === 'auto_research') {
+    document.getElementById('topbarTitle').innerHTML = `伐谋 · ${topic.substring(0, 30)}... <div class="topbar-actions"><button>⋯</button></div>`;
+    await runAgentTask(topic);
+  }
+}
+
+// ===== Run task via coding agent (shared by deep research + auto research) =====
+async function runAgentTask(prompt) {
+  const div = addMsg('assistant', '');
+  const target = document.getElementById(`stream-${msgCount - 1}`);
+  target.innerHTML = '';
+  isStreaming = true;
+  document.getElementById('sendBtn').disabled = true;
+
+  let currentTextEl = null;
+  let currentThinkingLabel = null;
+  let currentToolCard = null;
+  let allOutputText = '';
+  let phaseText = '';
+  let streamingIndicator = null;
+
+  function showStreamingIndicator() {
+    if (!streamingIndicator) {
+      streamingIndicator = document.createElement('div');
+      streamingIndicator.className = 'thinking-inline';
+      streamingIndicator.style.cssText = 'margin-top:4px;';
+      streamingIndicator.innerHTML = '<span class="thinking-pulse"></span> <span style="font-size:11px;color:var(--gray-400)">正在输出...</span>';
+      target.appendChild(streamingIndicator);
+    }
+  }
+
+  function removeStreamingIndicator() {
+    if (streamingIndicator) { streamingIndicator.remove(); streamingIndicator = null; }
+  }
+
+  function startThinking() {
+    removeStreamingIndicator();
+    currentThinkingLabel = document.createElement('div');
+    currentThinkingLabel.className = 'thinking-inline';
+    currentThinkingLabel.innerHTML = '<span class="thinking-pulse"></span> <span class="thinking-inline-text">深度思考中...</span>';
+    target.appendChild(currentThinkingLabel);
+    currentTextEl = document.createElement('div');
+    currentTextEl.className = 'thinking-stream';
+    currentTextEl.style.cssText = 'font-size:13px;color:var(--gray-500);line-height:1.6;';
+    target.appendChild(currentTextEl);
+    showStreamingIndicator();
+  }
+
+  function finishThinking() {
+    removeStreamingIndicator();
+    if (currentThinkingLabel && currentTextEl) {
+      const content = currentTextEl.textContent.trim();
+      if (content) {
+        const id = 'thk-' + Date.now();
+        const block = document.createElement('div');
+        block.className = 'thinking-block';
+        block.innerHTML = `<div class="thinking-header" onclick="var b=document.getElementById('${id}');b.classList.toggle('open');this.querySelector('span:last-child').style.transform=b.classList.contains('open')?'rotate(90deg)':''">已完成深度思考 <span style="font-size:9px;margin-left:auto;transition:transform .2s">▸</span></div><div class="thinking-body" id="${id}">${renderMd(content)}</div>`;
+        currentThinkingLabel.remove();
+        currentTextEl.remove();
+        target.appendChild(block);
+      } else {
+        currentThinkingLabel.remove();
+        currentTextEl.remove();
+      }
+    }
+    currentThinkingLabel = null;
+    currentTextEl = null;
+  }
+
+  startThinking();
+
+  await callAgentLLM(prompt, {
+    onText: (full, chunk) => {
+      removeStreamingIndicator();
+      phaseText += chunk;
+      if (!currentTextEl) {
+        currentTextEl = document.createElement('div');
+        currentTextEl.className = 'msg-agent-text';
+        target.appendChild(currentTextEl);
+      }
+      currentTextEl.innerHTML = renderMd(stripJsonBlock(phaseText)) + '<span class="streaming-cursor"></span>';
+      allOutputText = full;
+      document.getElementById('chatMessages').scrollTop = 99999;
+      showStreamingIndicator();
+    },
+    onToolCall: (tc) => {
+      removeStreamingIndicator();
+      if (currentThinkingLabel) {
+        finishThinking();
+      } else if (currentTextEl) {
+        currentTextEl.innerHTML = renderMd(stripJsonBlock(phaseText));
+        currentTextEl = null;
+      }
+      phaseText = '';
+      allOutputText = '';
+      if (!currentToolCard) {
+        currentToolCard = document.createElement('div');
+        currentToolCard.className = 'tool-call-card';
+        currentToolCard._tools = [];
+        target.appendChild(currentToolCard);
+      }
+      currentToolCard._tools.push(tc);
+      maybeInsertFileCard(tc, target);
+      const tn = (tc.name || '').toLowerCase();
+      if (tn.includes('search_literature') || tn.includes('arc_search') || tn.includes('arxiv') || (tn.includes('search') && tn.includes('paper')) || (tn.includes('search') && tn.includes('liter'))) {
+        pendingLiteratureSearch = true;
+      }
+      const tools = currentToolCard._tools;
+      const items = tools.map(t => {
+        const inp = t.input ? t.input.substring(0,60).replace(/</g,'&lt;')+(t.input.length>60?'...':'') : '';
+        return `<div class="tool-call-item"><span class="tool-call-name ${t.type}">${t.name}</span><span class="tool-call-io">${inp}</span></div>`;
+      }).join('');
+      currentToolCard.innerHTML = `<div class="tool-call-header" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('.tool-call-expand').style.transform=this.nextElementSibling.classList.contains('open')?'rotate(90deg)':''"><span class="tool-call-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9.5a3.5 3.5 0 0 0 5 0l2-2a3.5 3.5 0 0 0-5-5l-1 1"/><path d="M9.5 6.5a3.5 3.5 0 0 0-5 0l-2 2a3.5 3.5 0 0 0 5 5l1-1"/></svg></span><span class="tool-call-count">${tools.length} 次工具调用</span><span class="tool-call-expand">▸</span></div><div class="tool-call-body">${items}</div>`;
+      showStreamingIndicator();
+      document.getElementById('chatMessages').scrollTop = 99999;
+    },
+    onToolResult: (resultContent) => {
+      activateFileCards(target);
+      if (currentToolCard) {
+        currentToolCard = null;
+        startThinking();
+      }
+      if (pendingLiteratureSearch && resultContent) {
+        pendingLiteratureSearch = false;
+        parseLiteratureResults(resultContent);
+      }
+      const fill = document.getElementById('planProgressFill');
+      if (fill) {
+        const cur = parseInt(fill.style.width) || 5;
+        fill.style.width = Math.min(cur + 8, 90) + '%';
+      }
+    },
+    onInfo: (infoContent) => {
+      if (currentTextEl && currentThinkingLabel && infoContent) {
+        const clean = infoContent.replace(/\[.*?\]\s*/, '').trim();
+        if (clean && !clean.startsWith('session_id') && !clean.startsWith('reason=')) {
+          currentTextEl.textContent += (currentTextEl.textContent ? '\n' : '') + clean;
+        }
+      }
+    },
+    onDone: (full) => {
+      removeStreamingIndicator();
+      if (currentThinkingLabel && currentTextEl && currentTextEl.textContent.trim()) {
+        finishThinking();
+      } else if (currentThinkingLabel) {
+        currentThinkingLabel.remove();
+        if (currentTextEl) currentTextEl.remove();
+      }
+      if (currentTextEl && currentTextEl.parentNode) {
+        currentTextEl.innerHTML = renderMd(stripJsonBlock(phaseText || full));
+      }
+      updatePlanCardStatus('Deep Research 完成');
+      updatePlanCardProgress(100);
+    },
+    onError: (err) => {
+      removeStreamingIndicator();
+      const errDiv = document.createElement('div');
+      errDiv.style.cssText = 'color:var(--red);font-size:12px;margin-top:8px';
+      errDiv.textContent = '错误: ' + err;
+      target.appendChild(errDiv);
+    }
+  });
+
+  isStreaming = false;
+  document.getElementById('sendBtn').disabled = false;
+}
+
+// ===== 伐谋 execution (real agent backend) =====
+async function run伐谋(topic) {
+  isStreaming = true;
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('inputHint').textContent = '伐谋 运行中 · Agent 执行任务中...';
+  startTimer();
+
+  // Check agent backend status
+  const agentOnline = await checkAgentStatus();
+
+  if (!agentOnline) {
+    // Fallback: agent offline, show error
+    addMsg('assistant', '');
+    document.getElementById(`stream-${msgCount - 1}`).innerHTML = renderMd(
+      `**⚠️ Agent 后端未连接**\n\n` +
+      `WebAgent 服务未启动（localhost:8765）。请启动后重试：\n` +
+      `\`\`\`bash\ncd webagent && ANTHROPIC_API_KEY=your_key python -m webagent.runners.ui.server\n\`\`\`\n\n` +
+      `当前使用 LLM 模拟模式...`
+    );
+    // Fallback to LLM simulation
+    await run伐谋Simulated(topic);
+    return;
+  }
+
+  // Create agent session
+  await createAgentSession();
+
+  // Setup phase overview
+  updatePhaseOverview([
+    { label: '任务理解', status: 'active' },
+    { label: '执行中', status: 'pending' },
+    { label: '完成', status: 'pending' },
+  ]);
+  updateProgress(5);
+
+  // Phase 1: Send task to agent
+  let ph1 = addPhaseSection('阶段① Agent 执行任务', 'active');
+  addTraceStep('think', `发送任务到 Agent...`, null, true, false);
+
+  // Create message display
+  addMsg('assistant', '');
+  const targetEl = document.getElementById(`stream-${msgCount - 1}`);
+  let toolCallsHtml = '';
+  let textHtml = '';
+  let allToolCalls = [];
+
+  // Call agent with real backend
+  const result = await callAgentLLM(topic, {
+    onText: (fullText, chunk) => {
+      textHtml = renderMd(fullText);
+      targetEl.innerHTML = toolCallsHtml + textHtml + '<span class="streaming-cursor"></span>';
+      document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+    },
+
+    onToolCall: (tc, allCalls) => {
+      allToolCalls = allCalls;
+      // Update tool calls display
+      toolCallsHtml = renderToolCalls(allCalls.map(c => ({
+        name: c.name,
+        type: c.type,
+        io: c.input ? (c.input.length > 80 ? c.input.substring(0, 80) + '...' : c.input) : 'INPUT'
+      })));
+      targetEl.innerHTML = toolCallsHtml + textHtml + '<span class="streaming-cursor"></span>';
+
+      // Add trace step for each tool call
+      addTraceStep(
+        tc.type === 'bash' ? 'run' : tc.type === 'read' ? 'read' : tc.type === 'skill' ? 'code' : 'search',
+        `${tc.name}`,
+        tc.input ? tc.input.substring(0, 100) : null,
+        true, false
+      );
+
+      document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+    },
+
+    onToolResult: (content) => {
+      // Update last trace step to done
+      stepCount && updateStats();
+    },
+
+    onInfo: (content) => {
+      // Show info in trace (token usage, step completion, etc.)
+      if (content.includes('[step]') || content.includes('tokens:')) {
+        // Token/step info - show in footer
+        const tokenMatch = content.match(/tokens: in=(\d+) out=(\d+)/);
+        if (tokenMatch) {
+          document.getElementById('footerTokens').textContent = `Tokens: ${tokenMatch[1]}in / ${tokenMatch[2]}out`;
+        }
+      }
+    },
+
+    onDone: (fullText, toolCalls) => {
+      // Remove cursor
+      targetEl.innerHTML = toolCallsHtml + renderMd(fullText);
+
+      // Add artifacts from agent output
+      if (fullText.length > 100) {
+        addArtifact(svgIcon('report'), 'agent_output.md', `Agent 执行报告 · ${topic.substring(0, 20)}...`, fullText);
+      }
+    },
+
+    onError: (error) => {
+      targetEl.innerHTML = toolCallsHtml + `<span style="color:var(--red)">Agent 错误: ${error}</span>`;
+    }
+  });
+
+  // Phase complete
+  currentPhaseDom.innerHTML = '';
+  addTraceStep('eval', `Agent 执行完成 · ${allToolCalls.length} 次工具调用`, null, false, true);
+
+  markPhaseDone(ph1, `${allToolCalls.length} 次调用`);
+  updatePhaseOverview([
+    { label: '任务理解', status: 'done' },
+    { label: '执行中', status: 'done' },
+    { label: '完成', status: 'done' },
+  ]);
+  updateProgress(100);
+
+  // Completion summary
+  addMsg('assistant', '');
+  document.getElementById(`stream-${msgCount - 1}`).innerHTML = renderMd(
+    `**伐谋 完成！**\n\n` +
+    `${allToolCalls.length} 次工具调用\n` +
+    `${artifactsData.length} 个产物\n\n` +
+    `你可以继续追问或调整。`
+  );
+
+  stopTimer();
+  isStreaming = false;
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('inputHint').textContent = 'Enter 发送 · 伐谋 已完成';
+}
+
+// Fallback: LLM simulated 伐谋 (when agent backend is offline)
+async function run伐谋Simulated(topic) {
+  // ... keep the old LLM-based simulation as fallback
+  const rid = 'ar_sim_' + Date.now();
+
+  updatePhaseOverview([
+    { label: '理解任务', status: 'active' },
+    { label: '数据分析', status: 'pending' },
+    { label: '生成报告', status: 'pending' },
+  ]);
+  updateProgress(10);
+
+  let ph1 = addPhaseSection('阶段① 理解任务（模拟）', 'active');
+  addTraceStep('think', '分析任务需求...', null, true, false);
+
+  addMsg('assistant', '');
+  const t1 = document.getElementById(`stream-${msgCount - 1}`);
+  t1.innerHTML = '<div class="thinking"><div class="thinking-dots"><span></span><span></span><span></span></div> 分析中（LLM模拟模式）...</div>';
+
+  const analysis = await callLLM(
+    `你是科研实验助手。请简要分析这个任务并给出执行方案（200字以内）：\n\n${topic}`,
+    (full) => { t1.innerHTML = renderMd(full) + '<span class="streaming-cursor"></span>'; },
+    (full) => { t1.innerHTML = renderMd(full); },
+    rid
+  );
+
+  currentPhaseDom.innerHTML = '';
+  addTraceStep('think', '任务分析完成', null, false, true);
+  markPhaseDone(ph1, '完成');
+
+  updatePhaseOverview([
+    { label: '理解任务', status: 'done' },
+    { label: '数据分析', status: 'done' },
+    { label: '生成报告', status: 'done' },
+  ]);
+  updateProgress(100);
+
+  addArtifact(svgIcon('report'), 'analysis.md', `任务分析 · ${topic.substring(0, 20)}...`, analysis);
+
+  stopTimer();
+  isStreaming = false;
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('inputHint').textContent = 'Enter 发送 · 模拟模式完成';
+}
+
+// ===== Send message (intent-routed) =====
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text || isStreaming) return;
+  input.value = '';
+
+  if (!currentSessionId) {
+    try {
+      await createSession(text.substring(0, 30));
+    } catch (e) {
+      addMsg('assistant', '');
+      const errTarget = document.getElementById(`stream-${msgCount - 1}`);
+      errTarget.innerHTML = `<div style="color:var(--red);font-size:13px;padding:8px 0">创建会话失败: ${e.message}<br><span style="font-size:11px;color:var(--gray-400)">请检查后端是否正常运行</span></div>`;
+      return;
+    }
+  }
+
+  addMsg('user', text);
+
+  // Deep Research mode: use LLM to generate plan card, then user confirms
+  if (deepResearchMode) {
+    deepResearchMode = false;
+    const btn = document.getElementById('deepResearchBtn');
+    if (btn) btn.classList.remove('active');
+    document.getElementById('chatInput').placeholder = '描述你的科研问题，例如：调研岩爆预测领域的主流ML方法';
+
+    const drDiv = addMsg('assistant', '');
+    const drTarget = document.getElementById(`stream-${msgCount - 1}`);
+    drTarget.innerHTML = '<div class="thinking"><span class="thinking-pulse"></span> 正在制定调研计划...</div>';
+    isStreaming = true;
+    document.getElementById('sendBtn').disabled = true;
+
+    let planText = '';
+    try {
+      await callSessionLLM(currentSessionId,
+        `请为以下主题制定一个深度研究计划。要求：
+1. 用一句话确认你理解了需求
+2. 然后输出一个JSON计划块（用\`\`\`json包裹），格式：
+\`\`\`json
+{"intent":"deep_research","title":"简短标题","steps":[{"title":"步骤标题","description":"具体描述"},...]}
+\`\`\`
+steps 根据主题需要通常3-6步，针对性规划。不要问其他问题，直接给出计划。
+
+主题：${text}`,
+        (full) => { planText = full; drTarget.innerHTML = '<div class="thinking"><span class="thinking-pulse"></span> 正在制定调研计划...</div><div style="font-size:12px;color:var(--gray-400);margin-top:4px">' + renderMd(stripJsonBlock(full)) + '</div>'; },
+        (full) => { planText = full; }
+      );
+    } catch (e) {
+      drTarget.innerHTML = `<div style="color:var(--red);font-size:13px">生成计划失败: ${e.message}</div>`;
+      isStreaming = false;
+      document.getElementById('sendBtn').disabled = false;
+      return;
+    }
+
+    isStreaming = false;
+    document.getElementById('sendBtn').disabled = false;
+
+    if (planText.includes('```json')) {
+      try {
+        const jsonStart = planText.indexOf('```json') + 7;
+        const jsonEnd = planText.indexOf('```', jsonStart);
+        const plan = JSON.parse(planText.substring(jsonStart, jsonEnd).trim());
+        if (plan.steps) {
+          drTarget.innerHTML = renderMd(stripJsonBlock(planText));
+          renderPlanCard(plan, text);
+          return;
+        }
+      } catch(e) { console.log('Plan parse failed:', e); }
+    }
+    drTarget.innerHTML = renderMd(stripJsonBlock(planText));
+    return;
+  }
+
+  // Call via Agent — incremental DOM append (no full re-render)
+  const div = addMsg('assistant', '');
+  const target = document.getElementById(`stream-${msgCount - 1}`);
+  target.innerHTML = '';
+  isStreaming = true;
+  document.getElementById('sendBtn').disabled = true;
+
+  // State for incremental rendering
+  let currentTextEl = null;
+  let currentThinkingLabel = null;
+  let currentToolCard = null;
+  let allOutputText = '';
+  let phaseText = '';
+  let streamingIndicator = null;
+
+  function showStreamingIndicator() {
+    if (!streamingIndicator) {
+      streamingIndicator = document.createElement('div');
+      streamingIndicator.className = 'thinking-inline';
+      streamingIndicator.style.cssText = 'margin-top:4px;';
+      streamingIndicator.innerHTML = '<span class="thinking-pulse"></span> <span style="font-size:11px;color:var(--gray-400)">正在输出...</span>';
+      target.appendChild(streamingIndicator);
+    }
+  }
+
+  function removeStreamingIndicator() {
+    if (streamingIndicator) { streamingIndicator.remove(); streamingIndicator = null; }
+  }
+
+  function startThinking() {
+    removeStreamingIndicator();
+    currentThinkingLabel = document.createElement('div');
+    currentThinkingLabel.className = 'thinking-inline';
+    currentThinkingLabel.innerHTML = '<span class="thinking-pulse"></span> <span class="thinking-inline-text">深度思考中...</span>';
+    target.appendChild(currentThinkingLabel);
+    currentTextEl = document.createElement('div');
+    currentTextEl.className = 'thinking-stream';
+    currentTextEl.style.cssText = 'font-size:13px;color:var(--gray-500);line-height:1.6;';
+    target.appendChild(currentTextEl);
+    showStreamingIndicator();
+  }
+
+  function finishThinking() {
+    removeStreamingIndicator();
+    if (currentThinkingLabel && currentTextEl) {
+      const content = currentTextEl.textContent.trim();
+      if (content) {
+        const id = 'thk-' + Date.now();
+        const block = document.createElement('div');
+        block.className = 'thinking-block';
+        block.innerHTML = `<div class="thinking-header" onclick="var b=document.getElementById('${id}');b.classList.toggle('open');this.querySelector('span:last-child').style.transform=b.classList.contains('open')?'rotate(90deg)':''">已完成深度思考 <span style="font-size:9px;margin-left:auto;transition:transform .2s">▸</span></div><div class="thinking-body" id="${id}">${renderMd(content)}</div>`;
+        currentThinkingLabel.remove();
+        currentTextEl.remove();
+        target.appendChild(block);
+      } else {
+        currentThinkingLabel.remove();
+        currentTextEl.remove();
+      }
+    }
+    currentThinkingLabel = null;
+    currentTextEl = null;
+  }
+
+  function startTextBlock() {
+    removeStreamingIndicator();
+    currentTextEl = document.createElement('div');
+    currentTextEl.className = 'msg-agent-text';
+    target.appendChild(currentTextEl);
+  }
+
+  startThinking();
+
+  try {
+    await callAgentLLM(text, {
+      onText: (full, chunk) => {
+        removeStreamingIndicator();
+        phaseText += chunk;
+        if (!currentTextEl) startTextBlock();
+        currentTextEl.innerHTML = renderMd(stripJsonBlock(phaseText)) + '<span class="streaming-cursor"></span>';
+        allOutputText = full;
+        document.getElementById('chatMessages').scrollTop = 99999;
+        showStreamingIndicator();
+      },
+      onToolCall: (tc, allTools) => {
+        removeStreamingIndicator();
+        if (currentThinkingLabel) {
+          finishThinking();
+        } else if (currentTextEl) {
+          currentTextEl.innerHTML = renderMd(stripJsonBlock(phaseText));
+        currentTextEl = null;
+      }
+      phaseText = '';
+      allOutputText = '';
+
+      if (!currentToolCard) {
+        currentToolCard = document.createElement('div');
+        currentToolCard.className = 'tool-call-card';
+        currentToolCard._tools = [];
+        target.appendChild(currentToolCard);
+      }
+      currentToolCard._tools.push(tc);
+      maybeInsertFileCard(tc, target);
+      const tn = (tc.name || '').toLowerCase();
+      if (tn.includes('search_literature') || tn.includes('arc_search') || tn.includes('arxiv') || (tn.includes('search') && tn.includes('paper')) || (tn.includes('search') && tn.includes('liter'))) {
+        pendingLiteratureSearch = true;
+      }
+      const tools = currentToolCard._tools;
+      const items = tools.map(t => {
+        const inp = t.input ? t.input.substring(0,60).replace(/</g,'&lt;') + (t.input.length>60?'...':'') : '';
+        return `<div class="tool-call-item"><span class="tool-call-name ${t.type}">${t.name}</span><span class="tool-call-io">${inp}</span></div>`;
+      }).join('');
+      currentToolCard.innerHTML = `<div class="tool-call-header" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('.tool-call-expand').style.transform=this.nextElementSibling.classList.contains('open')?'rotate(90deg)':''"><span class="tool-call-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9.5a3.5 3.5 0 0 0 5 0l2-2a3.5 3.5 0 0 0-5-5l-1 1"/><path d="M9.5 6.5a3.5 3.5 0 0 0-5 0l-2 2a3.5 3.5 0 0 0 5 5l1-1"/></svg></span><span class="tool-call-count">${tools.length} 次工具调用</span><span class="tool-call-expand">▸</span></div><div class="tool-call-body">${items}</div>`;
+      showStreamingIndicator();
+      document.getElementById('chatMessages').scrollTop = 99999;
+    },
+    onToolResult: (resultContent) => {
+      activateFileCards(target);
+      if (currentToolCard) {
+        currentToolCard = null;
+        startThinking();
+      }
+      if (pendingLiteratureSearch && resultContent) {
+        pendingLiteratureSearch = false;
+        parseLiteratureResults(resultContent);
+      }
+    },
+    onInfo: (infoContent) => {
+      if (currentTextEl && currentThinkingLabel && infoContent) {
+        const clean = infoContent.replace(/\[.*?\]\s*/, '').trim();
+        if (clean && !clean.startsWith('session_id') && !clean.startsWith('reason=')) {
+          currentTextEl.textContent += (currentTextEl.textContent ? '\n' : '') + clean;
+        }
+      }
+    },
+    onDone: (full) => {
+      removeStreamingIndicator();
+      if (currentThinkingLabel && currentTextEl && currentTextEl.textContent.trim()) {
+        finishThinking();
+      } else if (currentThinkingLabel) {
+        currentThinkingLabel.remove();
+        if (currentTextEl) currentTextEl.remove();
+      }
+      if (currentTextEl && currentTextEl.parentNode) {
+        currentTextEl.innerHTML = renderMd(stripJsonBlock(phaseText || full));
+      }
+    },
+    onError: (err) => {
+      removeStreamingIndicator();
+      const errDiv = document.createElement('div');
+      errDiv.style.cssText = 'color:var(--red);font-size:12px;margin-top:8px';
+      errDiv.textContent = '错误: ' + err;
+      target.appendChild(errDiv);
+    }
+  });
+  } catch (e) {
+    console.error('[sendMessage] error:', e);
+    removeStreamingIndicator();
+    if (currentThinkingLabel) { currentThinkingLabel.remove(); currentThinkingLabel = null; }
+    if (currentTextEl) { currentTextEl.remove(); currentTextEl = null; }
+    const errDiv = document.createElement('div');
+    errDiv.style.cssText = 'color:var(--red);font-size:13px;padding:8px 0';
+    errDiv.innerHTML = '错误: ' + (e.message || e) + '<br><span style="font-size:11px;color:var(--gray-400)">请检查后端连接和浏览器控制台</span>';
+    target.appendChild(errDiv);
+  }
+
+  isStreaming = false;
+  document.getElementById('sendBtn').disabled = false;
+
+  refreshSessionList();
+}
+
+/**
+ * Build the display for agent output with alternating text/tool segments
+ */
+function buildAgentDisplay(segments, currentStreaming, isStreaming) {
+  let html = '';
+  for (const seg of segments) {
+    if (seg.type === 'text') {
+      const stripped = stripJsonBlock(seg.content);
+      if (stripped) html += renderMd(stripped);
+    } else if (seg.type === 'thinking') {
+      html += renderThinking(seg.content);
+    } else if (seg.type === 'tool') {
+      html += renderToolCalls(seg.tools);
+    }
+  }
+  if (currentStreaming) {
+    const stripped = stripJsonBlock(currentStreaming);
+    if (stripped) {
+      html += '<span class="thinking-pulse" style="margin-right:8px;vertical-align:middle"></span>' + renderMd(stripped) + '<span class="streaming-cursor"></span>';
+    } else {
+      html += '<div class="thinking"><span class="thinking-pulse"></span> 思考中...</div>';
+    }
+  }
+  return html;
+}
+
+// Session-based LLM call (persisted)
+async function callSessionLLM(sid, message, onText, onDone, onThinking) {
+  let resp;
+  try {
+    resp = await fetch(`/api/sessions/${sid}/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message })
+    });
+  } catch (e) {
+    console.error('[callSessionLLM] fetch error:', e);
+    throw e;
+  }
+  if (!resp.ok) {
+    const errText = await resp.text().catch(() => '');
+    throw new Error(`请求失败 (${resp.status}): ${errText}`);
+  }
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let full = '';
+  let thinkFull = '';
+  let buffer = '';
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (line.startsWith(': ')) continue;
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const d = JSON.parse(line.slice(6));
+          if (d.type === 'thinking') { thinkFull += d.content; if (onThinking) onThinking(thinkFull, d.content); }
+          if (d.type === 'text') { full += d.content; if (onText) onText(full, d.content, thinkFull); }
+          if (d.type === 'done' && onDone) onDone(full, thinkFull);
+        } catch(e) {}
+      }
+    }
+  } catch (e) {
+    console.error('[callSessionLLM] stream error:', e);
+    throw e;
+  }
+  return full;
+}
+
+// ===== Agent-based LLM call — uses currentSessionId (unified session) =====
+
+async function checkAgentStatus() {
+  try {
+    const resp = await fetch('/api/agent/status');
+    const data = await resp.json();
+    return data.status === 'online';
+  } catch(e) { return false; }
+}
+
+/**
+ * 调用Agent后端，解析SSE事件流
+ * @param {string} message - 用户消息
+ * @param {object} callbacks - { onText, onToolCall, onToolResult, onInfo, onDone, onError }
+ * @returns {string} 完整回复文本
+ */
+async function callAgentLLM(message, callbacks) {
+  const cb = callbacks || {};
+  const sid = currentSessionId;
+  if (!sid) { if (cb.onError) cb.onError('No active session'); return ''; }
+
+  let resp;
+  try {
+    resp = await fetch(`/api/agent/sessions/${sid}/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message })
+    });
+  } catch (e) {
+    console.error('[callAgentLLM] fetch error:', e);
+    if (cb.onError) cb.onError('网络错误: ' + e.message);
+    return '';
+  }
+
+  if (!resp.ok) {
+    const errText = await resp.text().catch(() => '');
+    console.error('[callAgentLLM] HTTP error:', resp.status, errText);
+    if (cb.onError) cb.onError(`请求失败 (${resp.status}): ${errText}`);
+    return '';
+  }
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let fullText = '';
+  let buffer = '';
+  let toolCalls = [];
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (line.startsWith('event: ')) continue;
+        if (line.startsWith(': ')) continue;
+        if (!line.startsWith('data: ')) continue;
+
+        try {
+          const d = JSON.parse(line.slice(6));
+
+          if (d.type === 'text' && d.content) {
+            fullText += d.content;
+            if (cb.onText) cb.onText(fullText, d.content);
+          }
+
+          if (d.type === 'tool_call') {
+            const tc = { name: d.tool || 'unknown', input: d.tool_input || '', type: guessToolType(d.tool) };
+            toolCalls.push(tc);
+            if (cb.onToolCall) cb.onToolCall(tc, toolCalls);
+          }
+
+          if (d.type === 'tool_result') {
+            if (cb.onToolResult) cb.onToolResult(d.content, toolCalls);
+          }
+
+          if (d.type === 'info') {
+            if (d.content && d.content.includes('[error]')) {
+              if (cb.onError) cb.onError(d.content);
+            } else {
+              if (cb.onInfo) cb.onInfo(d.content);
+            }
+          }
+
+          if (d.status === 'ok' || d.type === 'done') {
+            if (cb.onDone) cb.onDone(fullText, toolCalls);
+          }
+
+          if (d.type === 'error') {
+            if (cb.onError) cb.onError(d.content || '未知错误');
+          }
+        } catch(e) { /* skip bad json */ }
+      }
+    }
+  } catch (e) {
+    console.error('[callAgentLLM] stream error:', e);
+    if (cb.onError) cb.onError('流读取错误: ' + e.message);
+  }
+  return fullText;
+}
+
+function guessToolType(toolName) {
+  if (!toolName) return 'bash';
+  const t = toolName.toLowerCase();
+  if (t.includes('memory') || t.includes('search')) return 'memory';
+  if (t.includes('skill') || t.includes('famou')) return 'skill';
+  if (t.includes('read') || t.includes('file') || t.includes('write')) return 'read';
+  return 'bash';
+}
+
+/**
+ * Check if a tool call is writing a file, and if so insert a file card into the chat.
+ * Returns the DOM element if created, null otherwise.
+ */
+function maybeInsertFileCard(tc, container) {
+  const name = (tc.name || '').toLowerCase();
+  const input = tc.input || '';
+  if (!name.includes('write') && !name.includes('edit') && !name.includes('render_figure')) return null;
+  const pathMatch = input.match(/file_path['":\s]+([^\s'"`,]+)/i) || input.match(/out_path['":\s]+([^\s'"`,]+)/i) || input.match(/^([^\s]+\.\w{1,5})/m);
+  if (!pathMatch) return null;
+  const filePath = pathMatch[1];
+  const fileName = filePath.split('/').pop();
+  const ext = fileName.split('.').pop().toLowerCase();
+
+  const icon = fileIcon(ext);
+
+  const card = document.createElement('div');
+  card.className = 'file-artifact-card pending';
+  card.dataset.filePath = filePath;
+  card.innerHTML = `<div class="file-artifact-icon">${icon}</div><div class="file-artifact-info"><div class="file-artifact-name">${fileName}</div><div class="file-artifact-size">写入中...</div></div><div class="file-artifact-open">→</div>`;
+  card.onclick = () => openFileInPanel(filePath, fileName);
+  container.appendChild(card);
+  return card;
+}
+
+function activateFileCards(container) {
+  if (!container) return;
+  container.querySelectorAll('.file-artifact-card.pending').forEach(card => {
+    card.classList.remove('pending');
+    const filePath = card.dataset.filePath;
+    const fileName = filePath ? filePath.split('/').pop() : '';
+    const ext = fileName.split('.').pop().toLowerCase();
+    card.querySelector('.file-artifact-size').textContent = ext.toUpperCase() + ' · 点击查看';
+    card.onclick = () => openFileInPanel(filePath, fileName);
+  });
+}
+
+/**
+ * Open a file in the right panel artifacts tab
+ */
+function openFileInPanel(filePath, fileName) {
+  const ext = fileName.split('.').pop().toLowerCase();
+  const previewArea = document.getElementById('filePreviewArea');
+  const previewContent = document.getElementById('filePreviewContent');
+  document.getElementById('filePreviewName').textContent = fileName;
+
+  // Switch to artifacts tab
+  document.querySelectorAll('.rp-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tabArtifacts').classList.add('active');
+  document.getElementById('tab-artifacts').classList.add('active');
+
+  // Show preview area, hide file list
+  document.getElementById('artifactsList').style.display = 'none';
+  previewArea.style.display = '';
+  previewContent.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray-400)"><span class="thinking-pulse"></span> 正在加载...</div>';
+
+  if (['jpg','jpeg','png','svg','gif'].includes(ext)) {
+    previewContent.innerHTML = `<img src="/api/agent/sessions/${currentSessionId}/file?path=${encodeURIComponent(filePath)}" style="max-width:100%;border-radius:8px" onerror="this.parentNode.innerHTML='<p>图片加载失败</p>'">`;
+  } else {
+    fetch(`/api/agent/sessions/${currentSessionId}/file?path=${encodeURIComponent(filePath)}`)
+      .then(r => r.ok ? r.text() : Promise.reject('not found'))
+      .then(content => {
+        if (ext === 'md') {
+          previewContent.innerHTML = renderMdFull(content);
+        } else {
+          previewContent.innerHTML = '<pre style="background:var(--gray-50);border-radius:8px;padding:12px;font-size:12px;overflow-x:auto;white-space:pre-wrap;border:1px solid var(--gray-200)"><code>' + content.replace(/</g,'&lt;') + '</code></pre>';
+        }
+      })
+      .catch(() => {
+        previewContent.innerHTML = `<div style="color:var(--gray-400);text-align:center;padding:40px">文件在 agent workspace 中：<br><code style="font-size:11px">${filePath}</code></div>`;
+      });
+  }
+}
+
+function closeFilePreview() {
+  document.getElementById('filePreviewArea').style.display = 'none';
+  document.getElementById('artifactsList').style.display = '';
+}
+
+function renderMdFull(text) {
+  let t = text;
+  t = t.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+  t = t.replace(/^(\|.+\|)\n\|[-| :]+\|\n((?:\|.+\|\n?)*)/gm, (match, header, body) => {
+    const ths = header.split('|').filter(c=>c.trim()).map(c => `<th>${c.trim()}</th>`).join('');
+    const rows = body.trim().split('\n').map(row => {
+      const tds = row.split('|').filter(c=>c.trim()).map(c => `<td>${c.trim()}</td>`).join('');
+      return `<tr>${tds}</tr>`;
+    }).join('');
+    return `<table><thead><tr>${ths}</tr></thead><tbody>${rows}</tbody></table>`;
+  });
+  t = t.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  t = t.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  t = t.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  t = t.replace(/^---+$/gm, '<hr>');
+  t = t.replace(/^(?:- (.+)\n?)+/gm, (match) => {
+    const items = match.trim().split('\n').map(l => `<li>${l.replace(/^- /, '')}</li>`).join('');
+    return `<ul>${items}</ul>`;
+  });
+  t = t.replace(/^(?:\d+\. (.+)\n?)+/gm, (match) => {
+    const items = match.trim().split('\n').map(l => `<li>${l.replace(/^\d+\. /, '')}</li>`).join('');
+    return `<ol>${items}</ol>`;
+  });
+  return t
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\[(\d+)\]/g, '<sup class="cite-num" onclick="highlightSource($1)" title="查看文献 $1">$1</sup>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
+
+/**
+ * Parse literature search results and add to evidence chain panel.
+ * Handles both JSON array format and plain text format.
+ */
+function parseLiteratureResults(content) {
+  if (!content) return;
+  let papers = [];
+
+  // Try JSON parse first (arc_search_literature returns JSON)
+  try {
+    const parsed = JSON.parse(content);
+    if (Array.isArray(parsed)) {
+      papers = parsed;
+    }
+  } catch(e) {
+    // Fallback: try to parse numbered text format
+    const blocks = content.split(/^\d+\.\s/m).filter(b => b.trim());
+    papers = blocks.map(b => {
+      const lines = b.trim().split('\n');
+      return { title: lines[0] || '', authors: [], year: null, abstract: lines.slice(1).join(' ').substring(0, 200) };
+    });
+  }
+
+  if (!papers.length) return;
+
+  // Switch to evidence chain tab
+  { const _e = document.getElementById('tabTrace'); if (_e) _e.style.display = 'none'; }
+  document.querySelectorAll('.rp-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tabSources').classList.add('active');
+  document.getElementById('tab-sources').classList.add('active');
+
+  // Add each paper as a source
+  papers.forEach((p, i) => {
+    const title = p.title || '未知标题';
+    const authors = Array.isArray(p.authors) ? p.authors.slice(0, 3).join(', ') : (p.authors || '—');
+    const venue = (p.year || '') + (p.doi ? ' · ' + p.doi : '');
+    const abstract = p.abstract || '';
+    addSource(title, authors, venue, [{ text: abstract }], i < 3 ? '精读' : '扫描');
+  });
+}
+
+// Track pending literature search
+let pendingLiteratureSearch = false;
+
+function sendExample(el) {
+  document.getElementById('chatInput').value = el.textContent;
+  sendMessage();
+}
+
+// Render tool call card in chat
+function renderToolCalls(tools) {
+  if (!tools || !tools.length) return '';
+  const id = 'tc-' + Date.now() + Math.random().toString(36).slice(2,6);
+  const items = tools.map(t => {
+    const inputPreview = t.input ? t.input.substring(0, 80).replace(/</g,'&lt;') + (t.input.length > 80 ? '...' : '') : '';
+    const outputPreview = t.output ? t.output.substring(0, 120).replace(/</g,'&lt;') + (t.output.length > 120 ? '...' : '') : '';
+    return `<div class="tool-call-item"><span class="tool-call-name ${t.type}">${t.name}</span><span class="tool-call-io">${inputPreview}</span></div>${outputPreview ? '<div class="tool-call-item" style="padding-left:20px;color:var(--gray-400);font-size:10px">↳ ' + outputPreview + '</div>' : ''}`;
+  }).join('');
+  return `<div class="tool-call-card"><div class="tool-call-header" onclick="var b=document.getElementById('${id}');b.classList.toggle('open');this.querySelector('.tool-call-expand').style.transform=b.classList.contains('open')?'rotate(90deg)':''"><span class="tool-call-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9.5a3.5 3.5 0 0 0 5 0l2-2a3.5 3.5 0 0 0-5-5l-1 1"/><path d="M9.5 6.5a3.5 3.5 0 0 0-5 0l-2 2a3.5 3.5 0 0 0 5 5l1-1"/></svg></span><span class="tool-call-count">${tools.length} 次工具调用</span><span class="tool-call-expand">▸</span></div><div class="tool-call-body" id="${id}">${items}</div></div>`;
+}
+
+// Render thinking block in chat
+function renderThinking(text) {
+  if (!text) return '';
+  const id = 'think-' + Date.now();
+  return `<div class="thinking-block"><div class="thinking-header" onclick="document.getElementById('${id}').classList.toggle('open');this.querySelector('span:last-child').style.transform=document.getElementById('${id}').classList.contains('open')?'rotate(90deg)':''">已完成深度思考 <span style="font-size:9px;margin-left:auto;transition:transform .2s">▸</span></div><div class="thinking-body" id="${id}">${text}</div></div>`;
+}
+
+// Render images in chat
+function renderChatImages(images) {
+  if (!images || !images.length) return '';
+  return `
+    <div class="chat-images">
+      ${images.map(img => `
+        <div class="chat-image-item" onclick="openPreview(null, '${img.name}', '<img src=\\'${img.url}\\' style=\\'max-width:100%\\'>')">
+          <img src="${img.url}" alt="${img.name}">
+          <div class="chat-image-meta">
+            <span>${img.name} · ${img.size || ''}</span>
+            <span class="chat-image-dl">↓</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+async function newConversation() {
+  currentSessionId = null;
+  stepCount = 0; msgCount = 0; sourcesData = []; artifactsData = []; pendingPlan = null; fragmentCount = 0;
+  stopTimer();
+  document.getElementById('chatMessages').innerHTML = welcomeHTML();
+  ;(document.getElementById('traceTimeline')||{}).innerHTML = '<div class="empty-state">发送消息开始 Deep Research</div>';
+  ;(document.getElementById('statsRow')||{}).style.display = 'none';
+  ;(document.getElementById('phaseOverview')||{}).innerHTML = '';
+  document.getElementById('sourcesList').innerHTML = '';
+  document.getElementById('artifactsList').innerHTML = '<div class="empty-state">执行过程中产生的文件将在这里显示</div>';
+  document.getElementById('rpFooter').style.display = 'none';
+  document.getElementById('topbarTitle').innerHTML = '科研智能体 <div class="topbar-actions"><button>⋯</button></div>';
+  document.getElementById('inputHint').textContent = '';
+  // Restore trace tab
+  { const _e = document.getElementById('tabTrace'); if (_e) _e.style.display = ''; }
+  document.querySelectorAll('.rp-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  { const _e = document.getElementById('tabTrace'); if (_e) _e.classList.add('active'); }
+  { const _e = document.getElementById('tab-trace'); if (_e) _e.classList.add('active'); }
+  await refreshSessionList();
+}
+
+// Toggle source expand
+document.addEventListener('click', e => {
+  const card = e.target.closest('.source-card');
+  if (card && !e.target.closest('.plan-card')) card.classList.toggle('expanded');
+});
+
+// ESC to close preview
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closePreview();
+});
+
+// ===== File Upload =====
+let pendingFiles = [];
+
+function triggerFileUpload() {
+  document.getElementById('fileInput').click();
+}
+
+function handleFileSelect(e) {
+  const files = Array.from(e.target.files);
+  files.forEach(f => addPendingFile(f));
+  e.target.value = ''; // reset so same file can be re-selected
+}
+
+function addPendingFile(file) {
+  pendingFiles.push(file);
+  renderFilePreview();
+}
+
+function removeFile(idx) {
+  pendingFiles.splice(idx, 1);
+  renderFilePreview();
+}
+
+function renderFilePreview() {
+  const area = document.getElementById('uploadPreviewArea');
+  if (!pendingFiles.length) { area.innerHTML = ''; return; }
+  area.innerHTML = pendingFiles.map((f, i) => {
+    const size = f.size < 1024 ? f.size + ' B'
+      : f.size < 1048576 ? (f.size / 1024).toFixed(1) + ' KB'
+      : (f.size / 1048576).toFixed(1) + ' MB';
+    const ext = f.name.split('.').pop().toUpperCase();
+    return `
+    <div class="file-chip">
+      <div class="file-chip-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><text x="12" y="17" text-anchor="middle" font-size="6" fill="currentColor" stroke="none" font-weight="600">${ext}</text></svg>
+      </div>
+      <div class="file-chip-info">
+        <span class="file-chip-name">${f.name}</span>
+        <span class="file-chip-size">${size}</span>
+      </div>
+      <button class="file-chip-remove" onclick="removeFile(${i})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+// Skills popover
+function toggleSkillsPopover(e) {
+  e.stopPropagation();
+  const pop = document.getElementById('skillsPopover');
+  pop.classList.toggle('open');
+}
+
+function insertSkill(name) {
+  const input = document.getElementById('chatInput');
+  input.value = '/' + name + ' ';
+  input.focus();
+  document.getElementById('skillsPopover').classList.remove('open');
+}
+
+let deepResearchMode = false;
+
+function triggerDeepResearch() {
+  deepResearchMode = !deepResearchMode;
+  const btn = document.getElementById('deepResearchBtn');
+  const input = document.getElementById('chatInput');
+  if (deepResearchMode) {
+    btn.classList.add('active');
+    input.placeholder = '输入你想调研的主题...';
+    input.focus();
+  } else {
+    btn.classList.remove('active');
+    input.placeholder = '描述你的科研问题，例如：调研岩爆预测领域的主流ML方法';
+  }
+}
+
+// Close popover on outside click
+document.addEventListener('click', () => {
+  const pop = document.getElementById('skillsPopover');
+  if (pop) pop.classList.remove('open');
+});
+
+// Drag and drop
+(function initDragDrop() {
+  const area = document.getElementById('chatInputArea');
+  if (!area) return;
+  ['dragenter', 'dragover'].forEach(ev => {
+    area.addEventListener(ev, e => { e.preventDefault(); area.classList.add('dragover'); });
+  });
+  ['dragleave', 'drop'].forEach(ev => {
+    area.addEventListener(ev, e => { e.preventDefault(); area.classList.remove('dragover'); });
+  });
+  area.addEventListener('drop', e => {
+    const files = Array.from(e.dataTransfer.files);
+    files.forEach(f => addPendingFile(f));
+  });
+})();
+
+// ===== Resizable panels =====
+(function initResize() {
+  const handle = document.getElementById('resizeHandle');
+  const panel = document.querySelector('.right-panel');
+  if (!handle || !panel) return;
+  let startX, startW;
+  handle.addEventListener('mousedown', e => {
+    e.preventDefault();
+    startX = e.clientX;
+    startW = panel.offsetWidth;
+    handle.classList.add('active');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    const onMove = e => {
+      const diff = startX - e.clientX;
+      const newW = Math.max(320, Math.min(1200, startW + diff));
+      panel.style.width = newW + 'px';
+    };
+    const onUp = () => {
+      handle.classList.remove('active');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+})();
+
+// ===== Projects (local storage) =====
+let projects = JSON.parse(localStorage.getItem('famou_projects') || '[]');
+
+function openNewProjectModal() {
+  document.getElementById('projectModal').classList.add('open');
+  const input = document.getElementById('projectNameInput');
+  input.value = '';
+  setTimeout(() => input.focus(), 100);
+}
+
+function closeNewProjectModal() {
+  document.getElementById('projectModal').classList.remove('open');
+}
+
+function createProject() {
+  const input = document.getElementById('projectNameInput');
+  const name = input.value.trim();
+  if (!name) return;
+  projects.push({ id: Date.now(), name, created: new Date().toISOString() });
+  localStorage.setItem('famou_projects', JSON.stringify(projects));
+  closeNewProjectModal();
+  renderProjects();
+}
+
+function renderProjects() {
+  const el = document.getElementById('projectList');
+  if (!projects.length) {
+    el.innerHTML = '<span style="font-size:12px;color:var(--gray-400);padding:4px 12px;display:block">暂无知识库</span>';
+    return;
+  }
+  el.innerHTML = projects.map(p => `
+    <div class="project-item" title="${p.name}">
+      <span class="project-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5V12a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 14 12V6a1.5 1.5 0 0 0-1.5-1.5H8L6.5 3H3.5A1.5 1.5 0 0 0 2 4.5z"/></svg></span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</span>
+    </div>
+  `).join('');
+}
+
+// ===== Init =====
+(async function init() {
+  renderProjects();
+  await refreshSessionList();
+  const lastSid = localStorage.getItem('lastSessionId');
+  if (lastSid) {
+    try {
+      const resp = await fetch(`/api/sessions/${lastSid}`);
+      if (resp.ok) { await loadSession(lastSid); return; }
+    } catch(e) {}
+  }
+})();
+</script>
+</body>
+</html>

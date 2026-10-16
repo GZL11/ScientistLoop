@@ -1,0 +1,20 @@
+{
+  "version": "20260810-001-generic-venue-gate",
+  "created_at": "2026-08-10",
+  "title": "Reject bare generic templates for unlisted venues",
+  "description": "Adds a venue-agnostic fallback gate while retaining stronger declarative checks for known venues.",
+  "source_file": "registry/source/tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "implementation_files": [
+    "scripts/latex_check.py"
+  ],
+  "changes": [
+    "Keep class and style-marker checks for known venues.",
+    "For every other named venue, reject a bare generic document class without a local author-kit style.",
+    "Allow custom official classes and local style-based templates to proceed to normal compilation checks."
+  ],
+  "rollback": {
+    "target": "20260808-001-venue-template-rules",
+    "notes": "Remove the generic fallback gate and retain only known venue rules."
+  }
+}

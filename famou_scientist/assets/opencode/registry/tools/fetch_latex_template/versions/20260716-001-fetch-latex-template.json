@@ -1,0 +1,14 @@
+{
+  "version": "20260716-001-fetch-latex-template",
+  "created_at": "2026-07-16",
+  "title": "Split out LaTeX template fetcher",
+  "description": "Creates a standalone registry record for arc_fetch_latex_template so template downloads get their own version history.",
+  "source_file": "tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Expose arc_fetch_latex_template as an independent tool entry.",
+    "Keep venue template downloads separate from LaTeX compilation checks.",
+    "Preserve the runtime fetch and unpack flow."
+  ]
+}
+

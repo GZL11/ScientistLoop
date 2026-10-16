@@ -1,0 +1,14 @@
+{
+  "version": "20260716-001-render-figure",
+  "created_at": "2026-07-16",
+  "title": "Split out figure renderer",
+  "description": "Creates a standalone registry record for arc_render_figure so data figure rendering gets its own version history.",
+  "source_file": "tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Expose arc_render_figure as an independent tool entry.",
+    "Keep data figure rendering and linting separate from schematic generation.",
+    "Preserve the runtime matplotlib render and figure check flow."
+  ]
+}
+

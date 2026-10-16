@@ -1,0 +1,13 @@
+{
+  "active": "AGENTS.20260810-001-dataset-and-literature-gates.md",
+  "active_file": "../AGENTS.md",
+  "baseline": "AGENTS.v20260710.pre-task-routing.md",
+  "change": "route experiment data preparation through dataset-acquisition and require structured user choices for unresolved acquisition blockers",
+  "rollback_to": "AGENTS.20260809-002-dialogue-first-research.md",
+  "changelog": "PROMPT_CHANGELOG.md",
+  "tests": [
+    "tests/paper_qa.yaml",
+    "tests/compact_continue.yaml",
+    "tests/research_project.yaml"
+  ]
+}

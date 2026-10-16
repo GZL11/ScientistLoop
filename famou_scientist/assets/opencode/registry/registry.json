@@ -1,0 +1,981 @@
+{
+  "schema_version": 1,
+  "root": "..",
+  "release_log": "registry/release-log.jsonl",
+  "runtime": {
+    "source_root": "registry/source",
+    "generated_dirs": [
+      "skill",
+      "tool",
+      "plugins"
+    ],
+    "sync_log": "registry/runtime-sync.jsonl"
+  },
+  "prompts": [
+    {
+      "id": "agents",
+      "name": "Main OpenCode instructions",
+      "target": "AGENTS.md",
+      "online_version": "20260810-001-dataset-and-literature-gates",
+      "versions_dir": "registry/prompts/agents/versions",
+      "files_dir": "registry/prompts/agents/files",
+      "manifest": "prompts/active_prompt.json",
+      "changelog": "prompts/PROMPT_CHANGELOG.md",
+      "tests": [
+        "prompts/tests/paper_qa.yaml",
+        "prompts/tests/compact_continue.yaml",
+        "prompts/tests/research_project.yaml"
+      ],
+      "tags": [
+        "routing",
+        "paper-qa",
+        "compact",
+        "paper-lookup",
+        "literature-retrieval"
+      ]
+    },
+    {
+      "id": "explore-agent",
+      "name": "Explore subagent prompt",
+      "target": "agent/explore.md",
+      "online_version": "20260711-000-bounded-tool-output",
+      "versions_dir": "registry/prompts/explore-agent/versions",
+      "files_dir": "registry/prompts/explore-agent/files",
+      "manifest": "prompts/active_explore_agent.json",
+      "changelog": "prompts/EXPLORE_AGENT_CHANGELOG.md",
+      "tags": [
+        "subagent",
+        "explore",
+        "tool-output"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "id": "biology-biopython",
+      "name": "biology-biopython",
+      "path": "registry/source/skill/domain/biology-biopython/SKILL.md",
+      "runtime_path": "skill/domain/biology-biopython/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Bioinformatics with Biopython for sequence manipulation, file parsing, BLAST, and phylogenetics. Use when working with DNA/RNA/protein sequences or biological databases.",
+      "tags": [
+        "skill",
+        "domain"
+      ]
+    },
+    {
+      "id": "chemistry-rdkit",
+      "name": "chemistry-rdkit",
+      "path": "registry/source/skill/domain/chemistry-rdkit/SKILL.md",
+      "runtime_path": "skill/domain/chemistry-rdkit/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Computational chemistry with RDKit for molecular analysis, descriptors, fingerprints, and substructure search. Use when working with SMILES, drug discovery, or cheminformatics tasks.",
+      "tags": [
+        "skill",
+        "domain"
+      ]
+    },
+    {
+      "id": "cv-classification",
+      "name": "cv-classification",
+      "path": "registry/source/skill/domain/cv-classification/SKILL.md",
+      "runtime_path": "skill/domain/cv-classification/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Best practices for image classification tasks. Use when working on CIFAR, ImageNet, or other classification benchmarks.",
+      "tags": [
+        "skill",
+        "domain"
+      ]
+    },
+    {
+      "id": "cv-detection",
+      "name": "cv-detection",
+      "path": "registry/source/skill/domain/cv-detection/SKILL.md",
+      "runtime_path": "skill/domain/cv-detection/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Best practices for object detection tasks. Use when working on COCO, VOC, or detection architectures like YOLO and DETR.",
+      "tags": [
+        "skill",
+        "domain"
+      ]
+    },
+    {
+      "id": "hep-phenomenology",
+      "name": "hep-phenomenology",
+      "path": "registry/source/skill/domain/hep-phenomenology/SKILL.md",
+      "runtime_path": "skill/domain/hep-phenomenology/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Best practices for high-energy-physics phenomenology research (BSM models, collider & dark-matter studies, cross-section / exclusion-limit analyses). Use when the topic involves particle physics, mediators, dark matter, ATLAS/CMS, or beyond-Standard-Model searches.",
+      "tags": [
+        "skill",
+        "domain"
+      ]
+    },
+    {
+      "id": "nlp-alignment",
+      "name": "nlp-alignment",
+      "path": "registry/source/skill/domain/nlp-alignment/SKILL.md",
+      "runtime_path": "skill/domain/nlp-alignment/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Best practices for LLM alignment techniques including RLHF, DPO, and instruction tuning. Use when working on alignment or safety.",
+      "tags": [
+        "skill",
+        "domain"
+      ]
+    },
+    {
+      "id": "nlp-pretraining",
+      "name": "nlp-pretraining",
+      "path": "registry/source/skill/domain/nlp-pretraining/SKILL.md",
+      "runtime_path": "skill/domain/nlp-pretraining/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Best practices for language model pretraining and fine-tuning. Use when generating or reviewing NLP training code.",
+      "tags": [
+        "skill",
+        "domain"
+      ]
+    },
+    {
+      "id": "quantum-qiskit",
+      "name": "quantum-qiskit",
+      "path": "registry/source/skill/domain/quantum-qiskit/SKILL.md",
+      "runtime_path": "skill/domain/quantum-qiskit/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Reference qiskit 2.x patterns for variational quantum machine learning. Covers data-encoding feature maps, variational quantum classifier (VQC) training, variational quantum eigensolver (VQE) for chemistry, matrix-product-state circuits, and noise model integration. Use when writing Python code that imports `qiskit`, `qiskit_aer`, `qiskit_algorithms`, `qiskit_machine_learning`, or `qiskit_nature`.",
+      "tags": [
+        "skill",
+        "domain"
+      ]
+    },
+    {
+      "id": "rl-policy-optimization",
+      "name": "rl-policy-optimization",
+      "path": "registry/source/skill/domain/rl-policy-optimization/SKILL.md",
+      "runtime_path": "skill/domain/rl-policy-optimization/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Best practices for reinforcement learning policy optimization. Use when working on RL agents, PPO, SAC, or reward design.",
+      "tags": [
+        "skill",
+        "domain"
+      ]
+    },
+    {
+      "id": "async-experiment-execution",
+      "name": "async-experiment-execution",
+      "path": "registry/source/skill/experiment/async-experiment-execution/SKILL.md",
+      "runtime_path": "skill/experiment/async-experiment-execution/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Local sandbox async execution discipline for small or medium experiments launched with arc_run_experiment(is_async=true). Do not use for formal cluster experiments, GPU training, long simulations, or batch evaluation; use cluster-experiment-execution and submit via fm-job-new instead.",
+      "tags": [
+        "skill",
+        "experiment"
+      ],
+      "online_version": "20260730-001-progress-policy",
+      "versions_dir": "registry/skills/async-experiment-execution/versions",
+      "files_dir": "registry/skills/async-experiment-execution/files",
+      "changelog": "registry/skills/async-experiment-execution/CHANGELOG.md"
+    },
+    {
+      "id": "cluster-experiment-execution",
+      "name": "cluster-experiment-execution",
+      "path": "registry/source/skill/experiment/cluster-experiment-execution/SKILL.md",
+      "runtime_path": "skill/experiment/cluster-experiment-execution/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Submit and monitor formal scientific experiments on the cluster through arc_cluster_job, which wraps fm-job-new. Use for GPU jobs, training, batch evaluation, long simulations, large data processing, and multi-seed/ablation/grid runs. Local execution is only for smoke tests and dry-runs.",
+      "tags": [
+        "skill",
+        "experiment",
+        "cluster",
+        "fm-job"
+      ],
+      "versions_dir": "registry/skills/cluster-experiment-execution/versions",
+      "files_dir": "registry/skills/cluster-experiment-execution/files",
+      "changelog": "registry/skills/cluster-experiment-execution/CHANGELOG.md",
+      "online_version": "20260726-001-cluster-experiment-execution"
+    },
+    {
+      "id": "baseline-profiling",
+      "name": "baseline-profiling",
+      "path": "registry/source/skill/experiment/baseline-profiling/SKILL.md",
+      "runtime_path": "skill/experiment/baseline-profiling/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Select which baselines to compare against (aggregated from retrieved literature — covering both classic/seminal methods and recent SOTA), then extract the exact benchmark, data processing, and training configuration of each so your experiment compares on the SAME basis. Use when selecting baselines or surveying prior work for fair comparison, before designing experiments.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "benchmark-selection",
+      "name": "benchmark-selection",
+      "path": "registry/source/skill/experiment/benchmark-selection/SKILL.md",
+      "runtime_path": "skill/experiment/benchmark-selection/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Choose which benchmarks/datasets to evaluate on after profiling baselines. Build a baseline×benchmark coverage matrix, match benchmark coverage to field practice, and decide which reported numbers can be reused. Hand selected datasets to dataset-acquisition before experiments.",
+      "online_version": "20260810-001-dataset-acquisition-handoff",
+      "versions_dir": "registry/skills/benchmark-selection/versions",
+      "files_dir": "registry/skills/benchmark-selection/files",
+      "changelog": "registry/skills/benchmark-selection/CHANGELOG.md",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "dataset-acquisition",
+      "name": "dataset-acquisition",
+      "path": "registry/source/skill/experiment/dataset-acquisition/SKILL.md",
+      "runtime_path": "skill/experiment/dataset-acquisition/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Prepare real experiment data after benchmark selection by locating existing data or confirming a download destination, then handling official acquisition, authentication, integrity checks, and structured blocker handoff.",
+      "tags": [
+        "skill",
+        "experiment"
+      ],
+      "online_version": "20260810-001-dataset-acquisition",
+      "versions_dir": "registry/skills/dataset-acquisition/versions",
+      "files_dir": "registry/skills/dataset-acquisition/files",
+      "changelog": "registry/skills/dataset-acquisition/CHANGELOG.md"
+    },
+    {
+      "id": "citation-faithfulness",
+      "name": "citation-faithfulness",
+      "path": "registry/source/skill/experiment/citation-faithfulness/SKILL.md",
+      "runtime_path": "skill/experiment/citation-faithfulness/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Check whether a cited source actually supports the claim you attribute to it — not just that the reference exists. For key cited claims, fetch the source abstract via arc_fetch_source and judge SUPPORTED / UNSUPPORTED / AMBIGUOUS, recording verdicts in citations.md. Advisory (abstract-level only); pairs with arc_verify_citation (existence) and peer-review.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "code-plan-review",
+      "name": "code-plan-review",
+      "path": "registry/source/skill/experiment/code-plan-review/SKILL.md",
+      "runtime_path": "skill/experiment/code-plan-review/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Before running an experiment, use an INDEPENDENT reviewer subagent to audit—item by item against the design.md Implementation Contract—whether the experiment code faithfully implements the plan (dataset/splits, every condition & baseline, hyperparams, seeds, eval protocol, observability). Then a mandatory SMOKE TEST (tiny sync run) confirms it actually executes (no shape/NaN errors, asserts fire, config echo matches, first metric parses) BEFORE the expensive async run. Catches silent deviations and runtime bugs — not after a multi-hour run. Fail-closed: fix gaps, then run.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "experiment-repair",
+      "name": "experiment-repair",
+      "path": "registry/source/skill/experiment/experiment-repair/SKILL.md",
+      "runtime_path": "skill/experiment/experiment-repair/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Diagnose WHY an experiment failed and fix it yourself. Use when arc_run_experiment errors, times out, returns all-zero/empty metrics, or produces suspicious results (e.g. near-random accuracy), before retrying.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "experimental-design",
+      "name": "experimental-design",
+      "path": "registry/source/skill/experiment/experimental-design/SKILL.md",
+      "runtime_path": "skill/experiment/experimental-design/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Best practices for designing reproducible ML experiments. Use when planning ablations, baselines, or controlled experiments.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "exploratory-data-analysis",
+      "name": "exploratory-data-analysis",
+      "path": "registry/source/skill/experiment/exploratory-data-analysis/SKILL.md",
+      "runtime_path": "skill/experiment/exploratory-data-analysis/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Systematic exploratory data analysis (EDA) on a dataset BEFORE designing/running experiments — auto-detects file type across 200+ scientific formats and reports structure, distributions, missingness, outliers, class balance, and data-leakage smells, then writes a markdown report with downstream recommendations. Use right after acquiring data and before finalizing the experimental design, so the design reflects what the data actually is.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "failure-mode-audit",
+      "name": "failure-mode-audit",
+      "path": "registry/source/skill/experiment/failure-mode-audit/SKILL.md",
+      "runtime_path": "skill/experiment/failure-mode-audit/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Systematically rule out the 7 AI-research failure modes (Lu et al., The AI Scientist, Nature 2026) at three integrity checkpoints — before running code, after results are in, and before exporting the paper. For each mode, return CLEAR / SUSPECTED / INSUFFICIENT EVIDENCE; SUSPECTED blocks until resolved or user-overridden. The shared integrity checklist that code-plan-review, research-reflection, peer-review and quality-gate all draw on.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "hypothesis-formulation",
+      "name": "hypothesis-formulation",
+      "path": "registry/source/skill/experiment/hypothesis-formulation/SKILL.md",
+      "runtime_path": "skill/experiment/hypothesis-formulation/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Structured scientific hypothesis generation from observations. Use when formulating testable hypotheses, competing explanations, or experimental predictions.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "literature-search",
+      "name": "literature-search",
+      "path": "registry/source/skill/experiment/literature-search/SKILL.md",
+      "runtime_path": "skill/experiment/literature-search/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Paper retrieval and screening skill. Use for specific/fuzzy paper lookup, query design, source retrieval, corpus expansion, relevance filtering, and citation/source verification. Do not use for field mapping, gap discovery, research-direction recommendation, or idea ranking; load literature-research for those workflows.",
+      "tags": [
+        "skill",
+        "experiment",
+        "paper-lookup"
+      ],
+      "online_version": "20260809-001-progressive-retrieval-batches",
+      "versions_dir": "registry/skills/literature-search/versions",
+      "files_dir": "registry/skills/literature-search/files",
+      "changelog": "registry/skills/literature-search/CHANGELOG.md"
+    },
+    {
+      "id": "literature-research",
+      "name": "literature-research",
+      "path": "registry/source/skill/experiment/literature-research/SKILL.md",
+      "runtime_path": "skill/experiment/literature-research/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Research synthesis workflow for understanding a field, clustering subtopics, identifying evidence-backed gaps, recommending research directions, and ranking candidate ideas. Use this instead of literature-search when the user asks what is worth studying, where the gaps are, or how a research area is structured.",
+      "tags": [
+        "skill",
+        "experiment"
+      ],
+      "online_version": "20260810-001-canonical-paper-cards",
+      "versions_dir": "registry/skills/literature-research/versions",
+      "files_dir": "registry/skills/literature-research/files",
+      "changelog": "registry/skills/literature-research/CHANGELOG.md"
+    },
+    {
+      "id": "meta-analysis",
+      "name": "meta-analysis",
+      "path": "registry/source/skill/experiment/meta-analysis/SKILL.md",
+      "runtime_path": "skill/experiment/meta-analysis/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Statistical methods for combining results across multiple studies. Use when aggregating cross-study or cross-experiment results.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "novelty-gate",
+      "name": "novelty-gate",
+      "path": "registry/source/skill/experiment/novelty-gate/SKILL.md",
+      "runtime_path": "skill/experiment/novelty-gate/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Before presenting a new or revised research direction, check overlap with literature, distinguish direct duplication from improvable baselines and related-but-different ideas, estimate cost, and require evidence before recommending the idea.",
+      "tags": [
+        "skill",
+        "experiment"
+      ],
+      "online_version": "20260718-001-overlap-improvement-gate",
+      "versions_dir": "registry/skills/novelty-gate/versions",
+      "files_dir": "registry/skills/novelty-gate/files",
+      "changelog": "registry/skills/novelty-gate/CHANGELOG.md"
+    },
+    {
+      "id": "peer-review",
+      "name": "peer-review",
+      "path": "registry/source/skill/experiment/peer-review/SKILL.md",
+      "runtime_path": "skill/experiment/peer-review/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Simulate rigorous conference peer review on a paper draft to find problems before revision. Use after a draft is written, ideally via an independent reviewer subagent (fresh context) to avoid self-confirmation bias.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "quality-gate",
+      "name": "quality-gate",
+      "path": "registry/source/skill/experiment/quality-gate/SKILL.md",
+      "runtime_path": "skill/experiment/quality-gate/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Final go/no-go quality check on a paper before export. Use after revision, to score the paper against a threshold and cross-check every reported number against real experiment data (anti-fabrication) before finalizing.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "research-decision",
+      "name": "research-decision",
+      "path": "registry/source/skill/experiment/research-decision/SKILL.md",
+      "runtime_path": "skill/experiment/research-decision/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "After analyzing trustworthy experiment results, decide PROCEED / REFINE / PIVOT. Use at the analysis→decision juncture to judge whether results support the hypothesis, need more evidence, or disprove the hypothesis.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "research-reflection",
+      "name": "research-reflection",
+      "path": "registry/source/skill/experiment/research-reflection/SKILL.md",
+      "runtime_path": "skill/experiment/research-reflection/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "After analysis, check whether the experiment conclusion actually supports the ORIGINAL hypothesis. If not, diagnose the root cause and write a reflection document (hypothesis recap, results, observed phenomena, alignment verdict, root-cause analysis, next-step plan). Pairs with research-decision (which issues PROCEED/REFINE/PIVOT) to keep the agent from drifting away from the original question.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "resource-planning",
+      "name": "resource-planning",
+      "path": "registry/source/skill/experiment/resource-planning/SKILL.md",
+      "runtime_path": "skill/experiment/resource-planning/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Estimate the compute/memory/time each experiment needs, present it to the user, and check it against the user's available resources before running. Use after designing experiments, before writing/running code.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "scholar-evaluation",
+      "name": "scholar-evaluation",
+      "path": "registry/source/skill/experiment/scholar-evaluation/SKILL.md",
+      "runtime_path": "skill/experiment/scholar-evaluation/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Structured assessment of scholarly work via the ScholarEval rubric — score research quality across problem formulation, methodology, analysis, and writing, with quantitative scores and actionable feedback. Use when judging candidate papers/baselines during literature review, or self-grading your own draft to complement qualitative peer review.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "scientific-brainstorming",
+      "name": "scientific-brainstorming",
+      "path": "registry/source/skill/experiment/scientific-brainstorming/SKILL.md",
+      "runtime_path": "skill/experiment/scientific-brainstorming/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Open-ended research ideation — generate candidate directions, explore interdisciplinary connections, and challenge assumptions at the idea / first-idea stage, before formal falsifiable hypotheses exist. Use when the user has a topic but not yet specific hypotheses; feeds novelty-gate and hypothesis-formulation. For turning observations/data into testable hypotheses use hypothesis-formulation.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "scientific-critical-thinking",
+      "name": "scientific-critical-thinking",
+      "path": "registry/source/skill/experiment/scientific-critical-thinking/SKILL.md",
+      "runtime_path": "skill/experiment/scientific-critical-thinking/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Evaluate scientific claims and evidence quality — methodology validity, biases, confounders, and evidence grading (GRADE, Cochrane Risk of Bias). Use during literature screening, peer review, and the quality gate to assess rigor and spot flaws. For writing the formal review use peer-review.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "statistical-power",
+      "name": "statistical-power",
+      "path": "registry/source/skill/experiment/statistical-power/SKILL.md",
+      "runtime_path": "skill/experiment/statistical-power/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "A priori sample-size & statistical power analysis — decide how many seeds/samples/replicates you need BEFORE running, the minimum detectable effect (MDE) for the budget you can afford, and power curves. Use in experiment design / resource planning, before launching runs. Covers closed-form power (t-test, ANOVA, proportions, correlation, chi-square, regression) and simulation-based (Monte Carlo) power for designs with no formula. Triggers even when only effect size, alpha, or \"80% power\" is mentioned. For laying out the design use experimental-design; for analyzing collected data use statistical-reporting.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "statistical-reporting",
+      "name": "statistical-reporting",
+      "path": "registry/source/skill/experiment/statistical-reporting/SKILL.md",
+      "runtime_path": "skill/experiment/statistical-reporting/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Statistical test selection, assumption checking, and APA-formatted reporting. Use when analyzing experimental results or writing results sections.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "systematic-review",
+      "name": "systematic-review",
+      "path": "registry/source/skill/experiment/systematic-review/SKILL.md",
+      "runtime_path": "skill/experiment/systematic-review/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Structured methodology for comprehensive literature review following PRISMA guidelines. Use during literature search and screening stages.",
+      "tags": [
+        "skill",
+        "experiment"
+      ]
+    },
+    {
+      "id": "data-loading",
+      "name": "data-loading",
+      "path": "registry/source/skill/tooling/data-loading/SKILL.md",
+      "runtime_path": "skill/tooling/data-loading/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Optimize data loading pipeline to prevent GPU starvation. Use when setting up DataLoader or data preprocessing.",
+      "tags": [
+        "skill",
+        "tooling"
+      ]
+    },
+    {
+      "id": "distributed-training",
+      "name": "distributed-training",
+      "path": "registry/source/skill/tooling/distributed-training/SKILL.md",
+      "runtime_path": "skill/tooling/distributed-training/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Multi-GPU and distributed training patterns with PyTorch DDP. Use when scaling training across GPUs.",
+      "tags": [
+        "skill",
+        "tooling"
+      ]
+    },
+    {
+      "id": "mixed-precision",
+      "name": "mixed-precision",
+      "path": "registry/source/skill/tooling/mixed-precision/SKILL.md",
+      "runtime_path": "skill/tooling/mixed-precision/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Use FP16/BF16 mixed precision to accelerate training and reduce memory. Use when optimizing GPU performance.",
+      "tags": [
+        "skill",
+        "tooling"
+      ]
+    },
+    {
+      "id": "pytorch-training",
+      "name": "pytorch-training",
+      "path": "registry/source/skill/tooling/pytorch-training/SKILL.md",
+      "runtime_path": "skill/tooling/pytorch-training/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Best practices for building robust PyTorch training loops. Use when generating or reviewing ML training code.",
+      "tags": [
+        "skill",
+        "tooling"
+      ]
+    },
+    {
+      "id": "latex-fmt",
+      "name": "latex-fmt",
+      "path": "registry/source/skill/writing/latex-fmt/SKILL.md",
+      "runtime_path": "skill/writing/latex-fmt/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "online_version": "20260810-001-generic-official-template-flow",
+      "versions_dir": "registry/skills/latex-fmt/versions",
+      "files_dir": "registry/skills/latex-fmt/files",
+      "description": "Reformat LaTeX papers for any target conference or journal and run a pre-submission compliance check, with stronger built-in checks for common venues. Use when confirming a target venue or exporting/finalizing a venue-formatted paper.tex.",
+      "tags": [
+        "skill",
+        "writing"
+      ]
+    },
+    {
+      "id": "scientific-visualization",
+      "name": "scientific-visualization",
+      "path": "registry/source/skill/writing/scientific-visualization/SKILL.md",
+      "runtime_path": "skill/writing/scientific-visualization/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "description": "Publication-quality scientific figures via a render→look→critique→fix visual-feedback loop. Statistical data plots use matplotlib from results.json (arc_render_figure); architecture/overview/concept schematics use an image model gpt-image-2 (arc_generate_schematic). Use when making any figure for a paper — never draw blind, never let the image model draw data plots.",
+      "tags": [
+        "skill",
+        "writing"
+      ]
+    },
+    {
+      "id": "scientific-writing",
+      "name": "scientific-writing",
+      "path": "registry/source/skill/writing/scientific-writing/SKILL.md",
+      "runtime_path": "skill/writing/scientific-writing/SKILL.md",
+      "enabled": true,
+      "runtime_synced": true,
+      "online_version": "20260808-001-agent-first-venue-brief",
+      "versions_dir": "registry/skills/scientific-writing/versions",
+      "files_dir": "registry/skills/scientific-writing/files",
+      "description": "Academic manuscript writing with IMRAD structure, citation formatting, and reporting guidelines. Use when drafting or revising research papers.",
+      "tags": [
+        "skill",
+        "writing"
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "id": "search_literature",
+      "name": "ARC literature search",
+      "path": "registry/source/tool/arc.ts",
+      "runtime_path": "tool/arc.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "tags": [
+        "tool",
+        "research-execution",
+        "literature-retrieval"
+      ],
+      "online_version": "20260810-001-balanced-source-retries",
+      "versions_dir": "registry/tools/search_literature/versions",
+      "files_dir": "registry/tools/search_literature/files",
+      "changelog": "registry/tools/search_literature/CHANGELOG.md",
+      "description": "Unified literature search entry point for topic retrieval and academic metadata enrichment."
+    },
+    {
+      "id": "lookup_paper",
+      "name": "ARC paper lookup",
+      "path": "registry/source/tool/arc.ts",
+      "runtime_path": "tool/arc.ts",
+      "enabled": false,
+      "runtime_synced": true,
+      "tags": [
+        "tool",
+        "research-execution",
+        "paper-lookup",
+        "literature-retrieval"
+      ],
+      "online_version": "20260713-002-lookup-precision",
+      "versions_dir": "registry/tools/lookup_paper/versions",
+      "files_dir": "registry/tools/lookup_paper/files",
+      "changelog": "registry/tools/lookup_paper/CHANGELOG.md",
+      "description": "Specific-paper lookup helper with confidence scoring and confirmation guidance."
+    },
+    {
+      "id": "cluster_job",
+      "name": "ARC cluster job manager",
+      "path": "registry/source/tool/arc.ts",
+      "runtime_path": "tool/arc.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "tags": [
+        "tool",
+        "research-execution",
+        "experimentation",
+        "cluster",
+        "fm-job"
+      ],
+      "description": "Submit and monitor formal scientific experiments through fm-job-new. Supports resource, submit, list, logs, pod_ip, and guarded kill; submit always uses --no-wait.",
+      "versions_dir": "registry/tools/cluster_job/versions",
+      "files_dir": "registry/tools/cluster_job/files",
+      "changelog": "registry/tools/cluster_job/CHANGELOG.md",
+      "online_version": "20260726-001-cluster-job"
+    },
+    {
+      "id": "run_experiment",
+      "name": "ARC experiment runner",
+      "path": "registry/source/tool/arc.ts",
+      "runtime_path": "tool/arc.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "tags": [
+        "tool",
+        "research-execution",
+        "experimentation"
+      ],
+      "online_version": "20260730-001-progress-policy",
+      "versions_dir": "registry/tools/run_experiment/versions",
+      "files_dir": "registry/tools/run_experiment/files",
+      "changelog": "registry/tools/run_experiment/CHANGELOG.md",
+      "description": "Local sandbox Python runner for smoke tests, dry-runs, and tiny validation runs only. Formal training, batch evaluation, GPU jobs, long simulations, and large data processing must use arc_cluster_job instead."
+    },
+    {
+      "id": "experiment_status",
+      "name": "ARC experiment status",
+      "path": "registry/source/tool/arc.ts",
+      "runtime_path": "tool/arc.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "tags": [
+        "tool",
+        "research-execution",
+        "experimentation"
+      ],
+      "online_version": "20260716-001-experiment-status",
+      "versions_dir": "registry/tools/experiment_status/versions",
+      "files_dir": "registry/tools/experiment_status/files",
+      "changelog": "registry/tools/experiment_status/CHANGELOG.md",
+      "description": "Read the status of detached experiment jobs from their signal files."
+    },
+    {
+      "id": "cancel_experiment",
+      "name": "ARC cancel experiment",
+      "path": "registry/source/tool/arc.ts",
+      "runtime_path": "tool/arc.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "tags": [
+        "tool",
+        "research-execution",
+        "experimentation"
+      ],
+      "online_version": "20260716-001-cancel-experiment",
+      "versions_dir": "registry/tools/cancel_experiment/versions",
+      "files_dir": "registry/tools/cancel_experiment/files",
+      "changelog": "registry/tools/cancel_experiment/CHANGELOG.md",
+      "description": "Cancel a detached experiment job and clean up its process group."
+    },
+    {
+      "id": "verify_citation",
+      "name": "ARC citation verifier",
+      "path": "registry/source/tool/arc.ts",
+      "runtime_path": "tool/arc.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "tags": [
+        "tool",
+        "research-execution",
+        "citation-verification"
+      ],
+      "online_version": "20260716-001-verify-citation",
+      "versions_dir": "registry/tools/verify_citation/versions",
+      "files_dir": "registry/tools/verify_citation/files",
+      "changelog": "registry/tools/verify_citation/CHANGELOG.md",
+      "description": "Check whether a cited paper actually exists."
+    },
+    {
+      "id": "verify_paper",
+      "name": "ARC paper verifier",
+      "path": "registry/source/tool/arc.ts",
+      "runtime_path": "tool/arc.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "tags": [
+        "tool",
+        "research-execution",
+        "citation-verification"
+      ],
+      "online_version": "20260716-001-verify-paper",
+      "versions_dir": "registry/tools/verify_paper/versions",
+      "files_dir": "registry/tools/verify_paper/files",
+      "changelog": "registry/tools/verify_paper/CHANGELOG.md",
+      "description": "Batch-verify BibTeX entries before paper export."
+    },
+    {
+      "id": "fetch_source",
+      "name": "ARC source fetcher",
+      "path": "registry/source/tool/arc.ts",
+      "runtime_path": "tool/arc.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "tags": [
+        "tool",
+        "research-execution",
+        "citation-verification"
+      ],
+      "online_version": "20260716-001-fetch-source",
+      "versions_dir": "registry/tools/fetch_source/versions",
+      "files_dir": "registry/tools/fetch_source/files",
+      "changelog": "registry/tools/fetch_source/CHANGELOG.md",
+      "description": "Fetch source abstracts and metadata for citation-faithfulness checks."
+    },
+    {
+      "id": "fetch_latex_template",
+      "name": "ARC LaTeX template fetcher",
+      "path": "registry/source/tool/arc.ts",
+      "runtime_path": "tool/arc.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "tags": [
+        "tool",
+        "research-execution",
+        "latex"
+      ],
+      "online_version": "20260810-001-generic-venue-handoff",
+      "versions_dir": "registry/tools/fetch_latex_template/versions",
+      "files_dir": "registry/tools/fetch_latex_template/files",
+      "changelog": "registry/tools/fetch_latex_template/CHANGELOG.md",
+      "description": "Download venue template assets for paper export."
+    },
+    {
+      "id": "render_figure",
+      "name": "ARC figure renderer",
+      "path": "registry/source/tool/arc.ts",
+      "runtime_path": "tool/arc.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "tags": [
+        "tool",
+        "research-execution",
+        "scientific-visualization"
+      ],
+      "online_version": "20260716-001-render-figure",
+      "versions_dir": "registry/tools/render_figure/versions",
+      "files_dir": "registry/tools/render_figure/files",
+      "changelog": "registry/tools/render_figure/CHANGELOG.md",
+      "description": "Render data figures and lint the output for publication quality."
+    },
+    {
+      "id": "generate_schematic",
+      "name": "ARC schematic generator",
+      "path": "registry/source/tool/arc.ts",
+      "runtime_path": "tool/arc.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "tags": [
+        "tool",
+        "research-execution",
+        "scientific-visualization"
+      ],
+      "online_version": "20260716-001-generate-schematic",
+      "versions_dir": "registry/tools/generate_schematic/versions",
+      "files_dir": "registry/tools/generate_schematic/files",
+      "changelog": "registry/tools/generate_schematic/CHANGELOG.md",
+      "description": "Generate schematic or concept figures for methods and system overviews."
+    },
+    {
+      "id": "latex_check",
+      "name": "ARC LaTeX checker",
+      "path": "registry/source/tool/arc.ts",
+      "runtime_path": "tool/arc.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "tags": [
+        "tool",
+        "research-execution",
+        "latex"
+      ],
+      "online_version": "20260810-001-generic-venue-gate",
+      "versions_dir": "registry/tools/latex_check/versions",
+      "files_dir": "registry/tools/latex_check/files",
+      "changelog": "registry/tools/latex_check/CHANGELOG.md",
+      "description": "Compile paper.tex and inspect the log for citation, figure, and layout issues."
+    }
+  ],
+  "plugins": [
+    {
+      "id": "cleanup",
+      "name": "Cleanup plugin",
+      "path": "registry/source/plugins/cleanup.ts",
+      "runtime_path": "plugins/cleanup.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "tags": [
+        "plugin",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "guardrails",
+      "name": "Quality guardrails",
+      "path": "registry/source/plugins/guardrails.ts",
+      "runtime_path": "plugins/guardrails.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "online_version": "20260810-001-literature-artifact-gate",
+      "versions_dir": "registry/plugins/guardrails/versions",
+      "changelog": "registry/plugins/guardrails/CHANGELOG.md",
+      "tags": [
+        "plugin",
+        "guardrail"
+      ]
+    },
+    {
+      "id": "heartbeat",
+      "name": "Async experiment heartbeat",
+      "path": "registry/source/plugins/heartbeat.ts",
+      "runtime_path": "plugins/heartbeat.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "tags": [
+        "plugin",
+        "async"
+      ],
+      "online_version": "20260810-001-async-wakeup",
+      "versions_dir": "registry/plugins/heartbeat/versions",
+      "files_dir": "registry/plugins/heartbeat/files",
+      "changelog": "registry/plugins/heartbeat/CHANGELOG.md"
+    },
+    {
+      "id": "language",
+      "name": "Compact language reinforcement",
+      "path": "registry/source/plugins/language.ts",
+      "runtime_path": "plugins/language.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "tags": [
+        "plugin",
+        "compact"
+      ]
+    },
+    {
+      "id": "compaction-policy",
+      "name": "Compaction auto-continue policy",
+      "path": "registry/source/plugins/compaction-policy.ts",
+      "runtime_path": "plugins/compaction-policy.ts",
+      "enabled": true,
+      "runtime_synced": true,
+      "online_version": "20260712-001-narrow-autocontinue",
+      "versions_dir": "registry/plugins/compaction-policy/versions",
+      "changelog": "registry/plugins/compaction-policy/CHANGELOG.md",
+      "requires_runtime_patch": "runtime_patches/compaction-autocontinue-text-hook",
+      "tags": [
+        "plugin",
+        "compact",
+        "policy"
+      ]
+    }
+  ],
+  "runtime_patches": [
+    {
+      "id": "compaction-autocontinue-text-hook",
+      "name": "Compaction auto-continue text hook",
+      "enabled": true,
+      "online_version": "20260712-001-compaction-autocontinue-text-hook",
+      "versions_dir": "registry/runtime-patches/compaction-autocontinue-text-hook/versions",
+      "changelog": "registry/runtime-patches/compaction-autocontinue-text-hook/CHANGELOG.md",
+      "upstream_path": "/path/to/workspace/opensource/opencode",
+      "tags": [
+        "runtime",
+        "compact",
+        "hook"
+      ]
+    }
+  ],
+  "mcp": []
+}

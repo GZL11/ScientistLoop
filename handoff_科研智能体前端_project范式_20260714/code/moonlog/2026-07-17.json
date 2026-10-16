@@ -1,0 +1,50 @@
+{
+  "date": "2026-07-17",
+  "summary": "今天主要围绕 LLM 驱动进化算法（LLM-Evolve / AlphaEvolve 类）方向展开系统调研，目标 venue 为 ICLR。完成了领域地图（6个子方向）、Gap Map 和 Idea Bank 的构建，产物落盘至 research-runs/llm-evolve-0716-c018/planning/。随后进入具体研究方向讨论，重点审查方向 P（LLM+EA 用于推理策略进化），P1 被 CoTEvol 覆盖、P3 定义不清，整条 P 线被否定。同时单独解读了 MetaEvolve（ICML 2025）论文，理解其双层进化与分层认知记忆架构。当日以用户质疑推荐流程缺乏文献先验和计算代价评估而结束，下一步需重新基于文献调研和资源约束提出可行方向。",
+  "sessions": [
+    {
+      "id": "ses_0993ce8fbffez20p2I3bhroHZu",
+      "title": "LLM-Evolve 领域调研与方向讨论",
+      "highlights": "完成 LLM 驱动进化算法系统文献调研，识别 6 个子方向和 7 个研究缺口，构建 Idea Bank 并落盘。进入具体方向 P 讨论，P1 被 CoTEvol（arXiv 2604.14768）直接覆盖，P3 中 Evolve 角色定义不清，整条 P 线被否定。方向 Q（Reward Function Discovery）被用户质疑缺乏文献依据且评估代价极高（需完整 RL 训练循环）。用户明确指出推荐方向前必须先查文献、必须评估计算花费，当前推荐流程存在根本性缺陷。会话结束于询问用户 GPU 资源以重新规划可行方向，尚未获得回答。"
+    },
+    {
+      "id": "ses_09148f2deffemUmtjmkywjgFf5",
+      "title": "简短问候",
+      "highlights": "用户打招呼，助手自我介绍，无实质性研究内容。"
+    },
+    {
+      "id": "ses_091e52919ffezrTDB3pbxqJPH3",
+      "title": "解读 MetaEvolve 论文",
+      "highlights": "解读了 MetaEvolve（ICML 2025）论文，核心创新是双层进化：内循环进化候选解、外循环进化搜索算子本身。引入四层分层认知记忆图（L0 候选解、L1 结构化经验、L2 算子对象、L3 元经验），构成可查询的语义网络。六个种子算子覆盖常规进化、停滞时强制范式切换等场景，其中 ParadigmShift 算子在搜索停滞时主动切换算法范式。与 FunSearch/EvoPrompting 的本质区别在于搜索算子本身变为显式、持久、可自进化的对象。该论文是当天 LLM-Evolve 调研的重要参考，可作为潜在 baseline。"
+    },
+    {
+      "id": "ses_091ef1930ffeN8wRMJUXktdxvQ",
+      "title": "简短问候",
+      "highlights": "用户打招呼，助手自我介绍，无实质性研究内容。"
+    },
+    {
+      "id": "ses_091f906e1ffeWy1282aUFra90I",
+      "title": "查看 research-landscape 目录",
+      "highlights": "用户请求查看当前目录，助手展示了 inputs/research-landscape/ 下的文件结构，包含 end-to-end 和 experiment 两大模块共 11 个 Markdown 文件。该目录是某 AI 研究方向的背景调研资料库，覆盖综述、排行榜、IO 格式、训练/非训练方法、评估方法等主题。用户意图尚未明确，会话止步于询问用户下一步用途，未获回答。"
+    }
+  ],
+  "artifacts": [
+    {
+      "dir": "research-runs/llm-evolve-0716-c018/planning/",
+      "files": [
+        "literature.md",
+        "hypotheses.md",
+        "design.md"
+      ],
+      "note": "LLM-Evolve 调研阶段核心产物，包含文献综述（Field Map + Gap Map）、候选假设和 Idea Bank"
+    }
+  ],
+  "open_questions": [
+    "用户拥有哪些 GPU 资源？这是评估可行研究方向的前提条件",
+    "方向 P 整条线被否定后，下一个具备文献支撑且计算可行的研究方向是什么？需先查文献再推荐",
+    "方向 Q（Reward Function Discovery via EA+LLM）是否已有覆盖性工作？需实际文献检索确认",
+    "MetaEvolve 的双层进化架构能否作为本次研究的 baseline 或出发点？",
+    "inputs/research-landscape/ 目录所属研究项目及用途尚未明确，是否与 LLM-Evolve 调研相关",
+    "Idea Bank 中排名靠前的 idea 是否经过充分文献查重？需针对每个候选 idea 补做覆盖性文献搜索"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "version": "20260810-001-literature-artifact-gate",
+  "created_at": "2026-08-10",
+  "title": "Require canonical paper cards before literature completion",
+  "description": "Adds a soft completion guard when a literature report is written without a non-empty paper_cards.jsonl in the same research run.",
+  "source_file": "registry/source/plugins/guardrails.ts",
+  "runtime_path": "plugins/guardrails.ts",
+  "policy": {
+    "literature_artifact_guard": "Warn the Agent that chat lists, retrieval accepted candidates, and subagent returns do not replace the canonical screened paper-card set.",
+    "blocking": false
+  },
+  "rollback": {
+    "target": "20260715-001-paper-retrieval-guards",
+    "notes": "Remove the literature artifact completion warning."
+  }
+}

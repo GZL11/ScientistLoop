@@ -1,0 +1,20 @@
+{
+  "version": "20260809-002-dialogue-first-research",
+  "created_at": "2026-08-09",
+  "title": "Keep long research stages conversational",
+  "description": "Keeps long research work transparent through agent-authored previews and evidence-driven chat checkpoints; transparency takes priority over making inherently slow work appear fast.",
+  "source_file": "registry/prompts/agents/files/AGENTS.20260809-002-dialogue-first-research.md",
+  "runtime_file": "AGENTS.md",
+  "changes": [
+    "Answer exploratory direction questions after the first coherent evidence batch instead of waiting for every artifact.",
+    "Preview long operations by stating the objective, action, reason, and expected research result.",
+    "Require a concise research judgment before a large artifact write or the next evidence batch.",
+    "Report real rate-limit retries, weak evidence, plan changes, and blockers without timer-based heartbeat messages.",
+    "Separate chat conclusions, process details, and complete artifact content.",
+    "Limit one paper-card write to five records and prohibit giant multi-document tool arguments."
+  ],
+  "rollback": {
+    "target": "20260809-001-visible-stage-summaries",
+    "notes": "Restore core-stage summaries without checkpoints inside long stages."
+  }
+}

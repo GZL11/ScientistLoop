@@ -1,0 +1,14 @@
+{
+  "version": "20260715-001-literature-research-workflow",
+  "created_at": "2026-07-15",
+  "title": "Literature research workflow",
+  "description": "Adds a dedicated workflow for scope confirmation, seed search, expansion, field mapping, gap mapping, and idea ranking.",
+  "source_file": "registry/skills/literature-research/files/SKILL.20260715-001-literature-research-workflow.md",
+  "runtime_file": "skill/experiment/literature-research/SKILL.md",
+  "changes": [
+    "Add a dedicated literature research workflow skill separate from single-paper lookup.",
+    "Keep the workflow versioned with explicit phases for scope, seed search, expansion, field map, gap map, idea bank, and review.",
+    "Store search traces and intermediate artifacts in a dedicated session workspace.",
+    "Make gap and idea objects explicit so future versions can evolve without touching AGENTS.md."
+  ]
+}

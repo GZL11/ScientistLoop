@@ -1,0 +1,13 @@
+{
+  "version": "20260712-001-narrow-autocontinue",
+  "created_at": "2026-07-12T00:00:00+08:00",
+  "description": "新增 compact 后续跑策略：轻量问答禁用 auto-continue，明确产物/长任务使用窄化续跑文本。",
+  "source_file": "registry/source/plugins/compaction-policy.ts",
+  "runtime_path": "plugins/compaction-policy.ts",
+  "requires_runtime_patch": "20260712-001-compaction-autocontinue-text-hook",
+  "policy": {
+    "lightweight_requests": "disable auto-continue",
+    "explicit_long_tasks": "enable auto-continue and replace text with narrow continuation prompt",
+    "fallback_without_patch": "enabled gating still works; text replacement is ignored by unpatched OpenCode"
+  }
+}

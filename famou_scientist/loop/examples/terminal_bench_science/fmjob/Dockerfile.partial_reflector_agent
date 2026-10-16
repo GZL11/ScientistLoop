@@ -1,0 +1,17 @@
+ARG TASK_BASE
+ARG CLI_BASE=<你的镜像仓库>/famou-public/scimodelingbench-agent:cli-runtimes-v1
+
+FROM ${CLI_BASE} AS cli
+FROM ${TASK_BASE}
+
+# Copy only the Claude Code runtime. Credentials are mounted at run time from
+# the restricted trial subpath and never become image layers.
+COPY --from=cli /usr/local/bin/node /usr/local/bin/node
+COPY --from=cli /usr/local/lib/node_modules/@anthropic-ai/claude-code \
+    /usr/local/lib/node_modules/@anthropic-ai/claude-code
+RUN ln -s /usr/local/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe \
+        /usr/local/bin/claude \
+    && command -v claude \
+    && claude --version
+
+WORKDIR /app

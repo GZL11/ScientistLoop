@@ -1,0 +1,26 @@
+{
+  "date": "2026-07-09",
+  "summary": "今日围绕 Agentic RAG 与 AI 科研自动化两条主线展开论文精读。重点解读了 Search-P1（arxiv 2602.22576），系统拆解其路径中心奖励的三个子分量，并给出了完整数值计算示例。随后补充了 TasteGap 文档中熵/TVD/JSD 三个分布距离指标的公式。傍晚完成 EvoGens（arxiv 2605.30961）精读，识别出其进化式科研想法生成框架与 TasteGap 诊断视角的互补关系，形成明确的后续研究方向。",
+  "sessions": [
+    {
+      "id": "ses_0c89723ffffevDB9C1iZUXmhOb",
+      "title": "新对话",
+      "highlights": "完整解读 Search-P1 核心创新：双轨路径打分（Track A 自洽性 + Track B 参考对齐）与软结果打分，解决 Agentic RAG RL 训练中奖励稀疏、样本效率低、收敛慢三大问题。应用户要求针对答案错误的多跳 QA 场景给出三个子奖励的逐步数值计算过程。补充了 TasteGap 文档中归一化熵、TVD、JSD 三个指标的公式及数值核对要点。精读 EvoGens 论文，提炼 RBM 差分变异与 SAC 语义感知交叉两大机制，发现其与 TasteGap 框架存在诊断-治疗互补关系，建议后续用 TasteGap 两轴分类法重评 EvoGens 产物。"
+    }
+  ],
+  "artifacts": [
+    {
+      "dir": "research-runs/search-p1-notes-0706-e514/planning",
+      "files": [
+        "evogens-paper-notes.md"
+      ],
+      "note": "EvoGens 论文精读文档，含 RBM/SAC 机制解析、主实验结果表、消融分析及与 TasteGap 框架的关联启示"
+    }
+  ],
+  "open_questions": [
+    "用 TasteGap 两轴分类法重评 EvoGens 生成产物，量化进化搜索是否真正缓解了 bridge+synthesis 过度集中的类型偏移",
+    "Search-P1 参考规划器离线构建对强 LLM 的依赖程度——能否用较弱模型替代并保持效果",
+    "EvoGens 的 RBM 温度分档策略（0.6/0.8/1.0）对不同科研领域或文献密度是否具有鲁棒性",
+    "TasteGap JSD 归一化方式（log2 vs ln）与文档中实际数值的一致性尚需核对"
+  ]
+}

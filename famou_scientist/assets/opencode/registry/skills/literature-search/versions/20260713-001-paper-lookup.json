@@ -1,0 +1,14 @@
+{
+  "version": "20260713-001-paper-lookup",
+  "created_at": "2026-07-13",
+  "title": "Paper lookup before topic search",
+  "description": "Updates the literature-search skill to distinguish specific-paper lookup from broad topic search and require confirmation for medium/low-confidence candidates.",
+  "source_file": "registry/skills/literature-search/files/SKILL.20260713-001-paper-lookup.md",
+  "runtime_file": "skill/experiment/literature-search/SKILL.md",
+  "changes": [
+    "Add Paper Lookup vs Topic Search section.",
+    "Require arc_lookup_paper for title/acronym/versioned paper requests.",
+    "Keep the first lookup query as the user's original phrase.",
+    "Require user confirmation when lookup confidence is not high."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "version": "20260810-001-dataset-acquisition-handoff",
+  "created_at": "2026-08-10",
+  "title": "Separate benchmark choice from data acquisition",
+  "description": "Keeps benchmark-selection focused on evaluation coverage and hands selected datasets to dataset-acquisition for path confirmation, download, authentication, and validation.",
+  "source_file": "registry/skills/benchmark-selection/files/SKILL.20260810-001-dataset-acquisition-handoff.md",
+  "runtime_file": "skill/experiment/benchmark-selection/SKILL.md",
+  "changes": [
+    "Removed duplicate download mechanics from benchmark-selection.",
+    "Added an explicit handoff to dataset-acquisition after benchmark choice.",
+    "Kept baseline coverage and reported-number reuse decisions in this skill."
+  ],
+  "rollback": {
+    "target": "pre-managed benchmark-selection runtime",
+    "notes": "Restore the prior combined benchmark and download workflow."
+  }
+}

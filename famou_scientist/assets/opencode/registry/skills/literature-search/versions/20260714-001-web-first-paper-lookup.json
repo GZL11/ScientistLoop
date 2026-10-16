@@ -1,0 +1,19 @@
+{
+  "version": "20260714-001-web-first-paper-lookup",
+  "created_at": "2026-07-14",
+  "title": "Web-first specific paper lookup",
+  "description": "Simplifies specific-paper lookup: use native websearch/webfetch first, keep arc_lookup_paper only as a fallback, and reserve arc_search_literature for topic-level literature review.",
+  "source_file": "registry/skills/literature-search/files/SKILL.20260714-001-web-first-paper-lookup.md",
+  "runtime_file": "skill/experiment/literature-search/SKILL.md",
+  "changes": [
+    "Route concrete paper requests to native websearch/webfetch first.",
+    "Limit query expansion to the original phrase plus one or two focused variants.",
+    "Use arc_lookup_paper only when websearch/webfetch cannot find a clear paper page.",
+    "Keep arc_search_literature for broad topic search, survey, related work, and literature review tasks.",
+    "Reject candidates that match only versions, years, numbers, or generic words."
+  ],
+  "rollback": {
+    "target": "20260713-002-parallel-paper-lookup",
+    "notes": "Restore the previous parallel academic lookup plus native websearch/webfetch protocol."
+  }
+}

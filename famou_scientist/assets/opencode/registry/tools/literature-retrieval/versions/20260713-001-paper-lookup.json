@@ -1,0 +1,18 @@
+{
+  "version": "20260713-001-paper-lookup",
+  "created_at": "2026-07-13",
+  "title": "Add paper lookup candidate fusion",
+  "description": "Adds arc_lookup_paper for specific-paper lookup using academic search plus optional web-search candidates, with confidence scoring and confirmation guidance.",
+  "source_file": "registry/source/tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Add arc_lookup_paper(query, limit) tool.",
+    "Add scripts/paper_lookup.py for candidate scoring and deduplication.",
+    "Reuse Baidu web search request helper for optional web candidate fusion.",
+    "Keep arc_search_literature unchanged for topic search."
+  ],
+  "rollback": {
+    "target": "previous runtime tool/arc.ts",
+    "notes": "Remove this version from online_version and restore the prior arc.ts snapshot."
+  }
+}

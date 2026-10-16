@@ -1,0 +1,35 @@
+{
+  "date": "2026-07-20",
+  "summary": "今天围绕两个LLM研究方向展开了系统性调研。第一个方向是Search-R1类搜索智能体的强化学习训练，重点梳理了过程奖励（PRM）领域的现有工作，发现已有HiPRAG、Search-P1、SmartSearch、VERITAS四篇直接相关论文，并识别出若干真实缺口。第二个方向是LLM Evolve/AlphaEvolve范式，完成了从文献检索、领域图谱构建到研究缺口识别的完整调研流程，并对候选创新方向（I1根因诊断、I2对比进化蒸馏）做了存在性核查，发现该领域2025-2026年爆发性增长、大量显而易见的想法已被覆盖。两条讨论最终都收敛到了具体的、尚存空间的下一步方向。",
+  "sessions": [
+    {
+      "id": "ses_08294177dffe74lo11CbyYpNQB",
+      "title": "Search-R1类搜索智能体训练方向调研",
+      "highlights": "系统梳理了Search-R1范式的五大可研究维度：奖励信号精粒度、内外知识协同、搜索轨迹结构、数据效率、泛化鲁棒性。用户追问PRM方向是否已有工作，经深入检索发现确有HiPRAG、Search-P1、SmartSearch、VERITAS四篇论文分别覆盖搜索决策级、路径级、查询质量级和推理忠实度级的过程奖励。识别出四个真实缺口：PRM下的reward hacking机制与防御、各类过程奖励的系统性对比、过程奖励获取性价比、复杂场景下的过程奖励定义。会话以确认缺口为终点，尚未确定具体假设方向。"
+    },
+    {
+      "id": "ses_089b48d47ffe103N2QWsro3CZN",
+      "title": "LLM Evolve/AlphaEvolve方向系统调研",
+      "highlights": "建立了run目录research-runs/llm-evolve-0719-498d/，完成Phase 1-4全流程：种子文献检索（12篇核验论文）、领域图谱构建（FunSearch→AlphaEvolve→三方向扩展主线）、缺口识别（gap_map.yaml）、候选创新方向存在性核查。对I1（根因诊断自适应调控）和I2（对比进化蒸馏）做了深度核查，发现I2已被EFT+KTO和EvoTune基本覆盖、空间关闭，I1有残余空间但贡献量级受限。最终提出两条相对干净的出路：路线A为理论分析方向（基于Mutation Without Variation论文，研究LLM变异算子结构性收敛偏差的根因与缓解），路线B为新应用域迁移（分子优化/蛋白质序列等有自动评估器的科学域）。待用户选择路线后继续推进。"
+    }
+  ],
+  "artifacts": [
+    {
+      "dir": "research-runs/llm-evolve-0719-498d/planning",
+      "files": [
+        "scope.md",
+        "paper_cards.jsonl",
+        "field_map.md",
+        "literature_map.md",
+        "gap_map.yaml"
+      ],
+      "note": "LLM Evolve方向调研产物，包含研究范围定义、12篇核验论文卡片、领域图谱、文献地图和研究缺口图谱"
+    }
+  ],
+  "open_questions": [
+    "Search-R1/PRM方向：四个缺口中优先深挖哪个？是否确定具体可证伪假设？",
+    "LLM Evolve方向：路线A（LLM变异算子结构性收敛偏差理论分析）vs 路线B（新应用域迁移），用户尚未选择",
+    "LLM Evolve路线A若推进，需进一步核查Mutation Without Variation (2606.05408)的具体局限以确认差异化空间",
+    "两个方向是否并行推进，还是聚焦一个？用户资源和时间未明确"
+  ]
+}

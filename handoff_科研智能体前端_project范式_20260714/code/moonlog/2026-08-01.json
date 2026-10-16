@@ -1,0 +1,22 @@
+{
+  "date": "2026-08-01",
+  "summary": "今天的核心活动集中在追溯一篇以 AlphaEvolve 式进化搜索从 GRPO 出发自动发现更优 post-training RL 算法的论文。经过多轮检索澄清，最终锁定复旦大学的 POISE（arXiv:2603.23951），并对其方法论（三阶段闭环进化搜索、宗谱优先选择、GP 引导采样、反思算子）进行了系统性拆解。对话深入到 POISE 的核心局限——进化搜索天然产出协同变更捆绑包，缺乏组件级消融，导致其声称的'可解释设计原则'更接近 evidence-grounded hypothesis 而非定量因果归因。当日无文件产物落盘。",
+  "sessions": [
+    {
+      "id": "ses_0432a22fdffeEZquWgh6stOT7U",
+      "title": "新对话",
+      "highlights": "会话内无任何文本消息，无实质内容。"
+    },
+    {
+      "id": "ses_043d77ec6ffebPjdhUkxeYB17G",
+      "title": "新对话",
+      "highlights": "用户询问一篇以 evolve 方式从 GRPO 进化出更好 post-training 算法的论文，初次检索误命中 EvolvedGRPO（进化数据/指令），澄清后正确定位为 POISE（arXiv:2603.23951，复旦，'From AI Assistant to AI Scientist'）。随后对 POISE 的完整方法做了深度讲解：三阶段闭环（Epistemic Evolutionary Search → 协同评估 → 反思归纳），核心发现机制 analytic-variance scaling（AV）与 validity masking（VM），最优变体 VM-AV-GRPO 将 weighted Overall 从 47.8 提升至 52.5，AIME25 pass@32 从 26.7% 升至 43.3%。对话进一步聚焦于其消融实验的缺失问题：进化路径上每步同时引入多个改动，论文自承'应解读为协同改动的整体效果而非单一替换'，所谓可解释原则缺乏定量因果支撑，是该工作最核心的方法论弱点。"
+    }
+  ],
+  "artifacts": [],
+  "open_questions": [
+    "POISE 发现的 analytic-variance scaling 和 validity masking 各自的独立边际贡献究竟是多少？论文未提供组件级受控消融，是否有后续跟进工作补做了这一实验？",
+    "POISE 的进化搜索框架（宗谱优先选择 + GP 引导采样 + 反思算子）能否推广到 GRPO 之外的其他 RL 算法种子，或推广到视觉-语言模型的 post-training 场景？",
+    "EvolvedGRPO 与 POISE 是两条完全不同的技术路线（进化数据 vs 进化算法），值得做一次正式的对比梳理，厘清各自适用场景与局限。"
+  ]
+}

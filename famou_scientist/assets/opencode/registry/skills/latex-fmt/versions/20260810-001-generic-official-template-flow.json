@@ -1,0 +1,17 @@
+{
+  "version": "20260810-001-generic-official-template-flow",
+  "created_at": "2026-08-10",
+  "title": "Apply the official-template workflow to every venue",
+  "description": "Keeps known venue rules as strong checks while giving every other conference and journal the same Agent-first official author-kit workflow.",
+  "source_file": "registry/skills/latex-fmt/files/SKILL.20260810-001-generic-official-template-flow.md",
+  "runtime_file": "skill/writing/latex-fmt/SKILL.md",
+  "changes": [
+    "Treat the automatic template allowlist as an optimization rather than the supported venue set.",
+    "For any other venue, verify official instructions and author kit for the exact year and paper type, then draft from the official sample.",
+    "Keep deterministic generic checks subordinate to Agent verification of official sources."
+  ],
+  "rollback": {
+    "target": "20260808-001-agent-first-template-first",
+    "notes": "Restore the prior workflow that did not define the unsupported-venue branch."
+  }
+}

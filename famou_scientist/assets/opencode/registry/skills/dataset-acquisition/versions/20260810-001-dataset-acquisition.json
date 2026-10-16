@@ -1,0 +1,21 @@
+{
+  "version": "20260810-001-dataset-acquisition",
+  "created_at": "2026-08-10",
+  "title": "User-confirmed and verified dataset acquisition",
+  "description": "Adds a dedicated experiment-stage workflow for locating existing data, confirming a default or custom destination, performing real downloads, validating integrity, and stopping with structured user choices when acquisition is blocked.",
+  "source_file": "registry/skills/dataset-acquisition/files/SKILL.20260810-001-dataset-acquisition.md",
+  "runtime_file": "skill/experiment/dataset-acquisition/SKILL.md",
+  "changes": [
+    "Check real local paths before asking or downloading.",
+    "Offer the active run experiment/data directory as the recommended destination.",
+    "Disclose source, size, license, authentication, and subset before download.",
+    "Treat short connectivity probes as diagnostics rather than completed download attempts.",
+    "Verify file integrity and a minimal read before handing data to experiments.",
+    "Use a structured user question for unrecoverable proxy, authentication, storage, URL, or source failures.",
+    "Block real-data experiments and final paper claims while acquisition remains unresolved."
+  ],
+  "rollback": {
+    "target": "disable dataset-acquisition",
+    "notes": "Return dataset handling to benchmark-selection."
+  }
+}

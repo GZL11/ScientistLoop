@@ -1,0 +1,18 @@
+{
+  "version": "20260809-001-visible-stage-summaries",
+  "created_at": "2026-08-09",
+  "title": "Require visible summaries at core research stages",
+  "description": "Keeps internal tool activity in the process view while requiring concise, user-visible conclusions and progress summaries at core research stages, including full-auto runs.",
+  "source_file": "registry/prompts/agents/files/AGENTS.20260809-001-visible-stage-summaries.md",
+  "runtime_file": "AGENTS.md",
+  "changes": [
+    "Separate autonomous execution from silent execution: full-auto skips confirmation waits but still reports completed core stages.",
+    "Require concise chat summaries after literature mapping, hypothesis selection, experiment design, asynchronous submission, experiment completion, and final delivery.",
+    "Keep fine-grained retrieval, file operations, and formatting activity in the process view.",
+    "Treat the inline stage summary as part of stage completion and prevent crossing two core stages without visible assistant text."
+  ],
+  "rollback": {
+    "target": "20260808-001-agent-first-writing",
+    "notes": "Restore the prior Agent-first venue-aware writing prompt snapshot."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "version": "20260713-001-literature-retrieval-routing",
+  "created_at": "2026-07-13",
+  "title": "Route specific paper requests through lookup",
+  "description": "Adds arc_lookup_paper to the tool map and instructs the main agent to use it before topic search when the user appears to ask for a specific paper.",
+  "source_file": "registry/prompts/agents/files/AGENTS.20260713-001-literature-retrieval-routing.md",
+  "runtime_file": "AGENTS.md",
+  "changes": [
+    "Add arc_lookup_paper to the tool table.",
+    "Tell the agent to use paper lookup for concrete paper names, acronyms, and approximate titles.",
+    "Require confirmation when lookup returns needs_confirmation=true.",
+    "Leave full research workflow unchanged."
+  ]
+}

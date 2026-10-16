@@ -1,0 +1,13 @@
+{
+  "version": "20260716-001-fetch-source",
+  "created_at": "2026-07-16",
+  "title": "Split out source fetcher",
+  "description": "Creates a standalone registry record for arc_fetch_source so source abstract retrieval gets its own version history.",
+  "source_file": "tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Expose arc_fetch_source as an independent tool entry.",
+    "Keep abstract retrieval separate from citation existence checks.",
+    "Leave the runtime source lookup logic unchanged."
+  ]
+}

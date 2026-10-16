@@ -1,0 +1,27 @@
+# runners/ Python 依赖清单
+#
+# 安装全部：
+#   pip install -r runners/requirements.txt
+#
+# 各分组说明见下方注释。
+#
+# 注意：还需要安装外部 CLI 工具（非 Python 包）：
+#   - Claude Code: curl -fsSL https://claude.ai/install.sh | sh
+#     或 npm install -g @anthropic-ai/claude-code
+#   - OpenCode:    curl -fsSL https://opencode.ai/install | bash
+#     或 npm install -g opencode-ai
+#   - Linux 沙箱（--sandbox）: apt install bubblewrap
+#     macOS 沙箱（--sandbox）: 系统自带 sandbox-exec，无需安装
+# 详见 README.md
+
+# ── 核心（CLI 评测必需）────────────────────────────────────────────────────────
+anyio                  # run_b3 / run_b2 异步执行
+
+# ── Web UI（Trace Viewer + Interactive Chat）──────────────────────────────────
+fastapi
+uvicorn
+sse-starlette          # Chat API SSE 流式响应
+
+# ── ApiAnswerer（--answerer api 时使用）─────────────────────────────────────
+anthropic              # LLM 自动回答器
+

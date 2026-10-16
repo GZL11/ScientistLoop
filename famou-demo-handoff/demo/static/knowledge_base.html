@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识库 · 资产</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --fg:#171717;--fg2:#4d4d4d;--fg3:#666;--fg4:#8f8f8f;
+  --bg:#fff;--bg2:#f7f8fa;--bg3:#f5f5f5;
+  --border:#e5e7eb;--border2:#e5e7eb;
+  --r:8px;--r-sm:8px;
+  --shadow:0 0 0 1px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --primary:#0d7c66;--primary-light:#ecfdf5;--primary-border:#a7f3d0;
+  --gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-300:#d1d5db;
+  --gray-400:#9ca3af;--gray-500:#6b7280;--gray-600:#4b5563;--gray-700:#374151;
+  --gray-800:#1f2937;--gray-900:#111827;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg2);color:var(--fg);height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.6}
+
+/* Layout */
+.app{display:flex;height:100vh}
+
+/* Sidebar */
+.sidebar{width:240px;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-logo{padding:20px 20px 16px;display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;color:var(--primary)}
+.sidebar-logo svg{width:28px;height:28px}
+.sidebar-nav{padding:0 12px}
+.sidebar-nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-sm);color:var(--gray-600);text-decoration:none;font-size:14px;cursor:pointer;transition:all .15s}
+.sidebar-nav a svg{flex-shrink:0}
+.sidebar-nav a:hover{background:var(--gray-100)}
+.sidebar-nav a.active{background:var(--primary-light);color:var(--primary);font-weight:500}
+.sidebar-section{padding:16px 12px 8px;font-size:11px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:.5px}
+.sidebar-session{display:flex;align-items:center;gap:10px;padding:8px 12px;font-size:13px;color:var(--gray-600);cursor:pointer;border-radius:var(--r-sm);margin:1px 12px;transition:all .12s}
+.sidebar-session:hover{background:var(--gray-100)}
+.sidebar-session .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sidebar-session .dot.green{background:#f97316}
+.sidebar-session .dot.gray{background:var(--gray-300)}
+.sidebar-session .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sidebar-bottom{margin-top:auto;padding:16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray-600)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
+
+/* Main */
+.main{flex:1;overflow-y:auto;padding:32px 40px}
+.main-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.main-title{font-size:24px;font-weight:700;color:var(--fg)}
+.search-box{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg);width:240px}
+.search-box input{border:none;outline:none;font-size:12px;color:var(--fg);background:transparent;width:100%}
+.search-box input::placeholder{color:var(--fg4)}
+.search-box svg{width:14px;height:14px;color:var(--fg4);flex-shrink:0}
+
+/* Session group */
+.session-group{margin-bottom:32px}
+.session-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.session-name{font-size:15px;font-weight:600;color:var(--fg)}
+.session-date{font-size:12px;color:var(--fg4)}
+
+/* File list */
+.file-list{display:flex;flex-direction:column}
+.file-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--r);cursor:pointer;transition:all .1s}
+.file-item:hover{background:var(--bg3)}
+.file-item.active{background:var(--primary-light)}
+.file-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.file-icon.html{background:#dcfce7;color:#16a34a}
+.file-icon.csv{background:#dcfce7;color:#16a34a}
+.file-icon.png{background:#dbeafe;color:#2563eb}
+.file-icon.json{background:#ede9fe;color:#7c3aed}
+.file-icon.py{background:#ede9fe;color:#7c3aed}
+.file-icon svg{width:14px;height:14px}
+.file-name{font-size:13px;font-weight:500;color:var(--fg);flex:1}
+.file-tag{font-size:10px;font-weight:500;padding:2px 7px;border-radius:4px;background:var(--primary-light);color:var(--primary)}
+.file-action{width:28px;height:28px;border-radius:6px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--fg4);opacity:0;transition:opacity .1s}
+.file-item:hover .file-action{opacity:1}
+.file-action:hover{background:var(--bg3);color:var(--fg)}
+.file-action svg{width:14px;height:14px}
+
+/* Preview overlay */
+.preview-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center;padding:40px}
+.preview-overlay.active{display:flex}
+.preview-panel{background:var(--bg);border-radius:12px;width:100%;max-width:900px;height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 48px rgba(0,0,0,.2)}
+.preview-head{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border)}
+.preview-head-name{font-size:13px;font-weight:600;color:var(--fg);flex:1}
+.preview-close{width:28px;height:28px;border-radius:6px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--fg3);font-size:18px}
+.preview-close:hover{background:var(--bg3);color:var(--fg)}
+.preview-body{flex:1;overflow:auto}
+.preview-body iframe{width:100%;height:100%;border:none}
+.preview-body img{max-width:100%;padding:20px;display:block;margin:0 auto}
+.preview-body .table-wrap{padding:20px;font-size:12px;font-family:'SF Mono',Consolas,monospace}
+.preview-body .table-wrap table{width:100%;border-collapse:collapse}
+.preview-body .table-wrap th{text-align:left;padding:8px 12px;background:var(--bg3);font-weight:600;color:var(--fg3);border-bottom:1px solid var(--border)}
+.preview-body .table-wrap td{padding:6px 12px;border-bottom:1px solid var(--border);color:var(--fg2)}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#0d7c66"/><path d="M8 16l6-8 6 8-6 8z" fill="#a7f3d0"/><path d="M14 16l6-8 6 8-6 8z" fill="#fff" opacity=".9"/></svg>
+      <span>百度伐谋</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a onclick="window.open('/','_self')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z"/></svg> <span>新任务</span></a>
+      <a class="active"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5V12a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 14 12V6a1.5 1.5 0 0 0-1.5-1.5H8L6.5 3H3.5A1.5 1.5 0 0 0 2 4.5z"/></svg> <span>资产</span></a>
+    </nav>
+    <div class="sidebar-section">最近</div>
+    <div class="sidebar-session" onclick="scrollToSession('rnaseq')"><span class="dot green"></span><span class="name">RNA-Seq 差异表达分析</span></div>
+    <div class="sidebar-session" onclick="scrollToSession('rockburst')"><span class="dot green"></span><span class="name">复现 Op-RF 岩爆预测管线</span></div>
+    <div class="sidebar-session"><span class="dot gray"></span><span class="name">松材线虫特征筛选</span></div>
+    <div class="sidebar-session"><span class="dot gray"></span><span class="name">苯甲醇波函数分析</span></div>
+    <div class="sidebar-bottom">
+      <div class="avatar">D</div>
+      <span>Danyella</span>
+      <span style="margin-left:auto;font-size:11px;color:var(--gray-500);background:var(--gray-100);padding:2px 8px;border-radius:4px;">Demo</span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-header">
+      <h1 class="main-title">资产</h1>
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="搜索任务名称" id="searchInput" oninput="filterFiles()">
+      </div>
+    </div>
+
+    <!-- RNA-Seq Session -->
+    <div class="session-group" id="group-rnaseq">
+      <div class="session-header">
+        <span class="session-name">RNA-Seq 差异表达分析</span>
+        <span class="session-date">6月22日</span>
+      </div>
+      <div class="file-list">
+        <div class="file-item" onclick="openFile('html','/static/quiz_rnaseq.html','quiz_rnaseq.html')">
+          <div class="file-icon html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm2 3h10v2H7V8zm0 4h7v2H7v-2z"/></svg></div>
+          <span class="file-name">quiz_rnaseq.html</span>
+          <span class="file-tag">动态交互</span>
+          <button class="file-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        </div>
+        <div class="file-item" onclick="openFile('image','/static/bench_files/heatmap_deg.png','heatmap_deg.png')">
+          <div class="file-icon png"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm2 8l3-3 2 2 3-4 3 4v3H8v-2z"/></svg></div>
+          <span class="file-name">heatmap_deg.png</span>
+          <button class="file-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        </div>
+        <div class="file-item" onclick="openFile('image','/static/bench_files/volcano_plot.png','volcano_plot.png')">
+          <div class="file-icon png"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm2 8l3-3 2 2 3-4 3 4v3H8v-2z"/></svg></div>
+          <span class="file-name">volcano_plot.png</span>
+          <button class="file-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        </div>
+        <div class="file-item" onclick="openFile('image','/static/bench_files/ma_plot.png','ma_plot.png')">
+          <div class="file-icon png"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm2 8l3-3 2 2 3-4 3 4v3H8v-2z"/></svg></div>
+          <span class="file-name">ma_plot.png</span>
+          <button class="file-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        </div>
+        <div class="file-item" onclick="openFile('image','/static/bench_files/pca_plot.png','pca_plot.png')">
+          <div class="file-icon png"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm2 8l3-3 2 2 3-4 3 4v3H8v-2z"/></svg></div>
+          <span class="file-name">pca_plot.png</span>
+          <button class="file-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        </div>
+        <div class="file-item" onclick="openFile('image','/static/bench_files/sample_correlation.png','sample_correlation.png')">
+          <div class="file-icon png"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm2 8l3-3 2 2 3-4 3 4v3H8v-2z"/></svg></div>
+          <span class="file-name">sample_correlation.png</span>
+          <button class="file-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        </div>
+        <div class="file-item" onclick="openFile('csv','DEG_results','DEG_results.csv')">
+          <div class="file-icon csv"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 1.5L18.5 9H13V3.5zM8 13h8v1H8v-1zm0 3h8v1H8v-1zm0-6h3v1H8v-1z"/></svg></div>
+          <span class="file-name">DEG_results.csv</span>
+          <button class="file-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        </div>
+        <div class="file-item" onclick="openFile('csv','significant_DEGs','significant_DEGs.csv')">
+          <div class="file-icon csv"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 1.5L18.5 9H13V3.5zM8 13h8v1H8v-1zm0 3h8v1H8v-1zm0-6h3v1H8v-1z"/></svg></div>
+          <span class="file-name">significant_DEGs.csv</span>
+          <button class="file-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        </div>
+        <div class="file-item" onclick="openFile('csv','normalized_counts','normalized_counts.csv')">
+          <div class="file-icon csv"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 1.5L18.5 9H13V3.5zM8 13h8v1H8v-1zm0 3h8v1H8v-1zm0-6h3v1H8v-1z"/></svg></div>
+          <span class="file-name">normalized_counts.csv</span>
+          <button class="file-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rockburst Session -->
+    <div class="session-group" id="group-rockburst">
+      <div class="session-header">
+        <span class="session-name">复现 Op-RF 岩爆预测管线</span>
+        <span class="session-date">6月20日</span>
+      </div>
+      <div class="file-list">
+        <div class="file-item" onclick="openFile('html','/static/rockburst_explainer.html','rockburst_explainer.html')">
+          <div class="file-icon html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm2 3h10v2H7V8zm0 4h7v2H7v-2z"/></svg></div>
+          <span class="file-name">rockburst_explainer.html</span>
+          <span class="file-tag">动态交互</span>
+          <button class="file-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        </div>
+        <div class="file-item" onclick="openFile('csv','metrics_summary','metrics_summary.csv')">
+          <div class="file-icon csv"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 1.5L18.5 9H13V3.5zM8 13h8v1H8v-1zm0 3h8v1H8v-1zm0-6h3v1H8v-1z"/></svg></div>
+          <span class="file-name">metrics_summary.csv</span>
+          <button class="file-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        </div>
+        <div class="file-item" onclick="openFile('csv','feature_importance','feature_importance.csv')">
+          <div class="file-icon csv"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 1.5L18.5 9H13V3.5zM8 13h8v1H8v-1zm0 3h8v1H8v-1zm0-6h3v1H8v-1z"/></svg></div>
+          <span class="file-name">feature_importance.csv</span>
+          <button class="file-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        </div>
+        <div class="file-item" onclick="openFile('csv','confusion_matrix','confusion_matrix.csv')">
+          <div class="file-icon csv"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 1.5L18.5 9H13V3.5zM8 13h8v1H8v-1zm0 3h8v1H8v-1zm0-6h3v1H8v-1z"/></svg></div>
+          <span class="file-name">confusion_matrix.csv</span>
+          <button class="file-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        </div>
+        <div class="file-item" onclick="openFile('py','solve_annotated','solve_annotated.py')">
+          <div class="file-icon py"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 1.5L18.5 9H13V3.5zM8 12h3v1H8v-1zm0 3h6v1H8v-1z"/></svg></div>
+          <span class="file-name">solve_annotated.py</span>
+          <button class="file-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Preview overlay -->
+<div class="preview-overlay" id="previewOverlay" onclick="if(event.target===this)closePreview()">
+  <div class="preview-panel">
+    <div class="preview-head">
+      <div class="file-icon html" id="previewIcon" style="width:24px;height:24px"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm2 3h10v2H7V8zm0 4h7v2H7v-2z"/></svg></div>
+      <span class="preview-head-name" id="previewName">filename</span>
+      <button class="preview-close" onclick="closePreview()">×</button>
+    </div>
+    <div class="preview-body" id="previewBody"></div>
+  </div>
+</div>
+
+<script>
+const mockCSV = {
+  DEG_results: [
+    ['gene','baseMean','log2FC','pvalue','padj','regulation'],
+    ['GeneA','175.84','2.53','0.0057','0.028','up'],
+    ['GeneB','149.13','-2.67','0.0048','0.028','down'],
+    ['GeneE','64.22','1.64','0.015','0.038','up'],
+    ['GeneJ','45.58','1.76','0.014','0.038','up'],
+    ['GeneD','134.67','-0.003','0.996','0.996','ns'],
+  ],
+  significant_DEGs: [
+    ['gene','baseMean','log2FC','padj','regulation'],
+    ['GeneA','175.84','2.53','0.028','up'],
+    ['GeneB','149.13','-2.67','0.028','down'],
+    ['GeneE','64.22','1.64','0.038','up'],
+    ['GeneJ','45.58','1.76','0.038','up'],
+  ],
+  normalized_counts: [
+    ['gene','ctrl_1','ctrl_2','ctrl_3','trt_1','trt_2','trt_3'],
+    ['GeneA','48.4','53.9','53.4','301.3','294.1','303.8'],
+    ['GeneB','252.1','248.8','272.5','40.8','37.9','42.7'],
+    ['GeneC','90.7','89.1','100.5','89.4','87.7','90.2'],
+    ['GeneD','131.1','145.1','128.2','134.1','134.6','134.8'],
+    ['GeneE','30.2','25.9','37.4','92.3','99.7','99.7'],
+  ],
+  metrics_summary: [
+    ['Model','ACC','Macro-F1','AUC','Training Time'],
+    ['SVM','0.579','0.579','0.860','0.3s'],
+    ['RF (default)','0.810','0.814','0.953','1.2s'],
+    ['Op-RF (ours)','0.853','0.846','0.951','45.6s'],
+  ],
+  feature_importance: [
+    ['Feature','Importance','Rank','Interpretation'],
+    ['EEI (弹性能量指数)','0.365','1','储存弹性能量，岩爆核心驱动'],
+    ['SC (应力系数)','0.354','2','岩体受力状态，必要条件'],
+    ['BC (脆性系数)','0.281','3','破坏模式，辅助判据'],
+  ],
+  confusion_matrix: [
+    ['Actual \\ Predicted','无岩爆','轻微','中等','强烈'],
+    ['无岩爆','38','2','1','0'],
+    ['轻微','3','28','2','0'],
+    ['中等','1','4','25','2'],
+    ['强烈','0','1','3','19'],
+  ],
+  solve_annotated: null,
+};
+
+function openFile(type, src, name) {
+  const overlay = document.getElementById('previewOverlay');
+  const body = document.getElementById('previewBody');
+  document.getElementById('previewName').textContent = name;
+
+  const iconEl = document.getElementById('previewIcon');
+  iconEl.className = 'file-icon ' + type;
+
+  if (type === 'html') {
+    body.innerHTML = `<iframe src="${src}"></iframe>`;
+  } else if (type === 'image') {
+    body.innerHTML = `<img src="${src}" alt="${name}">`;
+  } else if (type === 'csv') {
+    const data = mockCSV[src];
+    if (data) {
+      const table = '<table>' + data.map((row, i) =>
+        '<tr>' + row.map(c => i === 0 ? `<th>${c}</th>` : `<td>${c}</td>`).join('') + '</tr>'
+      ).join('') + '</table>';
+      body.innerHTML = `<div class="table-wrap">${table}</div>`;
+    } else {
+      body.innerHTML = '<div style="padding:40px;text-align:center;color:var(--fg4)">暂无预览</div>';
+    }
+  } else if (type === 'py') {
+    body.innerHTML = `<div style="padding:20px;font-family:'SF Mono',Consolas,monospace;font-size:12px;line-height:1.8;color:var(--fg2);white-space:pre-wrap"><span style="color:#6366f1">import</span> numpy <span style="color:#6366f1">as</span> np
+<span style="color:#6366f1">from</span> sklearn.ensemble <span style="color:#6366f1">import</span> RandomForestClassifier, IsolationForest
+<span style="color:#6366f1">from</span> sklearn.model_selection <span style="color:#6366f1">import</span> RandomizedSearchCV
+<span style="color:#6366f1">from</span> imblearn.over_sampling <span style="color:#6366f1">import</span> SMOTE
+
+<span style="color:var(--fg4)"># 1. Load data (679 samples × 3 features)</span>
+data = load_rockburst_dataset()
+X, y = data[:, :3], data[:, 3]
+
+<span style="color:var(--fg4)"># 2. Outlier removal via Isolation Forest</span>
+iso = IsolationForest(contamination=0.05, random_state=42)
+mask = iso.fit_predict(X) == 1
+X, y = X[mask], y[mask]  <span style="color:var(--fg4)"># 645 samples remain</span>
+
+<span style="color:var(--fg4)"># 3. Train/test split (80/20, stratified)</span>
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42)
+
+<span style="color:var(--fg4)"># 4. SMOTE oversampling (training set only!)</span>
+smote = SMOTE(random_state=42)
+X_bal, y_bal = smote.fit_resample(X_train, y_train)
+
+<span style="color:var(--fg4)"># 5. Hyperparameter search</span>
+param_dist = {
+    <span style="color:#b45309">'n_estimators'</span>: [50, 100, 200, 300],
+    <span style="color:#b45309">'max_depth'</span>: [5, 10, 15, 20, None],
+    <span style="color:#b45309">'min_samples_split'</span>: [2, 5, 10],
+    <span style="color:#b45309">'max_features'</span>: [<span style="color:#b45309">'sqrt'</span>, <span style="color:#b45309">'log2'</span>, None],
+}
+search = RandomizedSearchCV(
+    RandomForestClassifier(random_state=42),
+    param_dist, n_iter=100, cv=5, scoring=<span style="color:#b45309">'f1_macro'</span>)
+search.fit(X_bal, y_bal)
+
+<span style="color:var(--fg4)"># 6. Evaluate on held-out test set</span>
+best_model = search.best_estimator_
+y_pred = best_model.predict(X_test)
+print(f<span style="color:#b45309">"ACC: {accuracy_score(y_test, y_pred):.3f}"</span>)
+print(f<span style="color:#b45309">"F1:  {f1_score(y_test, y_pred, average='macro'):.3f}"</span>)</div>`;
+  } else {
+    body.innerHTML = '<div style="padding:40px;text-align:center;color:var(--fg4)">暂无预览</div>';
+  }
+
+  overlay.classList.add('active');
+}
+
+function closePreview() {
+  document.getElementById('previewOverlay').classList.remove('active');
+  document.getElementById('previewBody').innerHTML = '';
+}
+
+function scrollToSession(id) {
+  document.getElementById('group-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function filterFiles() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('.session-group').forEach(g => {
+    const name = g.querySelector('.session-name').textContent.toLowerCase();
+    g.style.display = name.includes(q) || !q ? '' : 'none';
+  });
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closePreview();
+});
+</script>
+</body>
+</html>

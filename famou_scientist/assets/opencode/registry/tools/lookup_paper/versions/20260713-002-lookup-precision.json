@@ -1,0 +1,18 @@
+{
+  "version": "20260713-002-lookup-precision",
+  "created_at": "2026-07-13",
+  "title": "Tighten paper lookup precision",
+  "description": "Fixes version-number false positives in arc_lookup_paper by separating meaningful core-token matching from weak version-token evidence.",
+  "source_file": "scripts/paper_lookup.py",
+  "runtime_file": "scripts/paper_lookup.py",
+  "changes": [
+    "Do not let version tokens such as 1.5 dominate candidate scoring.",
+    "Require at least one meaningful non-version query token to match title, abstract, snippet, URL, DOI, or arXiv ID.",
+    "Allow fuzzy long-token matching for typo-tolerant paper-name lookup without hard-coded title rewrites.",
+    "Keep query variants generic: original phrase plus hyphen/space normalization only."
+  ],
+  "rollback": {
+    "target": "20260713-001-paper-lookup behavior",
+    "notes": "Restore the previous scripts/paper_lookup.py scoring and query variant logic."
+  }
+}

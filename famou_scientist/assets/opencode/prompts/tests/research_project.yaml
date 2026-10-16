@@ -1,0 +1,31 @@
+cases:
+  - id: explicit_research_project
+    user: "帮我研究一个新的 Agentic RAG 训练方向，从文献调研到实验设计都做一下"
+    expected_mode: research_project
+    must:
+      - "ask_interaction_pace_with_question_tool"
+      - "ask_target_venue_with_question_tool"
+      - "create_unique_run_directory_after_scope_is_clear"
+      - "call_todowrite"
+
+  - id: explicit_multi_paper_survey
+    user: "系统调研 Search-P1、InfoFlow 和 SearchSwarm，并形成对比报告"
+    expected_mode: multi_paper_survey
+    must:
+      - "compare_requested_papers"
+      - "write_report_if_user_requested"
+    must_not:
+      - "design_experiments_unless_requested"
+
+  - id: full_auto_still_reports_core_stages
+    user: "按全自动模式完成文献调研、提出假设并设计实验"
+    expected_mode: research_project
+    interaction_pace: full_auto
+    must:
+      - "emit_visible_summary_after_each_core_stage"
+      - "continue_after_summary_without_waiting_for_confirmation"
+      - "include_key_conclusions_and_artifact_paths"
+      - "keep_fine_grained_tool_activity_in_process_view"
+    must_not:
+      - "cross_two_core_stages_without_visible_assistant_text"
+      - "treat_artifact_creation_as_user_communication"

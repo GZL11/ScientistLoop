@@ -1,0 +1,18 @@
+{"time":"2026-07-10T11:52:00.449Z","action":"runtime-sync","reason":"verify","counts":{"skills":40,"tools":1,"plugins":4}}
+{"time":"2026-07-13T12:35:43.821Z","action":"runtime-sync","reason":"tools/arc/lookup_paper:disable","counts":{"skills":40,"tools":1,"plugins":5}}
+{"time":"2026-07-13T12:35:46.396Z","action":"runtime-sync","reason":"tools/arc/lookup_paper:enable","counts":{"skills":40,"tools":1,"plugins":5}}
+{"time":"2026-07-14T00:00:00+08:00","action":"runtime-sync","reason":"skills/literature-search:20260714-001-web-first-paper-lookup","counts":{"skills":40,"tools":1,"plugins":5}}
+{"time":"2026-07-14T21:15:00+08:00","action":"runtime-sync","reason":"prompts/agents:20260714-002-agents-web-first-paper-lookup","counts":{"skills":40,"tools":1,"plugins":5}}
+{"time":"2026-07-14T21:25:00+08:00","action":"runtime-sync","reason":"prompts/agents:20260714-003-agents-literature-skill-delegation","counts":{"skills":40,"tools":1,"plugins":5}}
+{"time":"2026-07-15T00:00:00+08:00","action":"runtime-sync","reason":"prompts/agents:20260715-001-agents-paper-lookup-load-skill","counts":{"skills":40,"tools":1,"plugins":5}}
+{"time":"2026-07-15T00:20:00+08:00","action":"runtime-sync","reason":"tools/arc/lookup_paper:disable + prompts/agents:20260715-002-agents-remove-paper-lookup-skill-gate + skills/literature-search:20260715-002-disable-lookup-paper-fallback","counts":{"skills":40,"tools":1,"plugins":5}}
+{"time":"2026-07-15T10:30:00+08:00","action":"runtime-sync","reason":"skills/literature-search:20260715-003-web-first-unified-routing + tools/arc/search_literature:20260715-004-unified-literature-search + plugins/guardrails:20260715-001-paper-retrieval-guards","counts":{"skills":40,"tools":1,"plugins":5}}
+{"time":"2026-07-15T16:10:00+08:00","action":"runtime-sync","reason":"skills/literature-research:20260715-001-literature-research-workflow","counts":{"skills":41,"tools":1,"plugins":5}}
+{"time":"2026-07-18T00:00:00+08:00","action":"runtime-sync","reason":"skills/literature-research:20260718-001-evidence-first-literature-map + skills/novelty-gate:20260718-001-overlap-improvement-gate","counts":{"skills":41,"tools":1,"plugins":5}}
+{"time":"2026-07-18T21:30:00+08:00","action":"runtime-sync","reason":"skills/literature-research:20260718-002-coe-literature-workflow","counts":{"skills":41,"tools":1,"plugins":5}}
+{"time":"2026-07-18T22:10:00+08:00","action":"runtime-sync","reason":"tools/search_literature:20260718-003-structured-search-diagnostics + skills/literature-research:20260718-003-search-diagnostic-artifacts","counts":{"skills":41,"tools":1,"plugins":5}}
+{"time":"2026-07-19T00:00:00+08:00","action":"runtime-sync","reason":"skills/literature-research:20260719-001-pre-idea-prior-work-gate","counts":{"skills":41,"tools":1,"plugins":5}}
+{"time":"2026-07-19T00:20:00+08:00","action":"runtime-sync","reason":"skills/literature-research:20260719-002-artifact-visibility-contract","counts":{"skills":41,"tools":1,"plugins":5}}
+{"time":"2026-08-08T23:30:00+08:00","action":"runtime-sync","reason":"prompts/agents:20260808-001-agent-first-writing + skills/scientific-writing:20260808-001-agent-first-venue-brief + skills/latex-fmt:20260808-001-agent-first-template-first + tools/fetch_latex_template:20260808-001-extensible-venue-templates + tools/latex_check:20260808-001-venue-template-rules","counts":{"skills":41,"tools":1,"plugins":5}}
+{"time":"2026-08-09T23:55:00+08:00","action":"runtime-sync","reason":"plugins/heartbeat:20260809-001-singleton-backoff","counts":{"skills":41,"tools":1,"plugins":5}}
+{"time":"2026-08-10T12:06:25+08:00","action":"runtime-sync","reason":"plugins/heartbeat:20260810-001-async-wakeup","counts":{"skills":41,"tools":1,"plugins":5}}

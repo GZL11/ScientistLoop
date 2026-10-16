@@ -1,0 +1,17 @@
+{
+  "version": "20260715-001-agents-paper-lookup-load-skill",
+  "created_at": "2026-07-15",
+  "title": "Load literature skill for lightweight paper lookup",
+  "description": "Requires lightweight single-paper lookup and paper identity verification to load literature-search before choosing retrieval tools, while keeping concrete retrieval policy delegated to the skill.",
+  "source_file": "registry/prompts/agents/files/AGENTS.20260715-001-agents-paper-lookup-load-skill.md",
+  "runtime_file": "AGENTS.md",
+  "changes": [
+    "Add a lightweight-mode rule: paper title/acronym/fuzzy/arXiv/DOI/URL lookup must load literature-search first.",
+    "Keep concrete retrieval tool order out of AGENTS.md.",
+    "Keep paper lookup strategy owned by the literature-search skill."
+  ],
+  "rollback": {
+    "target": "20260714-003-agents-literature-skill-delegation",
+    "notes": "Restore the previous AGENTS snapshot if the load-skill requirement causes unwanted overhead."
+  }
+}

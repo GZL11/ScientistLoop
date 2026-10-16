@@ -1,0 +1,32 @@
+cases:
+  - id: single_paper_core_idea
+    user: "https://arxiv.org/abs/2602.22576 你看一下这篇论文，讲一下核心创新点"
+    expected_mode: paper_qa
+    must:
+      - "answer_current_question"
+      - "read_or_fetch_paper_if_needed"
+    must_not:
+      - "create_run_directory"
+      - "call_todowrite"
+      - "write_markdown_file"
+      - "create_cross_paper_comparison"
+      - "ask_next_steps"
+
+  - id: followup_baseline_detail
+    user: "Biomni 中不是对比了文献 agent 和编码 agent 吗，这是什么 agent？"
+    expected_mode: paper_qa
+    must:
+      - "answer_baseline_agent_definition"
+      - "use_supplement_or_repo_if_needed"
+    must_not:
+      - "summarize_current_progress_before_answering"
+      - "ask_what_to_do_next"
+      - "switch_to_literature_survey"
+
+  - id: explicit_notes
+    user: "把这篇论文整理成一份 Markdown 笔记"
+    expected_mode: literature_notes
+    must:
+      - "write_markdown_file"
+    must_not:
+      - "expand_to_unrequested_multi_paper_survey"

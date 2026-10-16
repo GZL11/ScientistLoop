@@ -1,0 +1,124 @@
+%% ICLR submission — MDD classifier discovery by an evolutionary coding agent
+%%
+%% 编译：./build.sh          → build/main.pdf
+%%       ./build.sh clean
+%%
+%% ---- 模板 ------------------------------------------------------------------
+%% 用的是官方 ICLR 样式，文件在 style/：
+%%   iclr2026_conference.sty   版式本体
+%%   iclr2026_conference.bst   参考文献样式（natbib 兼容）
+%%   math_commands.tex         dlbook 数学记号（可选，默认不加载，见下）
+%%   TEMPLATE_REFERENCE.pdf    官方样张，排版对不对照这个看
+%% build.sh 通过 TEXINPUTS / BSTINPUTS 指向该目录，不必把文件散在根目录。
+%%
+%% ⚠ 这是 **ICLR 2026** 的样式（2027 版尚未发布）。页眉/页脚会印 2026。
+%%    2027 样式发布后：替换 style/ 里的 .sty 与 .bst，改下面的 \usepackage 与
+%%    \bibliographystyle 名称即可，正文一个字都不用动。
+%%
+%% ---- 匿名与 ruler ----------------------------------------------------------
+%% \iclrfinalcopy 保持注释掉：投稿必须双盲（署名会被拒稿），
+%% 且注释状态下页边会自动打行号 ruler，方便审稿人引用行号。
+%% 只有 camera-ready 才取消注释。
+%%
+%% ---- 引擎 ------------------------------------------------------------------
+%% 写作期用 xelatex，因为 \todo{} 里有中文（xeCJK 只认 XeTeX）。
+%% 注意：`%%` 注释里的中文对 pdflatex 是安全的（词法阶段就被丢弃），
+%%       出问题的只有正文里的中文，即 \todo{中文} 这一类。中文注释随便写。
+%% 投稿前删掉 xeCJK 块 + 清空中文 \todo → pdflatex 可用（已实测通过）。
+%%
+%% ---- 页数 ------------------------------------------------------------------
+%% 正文硬上限 9 页（初投），rebuttal / camera-ready 放宽到 10 页。
+%% 参考文献与附录不计入。见文末 SUBMISSION CHECKLIST。
+%% =============================================================================
+
+\documentclass{article}
+\usepackage{iclr2026_conference,times}
+
+%% dlbook 数学记号（\vx \mA \RR 等）。要用就取消注释：
+% \input{math_commands.tex}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+%% 表格里的 p{} 列用它左对齐，避免为撑满行宽而拉出巨大的词间距（underfull hbox）
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{xcolor}
+
+%% ---- 写作期中文支持（投稿前整块删除）----------------------------------------
+%% 字体用 Fandol：它随 TeX Live 一起发行，按**文件名**加载，不依赖系统 fontconfig，
+%% 因此本机与 Overleaf 上行为一致。（原先用 "Noto Sans CJK SC" 是按系统字体名加载，
+%% Overleaf 上没有注册这个名字，会报 "cannot find font"。）
+\usepackage{xeCJK}
+\setCJKmainfont{FandolSong-Regular.otf}[BoldFont=FandolHei-Regular.otf,
+                                        ItalicFont=FandolKai-Regular.otf]
+\setCJKmonofont{FandolFang-Regular.otf}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip = 0pt plus 1pt
+%% -----------------------------------------------------------------------------
+
+%% 写作期标记：定稿前必须全部清空
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\needcite}[1]{\textcolor{orange}{[CITE: #1]}}
+
+%% 不要手动加 \\：ICLR 版式的文本宽度与 article 不同，手动换行会和自动换行
+%% 叠加成难看的三行。让它自己断。
+\title{Evolving Cross-Site Classifiers for Major Depressive Disorder
+with an LLM-Driven Coding Agent}
+
+%% 双盲期间不填作者。\iclrfinalcopy 注释着时，样式会自动印
+%% "Anonymous authors / Paper under double-blind review"。
+\author{Anonymous}
+
+% \iclrfinalcopy  % camera-ready 才取消注释；投稿版必须保持注释
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\todo{摘要留到 §\ref{sec:results} 结果就绪后再写。}
+\end{abstract}
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+%% 2026-08-10：§3 Problem Setting 整章删除（用户决定）——正文不预先铺陈后续章节，
+%% 六条评估要求改由 §5 在给出协议时就地陈述。原文件存于
+%% archive/deleted_2026-08-10/03_problem_setting.tex，写 §5 时从那里取 3.4。
+\input{sections/04_agent}
+\input{sections/05_application}
+\input{sections/06_results}
+\input{sections/07_discussion}
+
+\bibliographystyle{iclr2026_conference}
+\bibliography{refs}
+
+\end{document}
+
+%% ===== SUBMISSION CHECKLIST ==================================================
+%% 用 ./build.sh sub 做投稿模式预检，它会把下面第 3 条要清的地方逐行列出来。
+%%
+%% 内容
+%% [ ] grep -rn "todo\|needcite" sections/ main.tex   → 无命中
+%% [ ] grep -rniE "首次|首个|第一个|the first" sections/  → 无命中（不作优先权宣称）
+%% [ ] §1–§2 不出现协议机制名（快照选择、优化器计数、cell 数量等）
+%%     —— 原写「§1–§3」，删掉 Problem Setting 后 §3 已是 agent 章，机制名本就该在那里
+%% [ ] contribution 3（可解释性）按 §6.3 实际结果复核
+%% [ ] FM Agent（§2.3 / §4）全部为第三人称叙述，不写 "our previous framework" 之类
+%%     —— 该框架的作者单位与本工作可能相关，双盲期间不得暗示归属
+%% [ ] 每条引用在 reference/references.md 已登记且已核实
+%%
+%% 格式
+%% [ ] 正文 ≤ 9 页（不含参考文献与附录）；rebuttal / camera-ready 可到 10 页
+%% [ ] \iclrfinalcopy 保持注释（投稿双盲）；作者/致谢/自引不泄露身份
+%% [ ] 正文里无任何非 ASCII 字符 —— 注意不只是汉字，全角标点（：「」——）
+%%     一样会让 pdflatex 报 "Unicode character not set up"。
+%%     `%%` 注释里的非 ASCII 是安全的，不用动。
+%% [ ] 删除 xeCJK 块，改回 pdflatex
+%% [ ] 换成 ICLR 2027 样式（style/ 里的 .sty 与 .bst，及上面的 \usepackage /
+%%     \bibliographystyle 名称）。正文不用动。
+%% [ ] 与 style/TEMPLATE_REFERENCE.pdf 对照排版
+%% =============================================================================

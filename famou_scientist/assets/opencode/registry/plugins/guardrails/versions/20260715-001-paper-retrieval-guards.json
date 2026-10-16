@@ -1,0 +1,17 @@
+{
+  "version": "20260715-001-paper-retrieval-guards",
+  "created_at": "2026-07-15",
+  "title": "Paper retrieval candidate and escalation guards",
+  "description": "Adds soft hook guards for paper candidate mismatch and retrieval escalation so obvious non-matches and premature broad reviews are surfaced without blocking native web-first lookup.",
+  "source_file": "registry/source/plugins/guardrails.ts",
+  "runtime_path": "plugins/guardrails.ts",
+  "policy": {
+    "candidate_guard": "Warn when a specific-paper lookup returns content that does not share core terms with the query.",
+    "escalation_guard": "Warn when a specific-paper lookup context is being expanded into broad literature review too early.",
+    "blocking": false
+  },
+  "rollback": {
+    "target": "previous guardrails behavior",
+    "notes": "Remove the retrieval candidate and escalation warnings."
+  }
+}

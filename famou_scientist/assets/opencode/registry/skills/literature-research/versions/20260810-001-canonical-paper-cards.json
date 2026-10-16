@@ -1,0 +1,18 @@
+{
+  "version": "20260810-001-canonical-paper-cards",
+  "created_at": "2026-08-10",
+  "title": "Canonical screened literature cards",
+  "description": "Makes paper_cards.jsonl the authoritative screened literature set and requires the master Agent to consolidate delegated retrieval before completing synthesis.",
+  "source_file": "registry/skills/literature-research/files/SKILL.20260810-001-canonical-paper-cards.md",
+  "runtime_file": "skill/experiment/literature-research/SKILL.md",
+  "changes": [
+    "Distinguished retrieval acceptance from Agent screening.",
+    "Required master-Agent consolidation of subagent retrieval results.",
+    "Prohibited declaring literature review complete without non-empty paper cards.",
+    "Aligned chat summaries, literature reports, the right panel, and later bibliography generation to one canonical set."
+  ],
+  "rollback": {
+    "target": "20260809-001-dialogue-first-batched-artifacts",
+    "notes": "Restore dialogue checkpoints without canonical paper-card completion rules."
+  }
+}

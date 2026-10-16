@@ -1,0 +1,17 @@
+{
+  "version": "20260718-003-search-diagnostic-artifacts",
+  "created_at": "2026-07-18",
+  "title": "Search diagnostics and artifact-backed literature UI",
+  "description": "Adds SearchDiagnostic to the literature-research Chain-of-Evidence contract and records search_diagnostics.jsonl as a first-class workspace artifact for retrieval quality review.",
+  "source_file": "registry/skills/literature-research/files/SKILL.20260718-003-search-diagnostic-artifacts.md",
+  "runtime_file": "skill/experiment/literature-research/SKILL.md",
+  "changes": [
+    "Add SearchDiagnostic schema with query, user_query, intent, sources, counts, failure_mode, and notes.",
+    "Require search_diagnostics.jsonl in the literature research workspace contract.",
+    "Clarify that insufficient retrieval evidence must not become a novelty or gap claim."
+  ],
+  "rollback": {
+    "target": "20260718-002-coe-literature-workflow",
+    "notes": "Restore Chain-of-Evidence workflow without first-class SearchDiagnostic artifacts."
+  }
+}

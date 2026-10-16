@@ -1,0 +1,56 @@
+{
+  "goal": {
+    "id": "claude_agent_algorithm_innovation",
+    "name": "claude_agent_algorithm_innovation"
+  },
+  "workers": {
+    "type": "prompt",
+    "llm": {
+      "type": "command",
+      "cmd": "python ../llm/fake_loop_llm.py --input {input} --output {output}",
+      "timeout_sec": 30
+    },
+    "implement": {
+      "type": "agent",
+      "runtime": "claude",
+      "max_turns": 20,
+      "timeout_sec": 180,
+      "auto_approve": true,
+      "sandbox": {"type": "local"}
+    }
+  },
+  "experiment_runner": {
+    "type": "command",
+    "cmd": "python {entrypoint} --output {run_dir}/trained_submission.json",
+    "timeout_sec": 30
+  },
+  "benchmarks": [
+    {
+      "name": "fake_command_classification_bench",
+      "adapter": {
+        "type": "command",
+        "public_eval_cmd": "python ../evaluators/fake_classification_eval.py --mode public --submission {artifact}",
+        "official_eval_cmd": "python ../evaluators/fake_classification_eval.py --mode official --submission {artifact}",
+        "timeout_sec": 30
+      },
+      "official_metric": {"name": "accuracy", "direction": "higher_is_better"},
+      "hidden_test_access": "forbidden"
+    }
+  ],
+  "objective_brief": {
+    "primary_goal": "Use a real CLI coding agent as the implement node.",
+    "official_metric": {"name": "accuracy", "source": "benchmark_adapter", "direction": "higher_is_better"},
+    "preference_description": "Prefer a complete, auditable implementation produced in the isolated branch worktree.",
+    "allow_examples": ["Use claude CLI tools to create method.py and result JSON."],
+    "reject_examples": ["Expose evaluator private data or hidden labels to the implement agent."],
+    "tie_breakers": ["Prefer simpler methods with complete evidence."]
+  },
+  "constraints": {
+    "max_wall_time_hours": 1,
+    "max_evaluator_submissions": 1,
+    "max_parallel_evaluations": 1,
+    "max_experiment_retries": 0,
+    "hidden_test_access": "forbidden"
+  },
+  "outputs": {"required": ["evidence_bundle"]}
+}

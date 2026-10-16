@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三种科研范式深度解读</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --fg:#171717;--fg2:#4d4d4d;--fg3:#666;--fg4:#8f8f8f;
+  --bg:#fff;--bg2:#fafafa;--bg3:#f5f5f5;
+  --border:#ebebeb;--border2:#e5e7eb;
+  --r:8px;
+  --shadow:0 0 0 1px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow2:0 0 0 1px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.06);
+  --accent:#e8590c;--accent-bg:#fff4f0;
+  --green:#297a3a;--green-bg:#ecfdf5;
+  --blue:#0068d6;--blue-bg:#ebf5ff;
+  --purple:#6d28d9;--purple-bg:#f5f3ff;
+  --amber:#b45309;--amber-bg:#fffbeb;
+  --red:#dc2626;--red-bg:#fef2f2;
+  --teal:#0d9488;--teal-bg:#f0fdfa;
+}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg2);color:var(--fg);min-height:100vh;-webkit-font-smoothing:antialiased}
+.container{max-width:760px;margin:0 auto;padding:32px 24px 80px}
+
+header{margin-bottom:28px}
+header h1{font-size:22px;font-weight:800;color:var(--fg);line-height:1.3}
+header p{font-size:13px;color:var(--fg3);margin-top:8px;line-height:1.6}
+.badge{display:inline-block;font-size:11px;font-weight:500;padding:3px 10px;border-radius:9999px;margin-top:10px;margin-right:6px}
+
+.nav{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap;position:sticky;top:0;background:var(--bg2);padding:12px 0;z-index:10;border-bottom:1px solid var(--border)}
+.nav-btn{padding:7px 14px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg3);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.nav-btn:hover{background:var(--bg3);color:var(--fg)}
+.nav-btn.active{background:var(--fg);color:#fff;border-color:var(--fg)}
+
+.section{display:none}.section.active{display:block}
+.card{background:var(--bg);border-radius:12px;padding:28px;margin-bottom:20px;box-shadow:var(--shadow)}
+.card h2{font-size:18px;font-weight:700;color:var(--fg);margin-bottom:4px}
+.card h3{font-size:15px;font-weight:600;color:var(--fg);margin:18px 0 10px}
+.card .subtitle{font-size:12px;color:var(--fg4);margin-bottom:18px}
+.card p,.card li{font-size:14px;color:var(--fg2);line-height:1.8}
+.card ul{padding-left:20px;margin:10px 0}
+
+.oneliner{background:var(--bg3);border-left:3px solid var(--fg);padding:16px 20px;border-radius:0 8px 8px 0;margin:16px 0;font-size:15px;font-weight:500;color:var(--fg);line-height:1.6}
+
+.analogy{background:#f0fdf4;border-left:3px solid var(--green);padding:16px 20px;border-radius:0 8px 8px 0;margin:16px 0}
+.analogy::before{content:'类比';display:block;font-size:11px;color:var(--green);font-weight:600;margin-bottom:8px;letter-spacing:.3px}
+.analogy p{font-size:13px;color:#166534;line-height:1.7}
+
+.insight{background:var(--blue-bg);border-left:3px solid var(--blue);padding:16px 20px;border-radius:0 8px 8px 0;margin:16px 0}
+.insight::before{content:'伐谋切入点';display:block;font-size:11px;color:var(--blue);font-weight:600;margin-bottom:8px;letter-spacing:.3px}
+.insight p,.insight li{font-size:13px;color:#1e40af;line-height:1.7}
+.insight ul{padding-left:18px;margin:6px 0}
+
+.warn{background:var(--amber-bg);border-left:3px solid var(--amber);padding:16px 20px;border-radius:0 8px 8px 0;margin:16px 0}
+.warn::before{content:'关键区别';display:block;font-size:11px;color:var(--amber);font-weight:600;margin-bottom:8px}
+.warn p{font-size:13px;color:#92400e;line-height:1.7}
+
+.quote{background:var(--purple-bg);border-left:3px solid var(--purple);padding:16px 20px;border-radius:0 8px 8px 0;margin:16px 0}
+.quote::before{content:'访谈原声';display:block;font-size:11px;color:var(--purple);font-weight:600;margin-bottom:8px}
+.quote p{font-size:13px;color:#4c1d95;line-height:1.7;font-style:italic}
+
+.product{background:var(--accent-bg);border-left:3px solid var(--accent);padding:16px 20px;border-radius:0 8px 8px 0;margin:16px 0}
+.product::before{content:'产品启示';display:block;font-size:11px;color:var(--accent);font-weight:600;margin-bottom:8px}
+.product p,.product li{font-size:13px;color:#9a3412;line-height:1.7}
+.product ul{padding-left:18px;margin:6px 0}
+
+.tbl{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.tbl th{text-align:left;font-size:11px;font-weight:600;color:var(--fg4);padding:10px 12px;border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:.3px}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg2);vertical-align:top}
+.tbl tr:hover td{background:var(--bg3)}
+.hl{color:var(--green);font-weight:600}
+.dim{color:var(--fg4)}
+
+.flow{display:flex;flex-direction:column;gap:0;align-items:center;margin:20px 0}
+.flow-step{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 22px;text-align:center;width:100%;max-width:500px;cursor:pointer;transition:all .15s;box-shadow:var(--shadow)}
+.flow-step:hover{border-color:#ccc;box-shadow:var(--shadow2)}
+.flow-step .step-num{display:inline-block;width:22px;height:22px;line-height:22px;border-radius:50%;background:var(--fg);color:#fff;font-size:11px;font-weight:700;margin-right:8px;text-align:center}
+.flow-step .step-title{font-size:13px;font-weight:600;color:var(--fg)}
+.flow-step .step-detail{font-size:12px;color:var(--fg3);margin-top:8px;display:none;text-align:left;line-height:1.7}
+.flow-step.expanded .step-detail{display:block}
+.flow-step.expanded{border-color:var(--blue);background:var(--blue-bg)}
+.flow-step.expanded .step-num{background:var(--blue)}
+.flow-arrow{color:var(--fg4);font-size:16px;padding:4px 0}
+.flow-step .click-hint{font-size:10px;color:var(--fg4);margin-top:4px}
+
+.metric-bar{display:flex;align-items:center;gap:12px;margin:10px 0}
+.metric-label{font-size:12px;color:var(--fg3);width:140px;flex-shrink:0}
+.metric-fill-bg{flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;border:1px solid var(--border)}
+.metric-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.metric-val{font-size:13px;font-weight:600;width:50px;text-align:right}
+
+.tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;margin-right:4px}
+.tag-green{background:var(--green-bg);color:var(--green)}
+.tag-blue{background:var(--blue-bg);color:var(--blue)}
+.tag-purple{background:var(--purple-bg);color:var(--purple)}
+.tag-amber{background:var(--amber-bg);color:var(--amber)}
+.tag-red{background:var(--red-bg);color:var(--red)}
+
+.toggle-group{margin:16px 0}
+.toggle-item{border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden}
+.toggle-head{padding:14px 18px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--fg);background:var(--bg);transition:all .15s}
+.toggle-head:hover{background:var(--bg3)}
+.toggle-head .arrow{transition:transform .2s;font-size:10px;color:var(--fg4)}
+.toggle-item.open .arrow{transform:rotate(90deg)}
+.toggle-body{display:none;padding:0 18px 16px;font-size:13px;color:var(--fg2);line-height:1.8;background:var(--bg)}
+.toggle-item.open .toggle-body{display:block}
+
+.gen-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.gen-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center;box-shadow:var(--shadow)}
+.gen-card .gen-icon{font-size:28px;margin-bottom:8px}
+.gen-card .gen-title{font-size:13px;font-weight:600;color:var(--fg)}
+.gen-card .gen-desc{font-size:11px;color:var(--fg3);margin-top:4px;line-height:1.5}
+
+.code-block{background:var(--bg3);border:1px solid var(--border);padding:16px;border-radius:var(--r);margin:12px 0;font-family:'SF Mono',Consolas,monospace;font-size:12px;color:var(--fg);line-height:1.9;white-space:pre-wrap;overflow-x:auto}
+
+.stars{color:var(--amber);letter-spacing:2px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>三种科研范式 · 深度解读</h1>
+  <p>理解不同学科的科研工作流，设计伐谋的适配case和优化算法能力。</p>
+  <span class="badge" style="background:var(--blue-bg);color:var(--blue)">机理建模 ODE</span>
+  <span class="badge" style="background:var(--green-bg);color:var(--green)">条件优化 DOE/BO</span>
+  <span class="badge" style="background:var(--purple-bg);color:var(--purple)">基因线路设计</span>
+</header>
+
+<nav class="nav">
+  <button class="nav-btn active" data-sec="ode">机理建模</button>
+  <button class="nav-btn" data-sec="doe">条件优化</button>
+  <button class="nav-btn" data-sec="syn">基因线路</button>
+  <button class="nav-btn" data-sec="cmp">对比总结</button>
+  <button class="nav-btn" data-sec="prod">产品启示</button>
+</nav>
+
+<!-- ==================== 机理建模 ==================== -->
+<div class="section active" id="sec-ode">
+
+<div class="card">
+  <h2>范式一：机理建模（ODE / PDE）</h2>
+  <div class="subtitle">药动学 · 生态学 · 神经科学 · 化工反应工程</div>
+  <div class="oneliner">用数学公式描述"事物随时间/空间如何变化"，然后求解这套方程来预测系统行为。</div>
+  <h3>它解决什么问题？</h3>
+  <p>当你知道（或假设）系统的运行机制——比如药物在体内的吸收-分布-代谢速率、细胞内基因表达的调控关系、化学反应的动力学——你可以把这些机制写成微分方程，然后用计算机数值求解，得到"给定初始条件下，系统未来怎么变化"。</p>
+</div>
+
+<div class="card">
+  <h3>核心概念</h3>
+  <table class="tbl">
+    <tr><th>概念</th><th>解释</th><th>类比</th></tr>
+    <tr><td><b>ODE</b><br><span class="dim">常微分方程</span></td><td>描述一个变量随时间的变化率<br>dx/dt = f(x,t)</td><td>水池进水速度 − 出水速度 = 水位变化速度</td></tr>
+    <tr><td><b>PDE</b><br><span class="dim">偏微分方程</span></td><td>同时随时间和空间变化<br>∂u/∂t = D·∂²u/∂x²</td><td>热量在铁棒上怎么从左传到右</td></tr>
+    <tr><td><b>参数</b></td><td>方程里的常数（如反应速率k、扩散系数D）</td><td>旋钮——调不同值会得到不同行为</td></tr>
+    <tr><td><b>初始条件 / 边界条件</b></td><td>系统在t=0时的状态，以及边界上的约束</td><td>起跑线位置 + 跑道围栏</td></tr>
+    <tr><td><b>参数估计 / 拟合</b></td><td>用实验数据反推方程里的参数值</td><td>根据实际水位记录，反算进水管流速</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>典型工作流（6步）</h3>
+  <p style="font-size:12px;color:var(--fg4);margin-bottom:12px">点击每一步查看详情</p>
+  <div class="flow">
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num">1</span><span class="step-title">建模（写方程）</span>
+      <div class="step-detail">研究者根据领域知识，把系统的因果关系写成微分方程组。<br>例：药物动力学二室模型<br><code>dC₁/dt = -(k₁₂+kₑ)C₁ + k₂₁C₂</code><br>这一步<b>门槛最高</b>——需要领域专家才能写出合理的方程。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num">2</span><span class="step-title">参数赋值</span>
+      <div class="step-detail">查文献或做预实验获得参数初始估计值。例如反应速率常数k₁₂=0.5/h，清除率kₑ=0.1/h。参数的量纲和量级需要符合物理意义。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num">3</span><span class="step-title">数值求解（仿真）</span>
+      <div class="step-detail">用求解器（如MATLAB ode45, Python scipy.integrate.solve_ivp）<br><b>输入</b>：方程 + 参数 + 初始条件<br><b>输出</b>：浓度-时间曲线、相空间轨迹等<br>计算通常在秒~分钟级完成。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num">4</span><span class="step-title">与实验数据对比</span>
+      <div class="step-detail">把仿真曲线和真实实验数据画在一起。<br>如果偏差大 → 回到步骤2调参数，或回到步骤1<b>改模型结构</b>（比如从一室改二室）。<br>这是一个反复迭代的过程。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num">5</span><span class="step-title">参数拟合（优化）</span>
+      <div class="step-detail">用最小二乘法/贝叶斯推断<b>自动</b>找最优参数，使模型预测和实验数据的残差最小。<br>这一步本质就是<b>优化问题</b>——天然适配进化引擎。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num">6</span><span class="step-title">预测 & 灵敏度分析</span>
+      <div class="step-detail">用拟合好的模型做预测（"如果剂量翻倍会怎样？"）。<br><b>灵敏度分析</b>：扫描参数空间，输出"哪个参数对结果影响最大？"——帮助研究者决定下一步实验应该精确测量哪个参数。</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>研究者日常用什么工具？</h3>
+  <table class="tbl">
+    <tr><th>工具</th><th>用途</th><th>用户画像</th></tr>
+    <tr><td><b>MATLAB / Simulink</b></td><td>ODE求解 + 可视化 + 参数优化</td><td>工科主流，付费</td></tr>
+    <tr><td><b>Python (SciPy)</b></td><td>开源替代，灵活</td><td>会编程的研究者</td></tr>
+    <tr><td><b>COPASI / CellDesigner</b></td><td>生物系统专用，GUI操作</td><td>不会编程的生物学家</td></tr>
+    <tr><td><b>COMSOL Multiphysics</b></td><td>PDE求解（传热、流体、电磁）</td><td>工程仿真，昂贵</td></tr>
+    <tr><td><b>SBML格式</b></td><td>模型交换标准</td><td>跨工具共享模型</td></tr>
+  </table>
+
+  <div class="insight">
+    <ul>
+      <li><b>自动建模</b>：用户自然语言描述系统机制 → agent生成ODE方程组 + 初始代码</li>
+      <li><b>参数拟合</b>：用户上传实验数据 → 进化引擎搜索最优参数组合（本质就是优化问题）</li>
+      <li><b>模型选择</b>：同时尝试多种模型结构（一室 vs 二室 vs 三室），自动对比拟合优度</li>
+      <li><b>灵敏度分析自动化</b>：扫描参数空间，输出"哪个参数最影响结果"</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card">
+  <h3>和ML代理模型的本质区别</h3>
+  <table class="tbl">
+    <tr><th></th><th>机理建模</th><th>ML代理模型</th></tr>
+    <tr><td><b>知识来源</b></td><td class="hl">领域先验知识（物理/化学/生物机制）</td><td>数据驱动（不需要理解机制）</td></tr>
+    <tr><td><b>可解释性</b></td><td class="hl">高（每个参数有物理含义）</td><td class="dim">低（黑箱）</td></tr>
+    <tr><td><b>数据需求</b></td><td class="hl">少（几十个数据点就能拟合）</td><td class="dim">多（通常数百/数千）</td></tr>
+    <tr><td><b>外推能力</b></td><td class="hl">强（机制成立范围内）</td><td class="dim">弱（只在训练数据分布内）</td></tr>
+    <tr><td><b>建模门槛</b></td><td class="dim">高（需要领域专家写方程）</td><td class="hl">低（AutoML自动选模型）</td></tr>
+  </table>
+</div>
+</div>
+
+<!-- ==================== 条件优化 ==================== -->
+<div class="section" id="sec-doe">
+
+<div class="card">
+  <h2>范式二：实验条件优化（DOE / 贝叶斯优化）</h2>
+  <div class="subtitle">化学合成 · 材料制备 · 生物培养基 · 工艺开发</div>
+  <div class="oneliner">我不完全知道机理，但我可以做实验——问题是实验太贵/太慢，怎么用最少的实验次数找到最优条件？</div>
+  <h3>它解决什么问题？</h3>
+  <p>化学合成、材料制备、生物培养基配方……共同特征：</p>
+  <ul>
+    <li>影响结果的<b>参数很多</b>（温度、压力、催化剂种类、浓度、时间……）</li>
+    <li>参数之间有<b>交互作用</b>（A和B单独都不重要，但A+B一起就爆炸性地好）</li>
+    <li>每次实验都有<b>成本</b>（试剂、时间、设备占用）</li>
+    <li>无法从第一性原理推导最优条件</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h3>从传统到前沿：三代方法</h3>
+  <p style="font-size:12px;color:var(--fg4);margin-bottom:12px">点击展开每一代的详细说明</p>
+
+  <div class="toggle-group">
+    <div class="toggle-item" onclick="this.classList.toggle('open')">
+      <div class="toggle-head">
+        <span class="arrow">▶</span>
+        <span class="tag tag-red">已淘汰</span>
+        第一代：OFAT（One Factor At A Time）
+      </div>
+      <div class="toggle-body">
+        <p>固定其他变量，只改一个 → 找到最优值 → 固定它，改下一个。</p>
+        <div class="warn" style="margin-top:12px">
+          <p><b>致命缺陷</b>：完全忽略交互作用。假设温度的最优值在催化剂A时是80°C，在催化剂B时是120°C——OFAT永远发现不了这一点，因为它在测温度的时候催化剂是固定的。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="toggle-item" onclick="this.classList.toggle('open')">
+      <div class="toggle-head">
+        <span class="arrow">▶</span>
+        <span class="tag tag-amber">经典方法</span>
+        第二代：DOE（Design of Experiments 实验设计）
+      </div>
+      <div class="toggle-body">
+        <p><b>核心思想</b>：在实验前就设计好一个"采样矩阵"，一次性测多个组合，用统计模型（回归）拟合出"参数→结果"的响应面。</p>
+        <div class="flow" style="margin:16px 0">
+          <div class="flow-step" onclick="this.classList.toggle('expanded')">
+            <span class="step-num">1</span><span class="step-title">选因素 & 水平</span>
+            <div class="step-detail">温度(60/80/100°C)、催化剂(A/B/C)、时间(1h/2h/4h)</div>
+          </div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-step" onclick="this.classList.toggle('expanded')">
+            <span class="step-num">2</span><span class="step-title">选设计类型</span>
+            <div class="step-detail">全因子设计(3³=27次) / 正交设计(9次) / 中心复合设计(15次)<br>实验次数在这一步就<b>完全确定</b>了——不能中途调整策略</div>
+          </div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-step" onclick="this.classList.toggle('expanded')">
+            <span class="step-num">3</span><span class="step-title">按矩阵做实验</span>
+            <div class="step-detail">预先确定的全部实验，一口气做完——不管中间有没有看到好的苗头</div>
+          </div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-step" onclick="this.classList.toggle('expanded')">
+            <span class="step-num">4</span><span class="step-title">统计分析</span>
+            <div class="step-detail">回归拟合 → 响应面图 → 方差分析(ANOVA) → 找最优区域</div>
+          </div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-step" onclick="this.classList.toggle('expanded')">
+            <span class="step-num">5</span><span class="step-title">验证实验</span>
+            <div class="step-detail">在预测最优点做几次重复实验确认</div>
+          </div>
+        </div>
+        <p><span class="tag tag-green">优点</span>系统、统计严谨、能发现交互作用</p>
+        <p><span class="tag tag-red">缺点</span>实验次数预先固定；高维空间下实验数指数爆炸</p>
+      </div>
+    </div>
+
+    <div class="toggle-item open" onclick="this.classList.toggle('open')">
+      <div class="toggle-head">
+        <span class="arrow">▶</span>
+        <span class="tag tag-green">前沿方法</span>
+        第三代：贝叶斯优化（BO）— 闭环自适应
+      </div>
+      <div class="toggle-body">
+        <p><b>核心思想</b>：边做实验边学习——每做完一批实验，AI更新对"参数→结果"关系的认知，然后智能推荐下一批最值得做的实验。</p>
+        <div class="analogy">
+          <p>DOE像旅行前把所有景点都定好，一个不漏地走完。贝叶斯优化像到了一个城市，先随便逛几个地方，然后根据体验决定明天去哪——<b>好评多的方向多探索，差评区域果断放弃</b>。</p>
+        </div>
+        <p style="margin-top:12px;font-weight:600">两个核心组件：</p>
+        <div class="gen-grid" style="margin:12px 0">
+          <div class="gen-card">
+            <div class="gen-icon">🧠</div>
+            <div class="gen-title">代理模型 (Surrogate)</div>
+            <div class="gen-desc">高斯过程回归(GPR)：基于已有数据，预测"任意条件下结果会怎样" + "我有多不确定"</div>
+          </div>
+          <div class="gen-card">
+            <div class="gen-icon">🎯</div>
+            <div class="gen-title">采集函数 (Acquisition)</div>
+            <div class="gen-desc">平衡"探索"(去不确定的区域) vs "利用"(去预测最好的区域)，推荐下一组实验</div>
+          </div>
+        </div>
+
+        <p style="margin-top:12px;font-weight:600;color:var(--fg)">和DOE的根本区别：</p>
+        <div class="warn">
+          <p>DOE是<b>一次性规划，全部做完再分析</b>；BO是<b>每轮实验后更新认知，动态调整策略</b>。这个"预测→实验→更新"的闭环循环，确保实验资源始终被投向最有可能产生高回报的区域，用远少于DOE的实验次数逼近全局最优。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>闭环贝叶斯优化工作流（6步迭代）</h3>
+  <div class="flow">
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num">1</span><span class="step-title">定义搜索空间</span>
+      <div class="step-detail">确定需要优化的反应参数及其范围：<br>温度 ∈ [50°C, 150°C]（连续）<br>催化剂 ∈ {Pd, Pt, Ru, Ir}（离散/分类）<br>溶剂 ∈ {DMF, DMSO, THF, MeOH}（离散/分类）<br>浓度 ∈ [0.1M, 2.0M]（连续）<br><b>注意</b>：化学场景混合了连续变量和离散变量，这对算法是个挑战。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num">2</span><span class="step-title">初始采样（8-12次随机实验）</span>
+      <div class="step-detail">用拉丁超立方采样(LHC)或简单随机，在搜索空间里撒几个初始点。<br>也可以用DOE做初始筛选——两代方法并不冲突，可以组合使用。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num">3</span><span class="step-title">训练代理模型 (Surrogate)</span>
+      <div class="step-detail">用高斯过程回归(GPR)拟合已有数据，输出两个东西：<br>• <b>预测均值</b>：对任意条件预测结果<br>• <b>预测不确定性</b>：哪些区域数据少、模型不确定<br>这两个信息共同驱动下一步决策。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num">4</span><span class="step-title">采集函数推荐下一批实验</span>
+      <div class="step-detail">常用策略：<br>• <b>EI (Expected Improvement)</b>：选"比当前最优有最大期望改进"的点<br>• <b>UCB (Upper Confidence Bound)</b>：选"预测均值+不确定性"最高的点<br>• <b>Batch BO</b>：一次推荐多个实验点（适合并行实验）<br>这一步决定了"下一轮去哪里做实验"。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num">5</span><span class="step-title">执行实验 & 分析结果</span>
+      <div class="step-detail">研究者（或自动化机器人/流动化学装置）在实验室执行推荐的实验。<br>用HPLC、NMR、光谱等分析结果（产率/纯度/活性）。<br><b>这一步是"人在回路"——结果由物理世界产生，不是计算出来的。</b></div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num" style="background:var(--green)">⟳</span><span class="step-title">更新模型，回到Step 3</span>
+      <div class="step-detail">把新实验数据加入训练集，重新训练代理模型。<br>模型越来越准 → 采集函数越来越精准 → 实验效率越来越高。<br><b>循环直到</b>：预算耗尽 / 找到满意解 / 模型判断"不太可能找到更好的了"。</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>真实案例</h3>
+  <table class="tbl">
+    <tr><th>案例</th><th>参数规模</th><th>实验次数</th><th>结果</th></tr>
+    <tr><td><b>金属光催化反应</b><br><span class="dim">Nature Chemistry 2024</span></td><td>560候选分子 + 反应条件</td><td>55+18=73次<br><span class="dim">从4500种可能中</span></td><td class="hl">产率 67%→88%</td></tr>
+    <tr><td><b>流动化学SNAr反应</b><br><span class="dim">RSC Digital Discovery 2025</span></td><td>温度+时间+当量</td><td>12(初始)+48(BO)+24(验证)</td><td class="hl">产率93%, R²=0.904</td></tr>
+    <tr><td><b>微生物培养基优化</b><br><span class="dim">JCTB 2025</span></td><td>7种培养基成分</td><td>多轮batch BO</td><td class="hl">优于传统两阶段DOE</td></tr>
+    <tr><td><b>碳水化合物保护基</b><br><span class="dim">Nature Comm 2023</span></td><td>多步合成条件</td><td>闭环BO + 流动反应器</td><td class="hl">跨底物迁移学习</td></tr>
+  </table>
+
+  <div class="insight">
+    <ul>
+      <li><b>核心场景</b>：参数搜索 + 评估 + 迭代优化——天然适配进化引擎</li>
+      <li><b>搜索空间定义</b>：用户自然语言描述参数范围 → agent自动构建搜索空间</li>
+      <li><b>代理模型+采集函数</b>：伐谋的算法核心就是这个</li>
+      <li><b>实验结果接入</b>：用户做完实验后上传CSV → 自动更新模型 → 推荐下一轮</li>
+      <li><b>多目标优化</b>：同时优化产率、纯度、成本、安全性</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card">
+  <h3>和ML代理模型的区别</h3>
+  <table class="tbl">
+    <tr><th></th><th>条件优化</th><th>ML代理模型</th></tr>
+    <tr><td><b>目标</b></td><td class="hl">找到一组最优实验条件</td><td>训练一个通用预测模型</td></tr>
+    <tr><td><b>数据生成</b></td><td class="hl">研究者在实验室实际做实验</td><td>从已有数据集训练</td></tr>
+    <tr><td><b>迭代性</b></td><td class="hl">强（每轮实验后更新策略）</td><td class="dim">弱（通常一次性训练）</td></tr>
+    <tr><td><b>每次实验成本</b></td><td class="dim">高（试剂+设备+人力+时间）</td><td class="hl">低（计算资源）</td></tr>
+    <tr><td><b>核心算法挑战</b></td><td>用最少实验次数找最优</td><td>模型泛化能力</td></tr>
+  </table>
+</div>
+</div>
+
+<!-- ==================== 基因线路 ==================== -->
+<div class="section" id="sec-syn">
+
+<div class="card">
+  <h2>范式三：合成生物学 — 基因线路设计</h2>
+  <div class="subtitle">合成生物学 · 代谢工程 · 基因治疗</div>
+  <div class="oneliner">像设计电路一样设计生物系统：从标准元件库中选取零件，按逻辑规则组装，预测组装后的行为。</div>
+  <h3>它解决什么问题？</h3>
+  <p>合成生物学的目标是<b>工程化改造生命</b>——让细菌生产药物、让酵母合成燃料、让植物检测污染物。为此需要在细胞里构建"基因线路"——一组相互调控的基因，像电路一样执行特定逻辑功能。</p>
+</div>
+
+<div class="card">
+  <h3>核心概念</h3>
+  <table class="tbl">
+    <tr><th>概念</th><th>解释</th><th>电路类比</th></tr>
+    <tr><td><b>Part（元件）</b></td><td>一段有特定功能的DNA序列<br><span class="dim">启动子、RBS、编码区、终止子</span></td><td>电阻、电容、晶体管</td></tr>
+    <tr><td><b>Device（器件）</b></td><td>多个Part组合成一个功能单元<br><span class="dim">如一个受调控的基因表达单元</span></td><td>运算放大器、逻辑门</td></tr>
+    <tr><td><b>Circuit（线路）</b></td><td>多个Device连接成一个系统</td><td>完整电路板</td></tr>
+    <tr><td><b>Logic Gate</b></td><td>AND门：A和B都有→输出<br>OR门：A或B有→输出<br>NOT门：A有→不输出</td><td>与门、或门、非门</td></tr>
+    <tr><td><b>Transfer Function</b></td><td>输入浓度→输出浓度的定量关系曲线</td><td>电压-电流特性曲线</td></tr>
+    <tr><td><b>UCF</b></td><td>User Constraint File：描述可用的生物元件库及其特性</td><td>器件数据手册(datasheet)</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>访谈中的真实需求</h3>
+  <div class="quote">
+    <p>"生物学也有与门、非门。你需要有相应的<b>元件库</b>。有元件层之后会有一个<b>逻辑层</b>——我要什么元件输进去，它会去元件库里调。组装完之后它会帮你<b>预测组装之后什么结果</b>。每一层逻辑很简单，但就是要把它叠起来——什么能跟什么连、什么不能连。"</p>
+    <p style="margin-top:8px;font-style:normal;font-size:12px;color:var(--fg4)">—— 西安交大 化学/生物方向教师，2026-06-01</p>
+  </div>
+  <p style="margin-top:12px">这位老师完美描述了合成生物学的<b>设计自动化</b>流程。</p>
+</div>
+
+<div class="card">
+  <h3>Cello：基因线路设计自动化标杆工具</h3>
+  <div class="subtitle">MIT / Boston University CIDAR Lab</div>
+  <p style="font-size:12px;color:var(--fg4);margin-bottom:12px">点击每个阶段查看详情</p>
+  <div class="flow">
+    <div class="flow-step" style="border-color:var(--purple);background:var(--purple-bg)" onclick="this.classList.toggle('expanded')">
+      <span class="step-num" style="background:var(--purple)">IN</span><span class="step-title">用户输入</span>
+      <div class="step-detail">
+        <b>1. Verilog代码</b>（硬件描述语言）<br>
+        <code style="background:#e9d5ff;padding:2px 6px;border-radius:4px;font-size:11px">module circuit(output out, input A, B);<br>&nbsp;&nbsp;assign out = A & (~B);<br>endmodule</code><br><br>
+        <b>2. UCF文件</b>：可用生物逻辑门的清单及传递函数<br>
+        <b>3. 约束条件</b>：哪些元件不能共用、宿主菌株限制等
+      </div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num">LS</span><span class="step-title">Stage 1: Logic Synthesis（逻辑综合）</span>
+      <div class="step-detail">Verilog → 真值表 → AND-Inverter图 → NOR-Inverter图<br>用Berkeley ABC工具做逻辑最小化（和芯片设计EDA用的同一套工具！）<br><b>输出</b>：一个纯逻辑的门级网表</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num">TM</span><span class="step-title">Stage 2: Technology Mapping（技术映射）</span>
+      <div class="step-detail">把抽象的NOR/NOT门 → 分配到真实的<b>生物学抑制子(repressor)</b><br><b>核心</b>：信号匹配——每个生物门有实测的Transfer Function<br><b>搜索算法</b>：模拟退火 / 广度优先搜索<br><b>目标</b>：使整个线路输入→输出行为最接近期望的真值表</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num">PL</span><span class="step-title">Stage 3: Placement（布局）</span>
+      <div class="step-detail">把分配好的生物门 → 排列成<b>线性DNA序列</b><br>用Eugene语言处理约束：绝缘子位置、方向、间距<br><b>输出</b>：可以直接送去合成的DNA序列</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step" onclick="this.classList.toggle('expanded')">
+      <span class="step-num">EX</span><span class="step-title">Stage 4: Export（导出）</span>
+      <div class="step-detail">输出<b>SBOL格式</b>文件（合成生物学标准交换格式）<br>可导入其他工具做进一步仿真<br>可直接发送给DNA合成公司（Twist, IDT）制造</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>关键标准与基础设施</h3>
+  <table class="tbl">
+    <tr><th>名称</th><th>是什么</th><th>类比</th></tr>
+    <tr><td><b>iGEM Registry</b></td><td>全球最大标准生物元件库（BioBricks）</td><td>npm / PyPI（代码包管理器）</td></tr>
+    <tr><td><b>SBOL</b></td><td>Synthetic Biology Open Language，数据交换标准</td><td>STEP格式（CAD模型交换）</td></tr>
+    <tr><td><b>SBML</b></td><td>Systems Biology Markup Language，模型描述标准</td><td>Verilog / VHDL</td></tr>
+    <tr><td><b>BioBricks</b></td><td>标准化DNA元件，统一接口可互相拼接</td><td>乐高积木</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>当前瓶颈（也是伐谋的机会）</h3>
+  <div class="toggle-group">
+    <div class="toggle-item" onclick="this.classList.toggle('open')">
+      <div class="toggle-head"><span class="arrow">▶</span> 元件库不够大/不够准</div>
+      <div class="toggle-body"><p>iGEM Registry有质量参差不齐的问题——缺乏持续的社区curation，很多元件的Transfer Function只在特定条件下测过。</p></div>
+    </div>
+    <div class="toggle-item" onclick="this.classList.toggle('open')">
+      <div class="toggle-head"><span class="arrow">▶</span> Cello的局限</div>
+      <div class="toggle-body"><p>只支持NOR/NOT逻辑拓扑，设计规模限于几个门（&lt;10个），搜索空间有限。</p></div>
+    </div>
+    <div class="toggle-item" onclick="this.classList.toggle('open')">
+      <div class="toggle-head"><span class="arrow">▶</span> 设计→实验的gap</div>
+      <div class="toggle-body"><p>Cello设计出来的线路在实验中经常不work——因为模型没考虑代谢负担、宿主效应、随机噪声。</p></div>
+    </div>
+    <div class="toggle-item" onclick="this.classList.toggle('open')">
+      <div class="toggle-head"><span class="arrow">▶</span> 逆向设计缺失</div>
+      <div class="toggle-body"><p>现有工具是"正向"的（给定逻辑→找实现），不支持"我想让细菌在X条件下产Y浓度的Z蛋白"这种<b>目标驱动</b>的设计。</p></div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:20px">最新进展：GenCircuit-RL（2025）</h3>
+  <div class="analogy">
+    <p>MIT最新的GenCircuit-RL用<b>强化学习</b>替代Cello的模拟退火搜索：</p>
+    <p style="margin-top:6px">• 支持<b>自然语言</b>描述功能需求（不需要写Verilog）</p>
+    <p>• 分层验证：逻辑正确性 → 热力学可行性 → 动力学仿真</p>
+    <p>• 可处理更大规模的线路</p>
+  </div>
+
+  <div class="insight">
+    <ul>
+      <li><b>元件推荐</b>：用户描述功能需求 → agent搜索iGEM Registry + 文献 → 推荐最合适的元件组合</li>
+      <li><b>约束满足搜索</b>：本质是组合优化问题——进化引擎天然适配</li>
+      <li><b>仿真验证</b>：组装候选线路后 → 用ODE仿真预测行为 → 自动筛选</li>
+      <li><b>DBTL循环</b>：Design-Build-Test-Learn闭环——和贝叶斯优化类似的迭代</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<!-- ==================== 对比总结 ==================== -->
+<div class="section" id="sec-cmp">
+
+<div class="card">
+  <h2>三种范式对比总结</h2>
+  <div class="subtitle">同一张表看清三种科研范式的本质差异</div>
+  <div style="overflow-x:auto">
+  <table class="tbl">
+    <tr><th>维度</th><th style="color:var(--blue)">机理建模 ODE</th><th style="color:var(--green)">条件优化 DOE/BO</th><th style="color:var(--purple)">基因线路设计</th></tr>
+    <tr><td><b>知识假设</b></td><td>强：必须知道机制</td><td>弱：黑箱也行</td><td>中：知道规则不知最优组合</td></tr>
+    <tr><td><b>核心动作</b></td><td>写方程→求解→拟合</td><td>做实验→建模→推荐→再做</td><td>选元件→组装→仿真→验证</td></tr>
+    <tr><td><b>数据来源</b></td><td>少量精确实验数据</td><td>每轮实验产生新数据</td><td>元件库特性数据</td></tr>
+    <tr><td><b>优化目标</b></td><td>参数值（连续）</td><td>实验条件（混合连续+离散）</td><td>元件组合（离散组合爆炸）</td></tr>
+    <tr><td><b>计算密集度</b></td><td>中（ODE求解）</td><td>低（代理模型轻量）</td><td>中（仿真+搜索）</td></tr>
+    <tr><td><b>实验成本</b></td><td class="hl">低（靠计算）</td><td class="dim">高（真实实验）</td><td class="dim">高（DNA合成+细胞实验）</td></tr>
+    <tr><td><b>迭代周期</b></td><td>分钟级（计算）</td><td>天~周级（实验）</td><td>周~月级（分子克隆）</td></tr>
+    <tr><td><b>典型学科</b></td><td>药动学、生态学、神经科学</td><td>化学合成、材料、培养基</td><td>合成生物学、代谢工程</td></tr>
+    <tr><td><b>代表工具</b></td><td>MATLAB, COPASI, COMSOL</td><td>EDBO, AIFD, JMP</td><td>Cello, Galaxy-SynBioCAD</td></tr>
+  </table>
+  </div>
+
+  <h3 style="margin-top:20px">伐谋适配度</h3>
+  <div class="metric-bar">
+    <div class="metric-label" style="color:var(--blue)">机理建模</div>
+    <div class="metric-fill-bg"><div class="metric-fill" style="width:65%;background:linear-gradient(90deg,#3b82f6,#6366f1)"></div></div>
+    <div class="metric-val" style="color:var(--blue)">★★★☆</div>
+  </div>
+  <div class="metric-bar">
+    <div class="metric-label" style="color:var(--green)">条件优化</div>
+    <div class="metric-fill-bg"><div class="metric-fill" style="width:95%;background:linear-gradient(90deg,#10b981,#059669)"></div></div>
+    <div class="metric-val" style="color:var(--green)">★★★★★</div>
+  </div>
+  <div class="metric-bar">
+    <div class="metric-label" style="color:var(--purple)">基因线路</div>
+    <div class="metric-fill-bg"><div class="metric-fill" style="width:80%;background:linear-gradient(90deg,#8b5cf6,#6d28d9)"></div></div>
+    <div class="metric-val" style="color:var(--purple)">★★★★</div>
+  </div>
+  <p style="font-size:12px;color:var(--fg4);margin-top:8px">条件优化是天然核心场景（闭环迭代=进化引擎本身）；基因线路的组合搜索也天然适配；机理建模的参数优化可做，但建模本身需要领域专家。</p>
+</div>
+</div>
+
+<!-- ==================== 产品启示 ==================== -->
+<div class="section" id="sec-prod">
+
+<div class="card">
+  <h2>对伐谋产品设计的启示</h2>
+  <div class="subtitle">从三种范式中提炼出的产品设计原则</div>
+</div>
+
+<div class="card">
+  <h3>1. 三种范式对应三种不同的"评估器"</h3>
+  <div class="quote">
+    <p>"最难写的是评估器——你最后到底要什么目标？转换成数学上怎么表达？"</p>
+    <p style="font-style:normal;font-size:12px;color:var(--fg4);margin-top:4px">—— 丹宇，西安交大访谈中</p>
+  </div>
+  <table class="tbl" style="margin-top:12px">
+    <tr><th>范式</th><th>评估器逻辑</th><th>数学形式</th></tr>
+    <tr><td style="color:var(--blue)"><b>机理建模</b></td><td>模型预测 vs 实验数据的残差</td><td>最小二乘 Σ(y_pred - y_obs)²</td></tr>
+    <tr><td style="color:var(--green)"><b>条件优化</b></td><td>实验测得的产率/纯度/活性</td><td>标量值（直接来自实验）</td></tr>
+    <tr><td style="color:var(--purple)"><b>基因线路</b></td><td>仿真输出是否匹配真值表 + 动态范围</td><td>逻辑正确性 + 信号分离度</td></tr>
+  </table>
+  <div class="product">
+    <p>伐谋需要为不同范式提供<b>不同类型的评估器模板</b>——不能一套通用。</p>
+  </div>
+</div>
+
+<div class="card">
+  <h3>2. 三种范式的"初始代码"形态完全不同</h3>
+  <table class="tbl">
+    <tr><th>范式</th><th>初始代码长什么样</th></tr>
+    <tr><td style="color:var(--blue)"><b>机理建模</b></td><td>ODE方程组 + 参数定义 + 求解器调用<br><code style="font-size:11px;color:var(--fg3)">scipy.integrate.solve_ivp(model, t_span, y0, args=(k1, k2))</code></td></tr>
+    <tr><td style="color:var(--green)"><b>条件优化</b></td><td>搜索空间定义 + 目标函数 + 约束条件<br><code style="font-size:11px;color:var(--fg3)">space = {'temp': (50,150), 'catalyst': ['Pd','Pt','Ru']}</code></td></tr>
+    <tr><td style="color:var(--purple)"><b>基因线路</b></td><td>元件库定义 + 组装规则 + 功能需求<br><code style="font-size:11px;color:var(--fg3)">module circuit(output out, input A, B); // Verilog</code></td></tr>
+  </table>
+  <div class="product">
+    <p>agent的"澄清阶段"需要问<b>不同的问题</b>——不能用同一套prompt。</p>
+  </div>
+</div>
+
+<div class="card">
+  <h3>3. "人在回路"的位置不同</h3>
+  <div class="gen-grid" style="grid-template-columns:1fr 1fr 1fr">
+    <div class="gen-card" style="border-color:#3b82f633">
+      <div class="gen-icon" style="font-size:22px">📐</div>
+      <div class="gen-title" style="color:var(--blue)">机理建模</div>
+      <div class="gen-desc"><b>建模阶段</b>：写方程需要领域专家<br><b>结果解读</b>：参数是否有物理意义</div>
+    </div>
+    <div class="gen-card" style="border-color:#10b98133">
+      <div class="gen-icon" style="font-size:22px">🧪</div>
+      <div class="gen-title" style="color:var(--green)">条件优化</div>
+      <div class="gen-desc"><b>实验执行</b>：做实验是人/机器人<br><b>结果输入</b>：上传实验数据CSV</div>
+    </div>
+    <div class="gen-card" style="border-color:#6d28d933">
+      <div class="gen-icon" style="font-size:22px">🧬</div>
+      <div class="gen-title" style="color:var(--purple)">基因线路</div>
+      <div class="gen-desc"><b>元件选择</b>：专家判断可靠性<br><b>实验验证</b>：构建并测试线路</div>
+    </div>
+  </div>
+  <div class="product">
+    <p>三种范式意味着三种不同的<b>"人机交互边界"</b>。伐谋需要按范式分支设计澄清策略，而不是用一套通用flow。</p>
+  </div>
+</div>
+
+<div class="card">
+  <h3>总结：按范式分支的产品设计</h3>
+  <div class="oneliner" style="border-color:var(--accent)">
+    不是"一个agent服务所有学科"，而是"一个agent识别范式后，走不同的分支"——不同的澄清问题、不同的初始代码模板、不同的评估器、不同的人机交互边界。
+  </div>
+  <div class="flow" style="margin-top:16px">
+    <div class="flow-step" style="border-color:var(--accent);background:var(--accent-bg)">
+      <span class="step-title" style="color:var(--accent)">用户输入自然语言需求</span>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">
+      <span class="step-title">Agent 识别：属于哪种范式？</span>
+    </div>
+    <div class="flow-arrow" style="display:flex;gap:40px;justify-content:center">↙ ↓ ↘</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;width:100%">
+      <div class="flow-step" style="border-color:var(--blue);font-size:12px;padding:10px;min-width:0">
+        <span class="step-title" style="color:var(--blue);font-size:12px">机理建模分支</span>
+        <div style="font-size:11px;color:var(--fg3);margin-top:6px;text-align:left">澄清：系统变量？方程形式？<br>代码：ODE+求解器<br>评估：残差最小化</div>
+      </div>
+      <div class="flow-step" style="border-color:var(--green);font-size:12px;padding:10px;min-width:0">
+        <span class="step-title" style="color:var(--green);font-size:12px">条件优化分支</span>
+        <div style="font-size:11px;color:var(--fg3);margin-top:6px;text-align:left">澄清：参数范围？约束？<br>代码：搜索空间+BO<br>评估：实验结果数值</div>
+      </div>
+      <div class="flow-step" style="border-color:var(--purple);font-size:12px;padding:10px;min-width:0">
+        <span class="step-title" style="color:var(--purple);font-size:12px">基因线路分支</span>
+        <div style="font-size:11px;color:var(--fg3);margin-top:6px;text-align:left">澄清：功能需求？元件库？<br>代码：组装+仿真<br>评估：真值表匹配</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+</div>
+
+<script>
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('sec-' + btn.dataset.sec).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+</script>
+</body>
+</html>

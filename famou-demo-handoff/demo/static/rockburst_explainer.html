@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>岩爆预测 AI 方法解读</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --fg:#171717;--fg2:#4d4d4d;--fg3:#666;--fg4:#8f8f8f;
+  --bg:#fff;--bg2:#fafafa;--bg3:#f5f5f5;
+  --border:#ebebeb;--border2:#e5e7eb;
+  --r:8px;
+  --shadow:0 0 0 1px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --accent:#e8590c;--accent-bg:#fff4f0;
+  --green:#297a3a;--green-bg:#ecfdf5;
+  --blue:#0068d6;--blue-bg:#ebf5ff;
+  --purple:#6d28d9;--purple-bg:#f5f3ff;
+  --amber:#b45309;--amber-bg:#fffbeb;
+  --red:#dc2626;--red-bg:#fef2f2;
+}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg2);color:var(--fg);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+.container{max-width:720px;margin:0 auto;padding:32px 24px 80px}
+
+/* Header */
+header{margin-bottom:28px}
+header h1{font-size:22px;font-weight:700;color:var(--fg);line-height:1.3}
+header p{font-size:13px;color:var(--fg3);margin-top:8px;line-height:1.6}
+.badge{display:inline-block;font-size:11px;font-weight:500;padding:3px 10px;border-radius:9999px;background:var(--accent-bg);color:var(--accent);margin-top:10px}
+
+/* Navigation */
+.nav{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap;position:sticky;top:0;background:var(--bg2);padding:12px 0;z-index:10;border-bottom:1px solid var(--border)}
+.nav-btn{padding:7px 14px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg3);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.nav-btn:hover{background:var(--bg3);color:var(--fg)}
+.nav-btn.active{background:var(--fg);color:#fff;border-color:var(--fg)}
+
+/* Card */
+.concept-section{display:none}
+.concept-section.active{display:block}
+.card{background:var(--bg);border-radius:12px;padding:28px;margin-bottom:20px;box-shadow:var(--shadow)}
+.card h2{font-size:18px;font-weight:700;color:var(--fg);margin-bottom:4px}
+.card .subtitle{font-size:12px;color:var(--fg4);margin-bottom:18px}
+.card p,.card li{font-size:14px;color:var(--fg2);line-height:1.8}
+.card ul{padding-left:20px;margin:10px 0}
+
+/* Analogy box */
+.analogy{background:#f0fdf4;border-left:3px solid var(--green);padding:16px 20px;border-radius:0 8px 8px 0;margin:16px 0}
+.analogy::before{content:'类比';display:block;font-size:11px;color:var(--green);font-weight:600;margin-bottom:8px;letter-spacing:.3px}
+.analogy p{font-size:13px;color:#166534;line-height:1.7}
+
+/* Domain box */
+.domain{background:var(--amber-bg);border-left:3px solid var(--amber);padding:16px 20px;border-radius:0 8px 8px 0;margin:16px 0}
+.domain::before{content:'地质意义';display:block;font-size:11px;color:var(--amber);font-weight:600;margin-bottom:8px;letter-spacing:.3px}
+.domain p{font-size:13px;color:#92400e;line-height:1.7}
+
+/* Warning box */
+.warning{background:var(--red-bg);border-left:3px solid var(--red);padding:16px 20px;border-radius:0 8px 8px 0;margin:16px 0}
+.warning::before{content:'注意';display:block;font-size:11px;color:var(--red);font-weight:600;margin-bottom:8px}
+.warning p{font-size:13px;color:#991b1b;line-height:1.7}
+
+/* Flow */
+.flow{display:flex;flex-direction:column;gap:0;align-items:center;margin:20px 0}
+.flow-step{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 22px;text-align:center;min-width:300px;cursor:pointer;transition:all .15s;box-shadow:var(--shadow)}
+.flow-step:hover{border-color:#ccc;box-shadow:0 0 0 1px rgba(0,0,0,.08),0 2px 6px rgba(0,0,0,.06)}
+.flow-step .step-title{font-size:13px;font-weight:600;color:var(--fg)}
+.flow-step .step-detail{font-size:12px;color:var(--fg3);margin-top:8px;display:none;text-align:left;line-height:1.7}
+.flow-step.expanded .step-detail{display:block}
+.flow-step.expanded{border-color:var(--blue);background:var(--blue-bg)}
+.flow-arrow{color:var(--fg4);font-size:16px;padding:4px 0}
+.flow-step .click-hint{font-size:10px;color:var(--fg4);margin-top:4px}
+
+/* Comparison table */
+.cmp-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.cmp-table th{text-align:left;font-size:11px;font-weight:600;color:var(--fg4);padding:10px 12px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.3px}
+.cmp-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg2)}
+.cmp-table tr:hover td{background:var(--bg3)}
+.highlight{color:var(--green);font-weight:600}
+.dim{color:var(--fg4)}
+
+/* Quiz */
+.quiz{background:var(--purple-bg);border:1px solid #e9d5ff;border-radius:10px;padding:20px;margin:18px 0}
+.quiz h3{font-size:14px;font-weight:600;color:var(--purple);margin-bottom:12px}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:11px 16px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg);cursor:pointer;font-size:13px;color:var(--fg2);transition:all .15s}
+.quiz-opt:hover{border-color:#c4b5fd;background:#faf5ff}
+.quiz-opt.correct{border-color:var(--green);background:var(--green-bg);color:var(--green);font-weight:500}
+.quiz-opt.wrong{border-color:var(--red);background:var(--red-bg);color:var(--red)}
+.quiz-feedback{margin-top:12px;font-size:13px;color:var(--fg3);display:none;line-height:1.6}
+
+/* Metric bars */
+.metric-bar{display:flex;align-items:center;gap:12px;margin:10px 0}
+.metric-label{font-size:12px;color:var(--fg3);width:130px;flex-shrink:0}
+.metric-fill-bg{flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;border:1px solid var(--border)}
+.metric-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.metric-val{font-size:13px;font-weight:600;width:60px;text-align:right}
+
+/* Code block */
+.code-block{background:var(--bg3);border:1px solid var(--border);padding:16px;border-radius:var(--r);margin:12px 0;font-family:'SF Mono',Consolas,monospace;font-size:13px;color:var(--fg);line-height:2}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>岩爆预测中的 AI 方法 — 概念解读</h1>
+  <p>基于"复现 Op-RF 岩爆预测管线"的实验结果，为地质工程背景的研究者解释涉及的每一个 AI/ML 概念。</p>
+  <span class="badge">适合：懂地质、不懂 AI 的研究者</span>
+</header>
+
+<nav class="nav">
+  <button class="nav-btn active" data-section="pipeline">整体流程</button>
+  <button class="nav-btn" data-section="rf">随机森林</button>
+  <button class="nav-btn" data-section="hyperopt">超参数搜索</button>
+  <button class="nav-btn" data-section="smote">数据平衡</button>
+  <button class="nav-btn" data-section="features">特征重要性</button>
+  <button class="nav-btn" data-section="metrics">评估指标</button>
+  <button class="nav-btn" data-section="compare">模型对比</button>
+  <button class="nav-btn" data-section="next">下一步</button>
+</nav>
+
+<!-- 整体流程 -->
+<div class="concept-section active" id="sec-pipeline">
+  <div class="card">
+    <h2>实验整体流程</h2>
+    <div class="subtitle">从原始数据到最终预测，每一步都做了什么</div>
+    <div class="flow">
+      <div class="flow-step" onclick="this.classList.toggle('expanded')">
+        <div class="step-title">1. 原始数据（679 条岩体样本）</div>
+        <div class="step-detail">每条数据有 3 个测量值：SC（应力系数）、BC（脆性系数）、EEI（弹性能量指数）<br>标签是岩爆等级：0=无、1=轻微、2=中等、3=强烈</div>
+        <div class="click-hint">点击展开详情</div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" onclick="this.classList.toggle('expanded')">
+        <div class="step-title">2. 异常值清洗（删除 34 个离群点）</div>
+        <div class="step-detail">用"孤立森林"算法自动发现数据中的"奇怪样本"——比如一个应力值异常高但标记为"无岩爆"的点。这些点可能是测量错误或标注错误。</div>
+        <div class="click-hint">点击展开详情</div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" onclick="this.classList.toggle('expanded')">
+        <div class="step-title">3. 数据集划分（80% 训练 / 20% 测试）</div>
+        <div class="step-detail">就像考试：80% 的题拿来学习（训练集），20% 的题留到考试那天才看（测试集）。<b>测试集在整个训练过程中绝对不能偷看</b>，否则成绩是"虚高"的。</div>
+        <div class="click-hint">点击展开详情</div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" onclick="this.classList.toggle('expanded')">
+        <div class="step-title">4. SMOTE 数据平衡（516 → 832 条）</div>
+        <div class="step-detail">强烈岩爆的样本很少（数据不均衡）。SMOTE 在少数类样本之间"插值"生成新的合成样本，让每个类别的训练数据量接近。<br><b>只在训练集上做</b>，测试集不动。</div>
+        <div class="click-hint">点击展开详情</div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" onclick="this.classList.toggle('expanded')">
+        <div class="step-title">5. 超参数搜索（100 种组合 × 5 折验证）</div>
+        <div class="step-detail">随机森林有很多"旋钮"可以调（树的数量、树的深度等）。我们随机尝试了 100 种旋钮组合，每种组合用 5 折交叉验证评估，选出最好的那套。</div>
+        <div class="click-hint">点击展开详情</div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" onclick="this.classList.toggle('expanded')">
+        <div class="step-title">6. 最终评估 → ACC=0.853, F1=0.846</div>
+        <div class="step-detail">用从未见过的测试集（129 条）评估。准确率 85.3%，F1 分数 84.6%。与论文报告（ACC=0.96）有差距，主要因为数据集大小不同（论文用 472 条，我们用了全部 679 条）。</div>
+        <div class="click-hint">点击展开详情</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 随机森林 -->
+<div class="concept-section" id="sec-rf">
+  <div class="card">
+    <h2>随机森林（Random Forest）</h2>
+    <div class="subtitle">本实验使用的核心预测算法</div>
+
+    <div class="analogy">
+      <p>想象你要判断一个矿井是否会发生岩爆。你请了 <b>100 位地质专家</b>，每位专家只看到 <b>一部分数据</b>，各自独立给出判断，最后 <b>投票</b> 决定最终答案。</p>
+      <p style="margin-top:8px">这就是随机森林——很多棵"决策树"一起投票。每棵树看到的数据和特征都不完全一样，犯的错误也不同，投票后反而更准确。</p>
+    </div>
+
+    <p style="margin-top:16px"><b>单棵决策树的逻辑：</b></p>
+    <div class="code-block">
+      IF SC &gt; 0.5 AND EEI &gt; 6<br>
+      &nbsp;&nbsp;→ 预测"强烈岩爆"<br>
+      ELSE IF BC &lt; 20<br>
+      &nbsp;&nbsp;→ 预测"轻微岩爆"<br>
+      ELSE<br>
+      &nbsp;&nbsp;→ 预测"无岩爆"
+    </div>
+
+    <div class="domain">
+      <p><b>为什么适合岩爆预测？</b> 岩爆受多个地质参数共同影响（应力、脆性、能量），它们之间的关系是非线性的。随机森林天然擅长捕捉这种"多因素交互"关系，而且不需要你事先假设数学公式。</p>
+    </div>
+
+    <div class="quiz">
+      <h3>小测验：随机森林中的 100 棵树...</h3>
+      <div class="quiz-options">
+        <div class="quiz-opt" data-correct="false" onclick="checkQuiz(this)">A. 每棵树看到的数据完全一样</div>
+        <div class="quiz-opt" data-correct="true" onclick="checkQuiz(this)">B. 每棵树只看到一部分随机抽取的数据和特征</div>
+        <div class="quiz-opt" data-correct="false" onclick="checkQuiz(this)">C. 树越多预测越慢，所以应该尽量少用</div>
+      </div>
+      <div class="quiz-feedback">正确！这就是"随机"的含义——每棵树的训练数据和可用特征都是随机抽取的，让它们犯不同的错误，投票后整体更准。</div>
+    </div>
+  </div>
+</div>
+
+<!-- 超参数搜索 -->
+<div class="concept-section" id="sec-hyperopt">
+  <div class="card">
+    <h2>超参数搜索</h2>
+    <div class="subtitle">为什么需要尝试 100 种组合</div>
+
+    <div class="analogy">
+      <p>你买了一台新的钻机，它有很多旋钮：<b>转速</b>、<b>钻压</b>、<b>冲洗液流量</b>。不同地层需要不同的旋钮设置。你系统地试了 100 种组合，记录每种的钻进效率，最终选最好的那套参数。</p>
+      <p style="margin-top:8px">随机森林也有"旋钮"（超参数），需要调到最优。</p>
+    </div>
+
+    <p style="margin-top:16px"><b>随机森林的主要"旋钮"：</b></p>
+    <table class="cmp-table">
+      <tr><th>参数</th><th>含义</th><th>类比</th></tr>
+      <tr><td>n_estimators</td><td>森林里有多少棵树</td><td>请多少位专家</td></tr>
+      <tr><td>max_depth</td><td>每棵树最多分几层</td><td>每位专家思考的深度</td></tr>
+      <tr><td>min_samples_split</td><td>至少多少样本才继续分裂</td><td>数据太少时停止深究</td></tr>
+      <tr><td>max_features</td><td>每棵树能看到几个特征</td><td>每位专家能看到几项指标</td></tr>
+    </table>
+
+    <p style="margin-top:16px"><b>5 折交叉验证</b> = 把训练数据分成 5 份，轮流拿 1 份做验证、4 份做训练，跑 5 次取平均。避免"运气好碰巧效果好"。</p>
+
+    <div class="domain">
+      <p><b>地质意义：</b> 就像你不会因为一次成功钻探就确定最优参数，交叉验证确保模型在 5 种不同的数据划分下都表现稳定，不是"碰巧"好用。</p>
+    </div>
+  </div>
+</div>
+
+<!-- SMOTE -->
+<div class="concept-section" id="sec-smote">
+  <div class="card">
+    <h2>SMOTE 数据平衡</h2>
+    <div class="subtitle">为什么"强烈岩爆"的样本要被人工增多</div>
+
+    <div class="analogy">
+      <p>679 个矿井样本中，只有 30 个发生过强烈岩爆，但有 400 个从未发生岩爆。如果模型学会"无脑预测不爆"，准确率也能到 59%——但这毫无意义。</p>
+      <p style="margin-top:8px">SMOTE 的做法：在那 30 个"强烈岩爆"样本之间画线，在线段上取新的点，"合成"出更多的强烈岩爆样本，让模型不敢忽视它们。</p>
+    </div>
+
+    <div class="warning">
+      <p><b>SMOTE 只在训练集上做！</b> 测试集必须保持原始分布，否则评估结果是虚假的。这是一个常见的初学者错误。</p>
+    </div>
+
+    <div class="domain">
+      <p><b>地质意义：</b> 强烈岩爆虽然罕见，但一旦发生就是灾难性的。SMOTE 让模型"同等重视"所有等级的岩爆，包括最危险的那些。这跟安全评估中给高危事件更高权重是同一个逻辑。</p>
+    </div>
+  </div>
+</div>
+
+<!-- 特征重要性 -->
+<div class="concept-section" id="sec-features">
+  <div class="card">
+    <h2>特征重要性分析</h2>
+    <div class="subtitle">哪个测量值对岩爆预测最关键？</div>
+
+    <p style="margin-bottom:16px">3 个输入特征对预测的贡献排序：</p>
+
+    <div class="metric-bar">
+      <div class="metric-label">EEI（弹性能量指数）</div>
+      <div class="metric-fill-bg"><div class="metric-fill" style="width:36.5%;background:linear-gradient(90deg,#f97316,#ea580c)"></div></div>
+      <div class="metric-val" style="color:var(--accent)">36.5%</div>
+    </div>
+    <div class="metric-bar">
+      <div class="metric-label">SC（应力系数）</div>
+      <div class="metric-fill-bg"><div class="metric-fill" style="width:35.4%;background:linear-gradient(90deg,#3b82f6,#6366f1)"></div></div>
+      <div class="metric-val" style="color:var(--blue)">35.4%</div>
+    </div>
+    <div class="metric-bar">
+      <div class="metric-label">BC（脆性系数）</div>
+      <div class="metric-fill-bg"><div class="metric-fill" style="width:28.1%;background:linear-gradient(90deg,#10b981,#059669)"></div></div>
+      <div class="metric-val" style="color:var(--green)">28.1%</div>
+    </div>
+
+    <div class="domain" style="margin-top:20px">
+      <p><b>这个排序说得通吗？</b></p>
+      <p style="margin-top:8px"><b>EEI 排第一</b>：弹性能量指数反映岩体中储存的弹性应变能——岩爆本质上就是储存能量的突然释放。与岩爆力学机理高度一致。</p>
+      <p style="margin-top:6px"><b>SC 排第二</b>：应力系数直接反映岩体受力状态。高应力是岩爆的必要条件。</p>
+      <p style="margin-top:6px"><b>BC 排第三</b>：脆性系数反映岩体的破坏模式。脆性岩体更容易发生突发性破坏，但它是辅助判据。</p>
+      <p style="margin-top:8px">✅ <b>特征重要性排序 EEI > SC > BC 与论文结论完全一致</b>，说明模型学到的"知识"和地质力学原理吻合。</p>
+    </div>
+
+    <div class="quiz">
+      <h3>思考题：如果增加一个新特征"围岩类别"（I-V 级），你预计模型精度会...</h3>
+      <div class="quiz-options">
+        <div class="quiz-opt" data-correct="true" onclick="checkQuiz(this)">A. 可能提升，因为围岩等级包含了额外的地质信息</div>
+        <div class="quiz-opt" data-correct="false" onclick="checkQuiz(this)">B. 一定提升，特征越多越好</div>
+        <div class="quiz-opt" data-correct="false" onclick="checkQuiz(this)">C. 一定下降，因为增加了噪声</div>
+      </div>
+      <div class="quiz-feedback">正确！新特征是否有用取决于它是否携带了现有特征没有包含的信息。围岩类别可能与脆性系数有一定相关性，但也可能提供新的判别能力。实际效果需要实验验证。</div>
+    </div>
+  </div>
+</div>
+
+<!-- 评估指标 -->
+<div class="concept-section" id="sec-metrics">
+  <div class="card">
+    <h2>评估指标：ACC 和 F1</h2>
+    <div class="subtitle">0.85 到底算好还是算差？</div>
+
+    <p><b>本实验结果：</b></p>
+    <div class="metric-bar" style="margin-top:14px">
+      <div class="metric-label">ACC（准确率）</div>
+      <div class="metric-fill-bg"><div class="metric-fill" style="width:85.3%;background:var(--green)"></div></div>
+      <div class="metric-val" style="color:var(--green)">0.853</div>
+    </div>
+    <div class="metric-bar">
+      <div class="metric-label">F1 Score</div>
+      <div class="metric-fill-bg"><div class="metric-fill" style="width:84.6%;background:var(--blue)"></div></div>
+      <div class="metric-val" style="color:var(--blue)">0.846</div>
+    </div>
+
+    <div style="margin-top:20px">
+      <p><b>ACC（准确率）</b> = 预测对了多少个 / 总共多少个</p>
+      <p style="margin-top:6px;color:var(--fg3)">129 个测试样本中，预测正确了 110 个 → ACC ≈ 0.853</p>
+    </div>
+
+    <div class="analogy" style="margin-top:16px">
+      <p><b>为什么不只看准确率？</b></p>
+      <p style="margin-top:6px">假设 100 个矿井中只有 5 个会岩爆。模型全部预测"不爆"，准确率 = 95%——看起来很高，但<b>一个岩爆都没预测出来</b>。</p>
+      <p style="margin-top:6px">所以需要 F1 Score：它同时考虑了"预测为岩爆的里面有多少真的是"（精确率）和"真正的岩爆有多少被预测出来了"（召回率）。</p>
+    </div>
+
+    <div class="domain">
+      <p><b>在岩爆预测领域的意义：</b></p>
+      <p style="margin-top:6px">ACC=0.853 意味着大约 85% 的矿井岩爆等级被正确预测。论文报告 ACC=0.96，差距约 11%。主要原因：</p>
+      <ul style="margin-top:6px">
+        <li>论文使用 472 条经过特定清洗的数据，我们用了全部 679 条</li>
+        <li>论文用 Optuna（更智能的搜索），我们用了随机搜索</li>
+      </ul>
+      <p style="margin-top:8px"><b>特征重要性排序与论文完全一致 ✅</b> —— 方法论正确，差距来自数据处理细节。</p>
+    </div>
+  </div>
+</div>
+
+<!-- 模型对比 -->
+<div class="concept-section" id="sec-compare">
+  <div class="card">
+    <h2>模型对比：RF vs SVM vs Op-RF</h2>
+    <div class="subtitle">本实验对比了三种算法</div>
+
+    <table class="cmp-table">
+      <tr><th>模型</th><th>ACC</th><th>F1</th><th>AUC</th><th>说明</th></tr>
+      <tr>
+        <td>SVM</td>
+        <td class="dim">0.579</td><td class="dim">0.579</td><td>0.860</td>
+        <td style="font-size:12px;color:var(--fg4)">找一条线分开不同类别</td>
+      </tr>
+      <tr>
+        <td>普通 RF</td>
+        <td>0.810</td><td>0.814</td><td class="highlight">0.953</td>
+        <td style="font-size:12px;color:var(--fg4)">100 棵树，默认参数</td>
+      </tr>
+      <tr>
+        <td><b>Op-RF</b></td>
+        <td class="highlight">0.853</td><td class="highlight">0.846</td><td>0.951</td>
+        <td style="font-size:12px;color:var(--fg4)">超参数优化后（本实验）</td>
+      </tr>
+    </table>
+
+    <div class="analogy">
+      <p><b>用户追问：换成 XGBoost / LightGBM 会怎样？</b></p>
+      <p style="margin-top:8px">在 679 条数据上，RF / XGBoost / LightGBM 差距通常不大（2-5%）。真正提升精度的途径是：增加更多地质特征（围岩类别、节理发育程度、地下水条件等）。</p>
+    </div>
+
+    <div class="domain">
+      <p><b>实操建议：</b> 数据量小时（<1000条），不要纠结算法选择——它们差距有限。把精力放在收集更多特征、更多数据、以及做好交叉验证上。</p>
+    </div>
+  </div>
+</div>
+
+<!-- 下一步 -->
+<div class="concept-section" id="sec-next">
+  <div class="card">
+    <h2>下一步可以做什么？</h2>
+    <div class="subtitle">从复现到发表，还需要什么</div>
+    <div class="flow">
+      <div class="flow-step" onclick="this.classList.toggle('expanded')">
+        <div class="step-title">1. 对齐论文数据集</div>
+        <div class="step-detail">调整清洗阈值，使数据量接近论文的 472 条，看指标能否接近 ACC=0.96</div>
+        <div class="click-hint">点击展开</div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" onclick="this.classList.toggle('expanded')">
+        <div class="step-title">2. 扩展对比模型</div>
+        <div class="step-detail">加入 XGBoost、LightGBM、SVM-RBF 做完整对比表，与论文 Table 对标</div>
+        <div class="click-hint">点击展开</div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" onclick="this.classList.toggle('expanded')">
+        <div class="step-title">3. SHAP 深度可解释性</div>
+        <div class="step-detail">生成 Beeswarm 图和 Force Plot，看每个样本的预测是怎么做出的。这是论文级别的可视化。</div>
+        <div class="click-hint">点击展开</div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" onclick="this.classList.toggle('expanded')">
+        <div class="step-title">4. 用伐谋进化引擎优化</div>
+        <div class="step-detail">把超参数搜索交给进化引擎——智能进化搜索数千种组合，可能找到更优的参数。</div>
+        <div class="click-hint">点击展开</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.concept-section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('sec-' + btn.dataset.section).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+function checkQuiz(el) {
+  const parent = el.closest('.quiz');
+  if (parent.dataset.answered) return;
+  parent.dataset.answered = 'true';
+  const opts = parent.querySelectorAll('.quiz-opt');
+  const feedback = parent.querySelector('.quiz-feedback');
+  opts.forEach(o => {
+    if (o.dataset.correct === 'true') o.classList.add('correct');
+    else if (o === el && o.dataset.correct === 'false') o.classList.add('wrong');
+  });
+  feedback.style.display = 'block';
+  feedback.style.color = el.dataset.correct === 'true' ? 'var(--green)' : 'var(--red)';
+  if (el.dataset.correct === 'false') feedback.textContent = '再想想！正确答案已标为绿色。';
+}
+</script>
+</body>
+</html>

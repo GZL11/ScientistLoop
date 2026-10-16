@@ -1,0 +1,18 @@
+{
+  "version": "20260716-001-literature-skill-boundary",
+  "created_at": "2026-07-16",
+  "title": "Clarify literature skill routing boundary",
+  "description": "Updates AGENTS so literature-search owns retrieval and screening, while literature-research owns field mapping, gap discovery, research-direction recommendation, and idea ranking.",
+  "source_file": "registry/prompts/agents/files/AGENTS.20260716-001-literature-skill-boundary.md",
+  "runtime_file": "AGENTS.md",
+  "changes": [
+    "Add literature-research to the visible skill list with a distinct synthesis role.",
+    "Change Stage 3-6 from always loading literature-search to selecting literature-search or literature-research by user intent.",
+    "Keep retrieval query/tool details delegated to skill and tool schema versions.",
+    "Require literature-research outputs before summarizing research gaps or idea rankings."
+  ],
+  "rollback": {
+    "target": "20260715-003-markdown-math-format",
+    "notes": "Restore the previous AGENTS snapshot if the routing split causes unexpected skill selection."
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "date": "2026-07-04",
+  "summary": "今天开展了一项具身智能领域的综述论文研究，聚焦「具身基础模型（Embodied Foundation Models）」方向，目标投稿 CoRL 会议。研究以全自动节奏推进，完成了 8 个子方向的真实文献检索，建立了覆盖 20+ 篇核心文献的文献清单，并起草了含摘要、分类法、历时演进分析、对比表和开放挑战的论文初稿。中途触发了孤儿论文门护栏（综述无 results.json），以及图片目录不存在导致架构图未能落盘的问题，两者均已确认或修复后继续推进。整体进度约完成 50%，引用核验、LaTeX 导出、编译核验等后续步骤尚未完成。",
+  "sessions": [
+    {
+      "id": "ses_0d3730194ffeIus1SVG6QwmV0V",
+      "title": "具身智能综述论文（Embodied Foundation Models @ CoRL）",
+      "highlights": "用户请求撰写具身智能综述，经确认聚焦「具身基础模型」（VLA/LLM 驱动机器人/通用策略预训练），采用全自动节奏、目标 CoRL。建立了研究目录 research-runs/embodied-fm-0704-3360/，完成 8 次分子方向文献检索，撰写了 literature.md 和论文初稿 paper.md（含机制中心 3 轴分类法和 Gen I-IV 代际演进框架）。触发孤儿论文门护栏（综述类研究无 results.json 属正常，已确认为本次新建目录产物）。尝试生成分类示意图时因 figures/ 目录不存在导致图片未落盘，创建目录后重新生成成功。论文中约 20+ 条 \\cite{} 引用尚未经 arc_verify_citation 核验，存在 2026 年份引用真实性风险，引用核验、同行评审、LaTeX 导出等步骤尚未执行。"
+    }
+  ],
+  "artifacts": [
+    {
+      "dir": "research-runs/embodied-fm-0704-3360/planning",
+      "files": [
+        "literature.md"
+      ],
+      "note": "文献清单与综述定位，含 20+ 篇核心文献按 A-G 主题分类，附研究空白分析与 baseline 对比配置"
+    },
+    {
+      "dir": "research-runs/embodied-fm-0704-3360/deliverables",
+      "files": [
+        "paper.md"
+      ],
+      "note": "论文初稿，含 Abstract、Introduction、Taxonomy（3 轴机制分类）、历时演进（Gen I-IV）、对比表、Open Challenges、Conclusion 共 7 节"
+    },
+    {
+      "dir": "research-runs/embodied-fm-0704-3360/deliverables/figures",
+      "files": [
+        "taxonomy.png"
+      ],
+      "note": "具身基础模型分类法架构示意图（arc_generate_schematic 生成）"
+    }
+  ],
+  "open_questions": [
+    "论文中约 20+ 条引用尚未经 arc_verify_citation 核验，2026 年份引用（如 li2026rotvla、jawaid2026nac、ortega2026rio 等）真实性存疑，需批量核验",
+    "references.bib 文件尚未创建，paper.md 中的 \\cite{} 无对应 bib 条目，导出 LaTeX 前必须补全",
+    "架构概览图之外的数据可视化图（如时序演进图、benchmark 对比图）尚未产出",
+    "paper.tex（CoRL 模板）尚未导出，arc_fetch_latex_template + arc_latex_check 编译核验未执行",
+    "同行评审（peer-review skill）和质量自检（quality-gate skill）尚未进行",
+    "experiment/results.json 不存在——综述类论文是否需要创建占位文件以绕过孤儿论文门护栏，需明确约定"
+  ]
+}

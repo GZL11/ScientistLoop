@@ -1,0 +1,72 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {},
+  "default_agent": "famou-master",
+  "permission": {
+    "external_directory": "allow",
+    "doom_loop": "allow"
+  },
+  "agent": {
+    "famou-master": {
+      "thinking": { "type": "adaptive" },
+      "reasoningEffort": "high",
+      "permission": {
+        "bash": "allow",
+        "edit": "allow",
+        "write": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "todowrite": "allow",
+        "todoread": "allow",
+        "task": {
+          "famou-build": "allow",
+          "general": "allow"
+        }
+      }
+    },
+    "famou-build": {
+      "permission": {
+        "bash": "allow",
+        "edit": "allow",
+        "write": "allow",
+        "read": "allow",
+        "todowrite": "allow",
+        "todoread": "allow",
+        "task": "deny"
+      }
+    },
+    "famou-evolution": {
+      "permission": {
+        "bash": "allow",
+        "edit": "allow",
+        "write": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "todowrite": "allow",
+        "todoread": "allow",
+        "task": {
+          "famou-evo-builder": "allow"
+        }
+      }
+    },
+    "famou-evo-builder": {
+      "permission": {
+        "bash": "allow",
+        "edit": "allow",
+        "write": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "task": "deny"
+      }
+    }
+  },
+  "plugin": [
+    "./plugins/evolution-loop.ts",
+    "./plugins/fm-evolution.ts",
+    "./plugins/step-limiter.ts",
+    "./plugins/billing-plugin.ts"
+  ]
+}

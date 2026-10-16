@@ -1,0 +1,18 @@
+{
+  "version": "20260808-001-agent-first-template-first",
+  "created_at": "2026-08-08",
+  "title": "Make venue-aware formatting Agent-first and template-first",
+  "description": "Uses the lightweight venue-writing brief during formatting and keeps deterministic template/LaTeX checks at finalization without adding a workflow service.",
+  "source_file": "registry/skills/latex-fmt/files/SKILL.20260808-001-agent-first-template-first.md",
+  "runtime_file": "skill/writing/latex-fmt/SKILL.md",
+  "changes": [
+    "Read planning/venue-writing-brief.md when present before drafting or exporting.",
+    "Use official template evidence before writing venue-specific LaTeX.",
+    "Keep unknown requirements explicit and do not silently switch to generic article.",
+    "Treat arc_latex_check severity as the final deterministic formatting signal."
+  ],
+  "rollback": {
+    "target": "latex-fmt-1.2",
+    "notes": "Restore the prior formatting guidance if the brief convention is not adopted."
+  }
+}

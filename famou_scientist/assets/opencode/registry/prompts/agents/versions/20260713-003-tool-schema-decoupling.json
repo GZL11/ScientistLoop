@@ -1,0 +1,18 @@
+{
+  "version": "20260713-003-tool-schema-decoupling",
+  "created_at": "2026-07-13",
+  "title": "Decouple tool descriptions from AGENTS",
+  "description": "Removes the duplicated tool API table from AGENTS.md and makes OpenCode tool schema the source of truth for tool descriptions and arguments.",
+  "source_file": "registry/prompts/agents/files/AGENTS.20260713-003-tool-schema-decoupling.md",
+  "runtime_file": "AGENTS.md",
+  "changes": [
+    "Replace the explicit true-execution tool table with schema-first tool usage principles.",
+    "Clarify that AGENTS.md owns cross-tool strategy and behavior boundaries, not individual tool API documentation.",
+    "Keep high-level workflow rules that must reference specific tools, such as experiment execution and artifact verification.",
+    "Shorten the environment section so it points to current OpenCode tool schema instead of maintaining a duplicate tool list."
+  ],
+  "rollback": {
+    "target": "20260713-002-parallel-paper-lookup",
+    "notes": "Restore the previous AGENTS snapshot if removing the tool table reduces tool selection quality."
+  }
+}

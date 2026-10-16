@@ -1,0 +1,19 @@
+{
+  "version": "20260810-001-dataset-and-literature-gates",
+  "created_at": "2026-08-10",
+  "title": "Route dataset acquisition and preserve canonical literature",
+  "description": "Routes experiment data preparation through dataset-acquisition and requires unresolved acquisition blockers to be presented as structured user questions before downstream work continues.",
+  "source_file": "registry/prompts/agents/files/AGENTS.20260810-001-dataset-and-literature-gates.md",
+  "runtime_file": "AGENTS.md",
+  "changes": [
+    "Added dataset-acquisition to the experiment skill routing table.",
+    "Made the existing-data/default-path/custom-path checkpoint explicit.",
+    "Required source, size, license, authentication, integrity, and minimal-read checks.",
+    "Required structured user choices for unrecoverable acquisition failures.",
+    "Prevented unresolved data blockers from being silently bypassed into Results or formal paper writing."
+  ],
+  "rollback": {
+    "target": "20260809-002-dialogue-first-research",
+    "notes": "Restore the prior generic data checkpoint without the dedicated acquisition skill."
+  }
+}

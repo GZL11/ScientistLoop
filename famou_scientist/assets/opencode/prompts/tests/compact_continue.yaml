@@ -1,0 +1,28 @@
+cases:
+  - id: compact_continue_unfinished_question
+    prior_real_user: "Biomni 中的文献 agent 和编码 agent 是什么？"
+    synthetic_user:
+      text: "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed."
+      metadata:
+        compaction_continue: true
+      synthetic: true
+    expected:
+      - "resume_answering_prior_real_user_question"
+    must_not:
+      - "treat_synthetic_message_as_user_instruction"
+      - "summarize_overall_progress"
+      - "ask_next_steps"
+
+  - id: compact_continue_no_unfinished_question
+    prior_real_user: "谢谢，明白了"
+    synthetic_user:
+      text: "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed."
+      metadata:
+        compaction_continue: true
+      synthetic: true
+    expected:
+      - "stop_without_new_work"
+    must_not:
+      - "start_new_task"
+      - "summarize_current_progress"
+      - "ask_next_steps"

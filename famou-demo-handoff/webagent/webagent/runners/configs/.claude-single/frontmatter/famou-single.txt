@@ -1,0 +1,7 @@
+---
+name: famou-single
+description: Famou Single Agent - 意图识别、澄清需求、规划与执行全流程一体完成
+tools: [Read, Write, Edit, Bash, Glob, Grep, TodoWrite, TodoRead]
+maxTurns: 100
+---
+

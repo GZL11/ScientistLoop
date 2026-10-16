@@ -1,0 +1,261 @@
+"""
+Multi-Period Replenishment MILP - Baseline Template
+Subtype: multi_period_replenishment_milp
+
+Generic template for multi-period, multi-SKU, multi-location replenishment
+optimization with capacity, integrality, perishability, and cost constraints.
+
+Adapt this template for specific cases (cold storage, perishable goods, etc.)
+by editing the `# ADAPT HERE:` blocks.
+"""
+
+import os
+import json
+import math
+import pandas as pd
+import numpy as np
+import pulp
+
+
+# ---------------------------------------------------------------------------
+# Data loading
+# ---------------------------------------------------------------------------
+def load_inputs(data_dir):
+    """
+    # ADAPT HERE: load case-specific CSVs and return a dict.
+    Required logical entities (rename keys per case):
+      - locations: list of DC/store ids
+      - skus: list of product ids
+      - periods: list of period indices (1..T)
+      - capacity[loc]: cold/storage capacity at location
+      - cold_usage[sku]: volumetric weight per unit (1.0 if not used)
+      - demand[(loc, sku, t)]: demand units
+      - max_order[(sku, t)]: supplier production cap (None = unlimited)
+      - costs[sku]: dict with purchase, holding, waste, shortage
+      - shelf_life[sku]: integer periods (None / large = no expiry)
+      - init_inv[(loc, sku)]: starting inventory (default 0)
+    """
+    raise NotImplementedError("Override load_inputs for the specific case.")
+
+
+# ---------------------------------------------------------------------------
+# Core MILP build & solve
+# ---------------------------------------------------------------------------
+def build_and_solve(params, time_limit=120):
+    locations = params["locations"]
+    skus = params["skus"]
+    periods = params["periods"]
+    capacity = params["capacity"]
+    cold_usage = params["cold_usage"]
+    demand = params["demand"]
+    max_order = params["max_order"]
+    costs = params["costs"]
+    shelf_life = params.get("shelf_life", {s: 10**6 for s in skus})
+    init_inv = params.get("init_inv", {(l, s): 0 for l in locations for s in skus})
+
+    prob = pulp.LpProblem("replenishment", pulp.LpMinimize)
+
+    # CONSTRAINT-CHECK: Order quantity variables must be Integer (not Continuous)
+    order = {(l, s, t): pulp.LpVariable(f"order_{l}_{s}_{t}",
+                                        lowBound=0, cat="Integer")
+             for l in locations for s in skus for t in periods}
+
+    inv = {(l, s, t): pulp.LpVariable(f"inv_{l}_{s}_{t}",
+                                      lowBound=0, cat="Integer")
+           for l in locations for s in skus for t in periods}
+
+    fulfilled = {(l, s, t): pulp.LpVariable(f"fulf_{l}_{s}_{t}",
+                                            lowBound=0, cat="Integer")
+                 for l in locations for s in skus for t in periods}
+
+    shortage = {(l, s, t): pulp.LpVariable(f"short_{l}_{s}_{t}",
+                                           lowBound=0, cat="Integer")
+                for l in locations for s in skus for t in periods}
+
+    waste = {(l, s, t): pulp.LpVariable(f"waste_{l}_{s}_{t}",
+                                        lowBound=0, cat="Integer")
+             for l in locations for s in skus for t in periods}
+
+    # ----- Constraints -----
+    for l in locations:
+        for s in skus:
+            for idx, t in enumerate(periods):
+                prev_inv = init_inv.get((l, s), 0) if idx == 0 else inv[(l, s, periods[idx - 1])]
+
+                # Inventory balance: prev + arrivals - fulfilled - waste = end_inv
+                # CONSTRAINT-CHECK: Inventory non-negativity at every period
+                # (inv var has lowBound=0, plus explicit balance)
+                prob += (inv[(l, s, t)] ==
+                         prev_inv + order[(l, s, t)] - fulfilled[(l, s, t)] - waste[(l, s, t)])
+
+                # Demand satisfaction: fulfilled + shortage = demand
+                d = demand.get((l, s, t), 0)
+                prob += fulfilled[(l, s, t)] + shortage[(l, s, t)] == d
+                prob += fulfilled[(l, s, t)] <= prev_inv + order[(l, s, t)]
+
+    # CONSTRAINT-CHECK: Cold capacity weighted by per-SKU cold_usage at every location
+    # CONSTRAINT-CHECK: Capacity enforced at PEAK (prev_inv + arrivals) AND end-of-period
+    for l in locations:
+        cap = capacity.get(l, float("inf"))
+        if cap == float("inf"):
+            continue
+        for idx, t in enumerate(periods):
+            # End-of-period load
+            prob += (pulp.lpSum(cold_usage.get(s, 1.0) * inv[(l, s, t)] for s in skus)
+                     <= cap), f"cap_end_{l}_{t}"
+
+            # Peak load = previous inventory + arrivals (before fulfillment/waste)
+            peak_terms = []
+            for s in skus:
+                prev = init_inv.get((l, s), 0) if idx == 0 else inv[(l, s, periods[idx - 1])]
+                peak_terms.append(cold_usage.get(s, 1.0) * (prev + order[(l, s, t)]))
+            prob += pulp.lpSum(peak_terms) <= cap, f"cap_peak_{l}_{t}"
+
+    # Supplier production capacity per (sku, t)
+    for s in skus:
+        for t in periods:
+            mx = max_order.get((s, t))
+            if mx is not None and mx < float("inf"):
+                prob += pulp.lpSum(order[(l, s, t)] for l in locations) <= mx
+
+    # Perishability: limit cumulative net inflow over rolling shelf-life window
+    for l in locations:
+        for s in skus:
+            sl = shelf_life.get(s, 10**6)
+            if sl is None or sl >= len(periods):
+                continue
+            # Inventory at end of t cannot exceed orders received in last `sl` periods
+            for idx, t in enumerate(periods):
+                window = periods[max(0, idx - sl + 1): idx + 1]
+                prob += inv[(l, s, t)] <= pulp.lpSum(order[(l, s, tp)] for tp in window) + \
+                                           (init_inv.get((l, s), 0) if idx < sl else 0)
+
+    # ----- Objective -----
+    prob += pulp.lpSum(
+        costs[s].get("purchase", 0) * order[(l, s, t)] +
+        costs[s].get("holding", 0) * inv[(l, s, t)] +
+        costs[s].get("waste", 0) * waste[(l, s, t)] +
+        costs[s].get("shortage", 0) * shortage[(l, s, t)]
+        for l in locations for s in skus for t in periods
+    )
+
+    solver = pulp.PULP_CBC_CMD(msg=0, timeLimit=time_limit)
+    prob.solve(solver)
+
+    return {"order": order, "inv": inv, "fulfilled": fulfilled,
+            "shortage": shortage, "waste": waste, "status": pulp.LpStatus[prob.status]}
+
+
+# ---------------------------------------------------------------------------
+# Output formatting
+# ---------------------------------------------------------------------------
+def write_output(params, sol, out_path):
+    rows = []
+    locations = params["locations"]
+    skus = params["skus"]
+    periods = params["periods"]
+
+    # CONSTRAINT-CHECK: dense grid over all (period × SKU × location), including zeros
+    for t in periods:
+        for s in skus:
+            for l in locations:
+                key = (l, s, t)
+                qty = sol["order"][key].value() if key in sol["order"] else 0
+                qty = int(round(qty or 0))  # integer cast before write
+                # ADAPT HERE: column names must EXACTLY match evaluator spec
+                rows.append({
+                    "period": t,
+                    "product": s,        # rename if case uses 'sku' / 'item'
+                    "location": l,       # rename if case uses 'dc' / 'warehouse'
+                    "order_units": qty,  # NOT 'order_qty' — match spec exactly
+                })
+
+    df = pd.DataFrame(rows)
+    df.to_csv(out_path, index=False)
+    return df
+
+
+# ---------------------------------------------------------------------------
+# Post-solve safety repair (defensive)
+# ---------------------------------------------------------------------------
+def repair_capacity(params, sol):
+    """
+    Defensive trim: if solver returned a capacity violation due to numerical
+    issues, scale orders down at the offending (location, period).
+    """
+    locations = params["locations"]
+    skus = params["skus"]
+    periods = params["periods"]
+    capacity = params["capacity"]
+    cold_usage = params["cold_usage"]
+
+    for l in locations:
+        cap = capacity.get(l, float("inf"))
+        if cap == float("inf"):
+            continue
+        for idx, t in enumerate(periods):
+            peak = 0.0
+            for s in skus:
+                prev = (params["init_inv"].get((l, s), 0) if idx == 0
+                        else int(round(sol["inv"][(l, s, periods[idx - 1])].value() or 0)))
+                arr = int(round(sol["order"][(l, s, t)].value() or 0))
+                peak += cold_usage.get(s, 1.0) * (prev + arr)
+            if peak > cap + 1e-6:
+                # Trim newest orders proportionally
+                excess = peak - cap
+                total_arr_weight = sum(cold_usage.get(s, 1.0) *
+                                       int(round(sol["order"][(l, s, t)].value() or 0))
+                                       for s in skus)
+                if total_arr_weight <= 0:
+                    continue
+                ratio = max(0.0, 1.0 - excess / total_arr_weight)
+                for s in skus:
+                    cur = int(round(sol["order"][(l, s, t)].value() or 0))
+                    sol["order"][(l, s, t)].varValue = math.floor(cur * ratio)
+    return sol
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+def solve(**kwargs):
+    """
+    Evaluator entry. kwargs typically includes:
+      data_dir: path to inputs
+      output_path: csv to write
+    """
+    data_dir = kwargs.get("data_dir", "./data")
+    output_path = kwargs.get("output_path", "./solution.csv")
+
+    params = load_inputs(data_dir)
+    sol = build_and_solve(params, time_limit=kwargs.get("time_limit", 120))
+    sol = repair_capacity(params, sol)
+    df = write_output(params, sol, output_path)
+    return {"status": sol["status"], "rows": len(df), "output_path": output_path}
+
+
+# ---------------------------------------------------------------------------
+# Self-test
+# ---------------------------------------------------------------------------
+if __name__ == "__main__":
+    # Minimal synthetic instance
+    locations = ["DC1", "DC2"]
+    skus = ["A", "B"]
+    periods = list(range(1, 5))
+    params = {
+        "locations": locations,
+        "skus": skus,
+        "periods": periods,
+        "capacity": {"DC1": 200, "DC2": 150},
+        "cold_usage": {"A": 1.0, "B": 2.0},
+        "demand": {(l, s, t): 10 for l in locations for s in skus for t in periods},
+        "max_order": {(s, t): 100 for s in skus for t in periods},
+        "costs": {s: {"purchase": 5, "holding": 1, "waste": 8, "shortage": 20} for s in skus},
+        "shelf_life": {"A": 3, "B": 2},
+        "init_inv": {(l, s): 0 for l in locations for s in skus},
+    }
+    sol = build_and_solve(params, time_limit=20)
+    sol = repair_capacity(params, sol)
+    df = write_output(params, sol, "/tmp/test_solution.csv")
+    print(f"Status: {sol['status']}, rows: {len(df)}")
+    print(df.head(10))

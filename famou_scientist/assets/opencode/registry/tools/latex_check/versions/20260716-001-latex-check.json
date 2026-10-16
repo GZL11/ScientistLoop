@@ -1,0 +1,13 @@
+{
+  "version": "20260716-001-latex-check",
+  "created_at": "2026-07-16",
+  "title": "Split out LaTeX checker",
+  "description": "Creates a standalone registry record for arc_latex_check so compile-time validation gets its own version history.",
+  "source_file": "tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Expose arc_latex_check as an independent tool entry.",
+    "Keep compile-time validation separate from template fetch and rendering tools.",
+    "Preserve the runtime latexmk and log inspection flow."
+  ]
+}

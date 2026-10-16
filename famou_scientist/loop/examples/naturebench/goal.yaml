@@ -1,0 +1,87 @@
+goal: # 当前自主循环的目标基本信息。
+  id: naturebench_s41592_022_01709_7 # 目标唯一标识，同时用于生成工作空间目录名。
+  name: NatureBench Cross-Modal Single-Cell Protein Data Matching # 面向用户、日志和报告展示的目标名称。
+
+benchmark_task: # 可以暴露给实现智能体的公开任务契约。
+  type: naturebench # 外部任务来源类型，标识该任务来自 NatureBench。
+  task_id: s41592-022-01709-7 # NatureBench 的具体 case ID。
+  public_dir: /path/to/workspace/opensource/NatureBench/data/naturebench_data/tasks/s41592-022-01709-7/problem # 只读公开题面与数据目录；不能指向 evaluation 或 ground_truth。
+
+workers: # 配置循环内的工作节点实现方式。
+  idea: # 配置负责持续提出候选方案的节点。
+    type: agent # 使用外部编码智能体读取题面和 ExpBank 后产生结构化 Idea。
+    runtime: claude # 使用 Claude Code CLI 作为 Agent 运行时。
+    model: glm-5.2 # 显式锁定模型；禁止静默回退到 CLI 默认模型。
+    max_turns: 100 # 单次 Idea 生成允许的最大自主交互回合数。
+  implement: # 配置负责修改代码并生成 run.py 的实现节点。
+    type: agent # 使用可操作分支工作区的外部编码智能体，而不是单次 LLM 调用。
+    runtime: claude # 使用 Claude Code CLI 执行实现任务。
+    model: glm-5.2 # Implement Agent 同样显式使用 GLM-5.2。
+    max_turns: 400 # 单次实现任务允许编码智能体使用的最大交互回合数。
+    timeout_sec: 4800 # 单次 Implement 激活最多 80 分钟；Actor 可在 4 小时研究期内多次恢复。3600 秒时 43/181 次 attempt 跑满被掐。
+    deadline_heartbeat: # 接近单次激活 DDL 时恢复同一 Session 并注入一次提交提醒。
+      enabled: true # 可关闭；关闭后 wrapper 不会中断并恢复当前 Agent 激活。
+      trigger_after_sec: 3200 # 运行 53 分钟触发，此时内部 wrapper 约剩 26 分钟提交；与 timeout_sec 等比例（原 2400/3600）。
+    require_submit_candidate: true # 必须显式提交可评测版本，不能用 Agent 进程退出代替提交。
+    submission_grace_sec: 20 # 提交后留给 Agent 收尾的秒数，随后 park 并释放 Implement 槽位。
+  idea_rank: # 配置冲刺阶段对未实现 Idea 排序的 Judge Agent。
+    type: agent # 使用独立 Agent 调用，排序证据与 Idea/Implement 调用分别保存。
+    runtime: claude # Judge 通过同一 Claude Code CLI 运行。
+    model: glm-5.2 # Judge 模型也显式锁定为 GLM-5.2。
+    max_turns: 30 # 排序只做证据阅读和结构化判断，不允许长时间实现。
+    timeout_sec: 1800 # 单次排序最多 30 分钟；旧的 10 分钟上限导致 21% 的调用被中断。
+  experience_summary: # Loop 真正结束后复盘完整 ExpBank，沉淀同领域跨任务经验。
+    type: agent # 使用独立 CLI Agent 总结；失败时控制器会写确定性兜底摘要。
+    runtime: claude # 与 Idea Agent 使用同一 CLI 运行时。
+    model: glm-5.2 # 第一版复用 Idea 模型，避免总结口径因模型切换而漂移。
+    role: experience_summary # 选择只读复盘提示词，不允许继续训练、实现或评测。
+    max_turns: 30 # 收尾总结最多使用 30 个交互回合。
+    timeout_sec: 600 # 收尾最多 10 分钟，并且不继承研究阶段的截止取消信号。
+
+infra: # 配置 Loop 自身的流水线和本地并发策略。
+  pipeline: async # 异步重叠实现与实验阶段；evaluator 仍在可信主线程中串行执行。
+  concurrency: # 各生产者/消费者阶段允许同时在途的任务数。
+    ideas: 1 # 同时运行的 Idea Agent 数量上限。
+    implementations: 1 # 同时运行的 Implement Agent 数量上限。
+    evaluations: 3 # 同时运行的“执行 run.py 并正式评分”任务数量上限。
+  resources: # 提供给 Resource Broker 和资源感知 Agent 的 Task Job 总资源视图。
+    available_cpu: 30 # Task Job 可使用的 CPU 核数。
+    available_gpu: 0 # 当前三个 CPU case 不申请 GPU。
+    available_memory_gib: 128 # Task Job 可使用的内存，单位 GiB。
+    resource_declarations_required: true # Idea/Candidate 必须显式声明每次运行资源。
+  observability: # Agent 轨迹、Token 与费用的统一观测配置。
+    pricing: # 配置价格只生成独立重算值，不覆盖 Claude CLI 返回的原始费用。
+      currency: USD # 下列单价使用的币种。
+      per_million_tokens: # 每一百万 Token 的价格；缓存创建按未命中输入计价。
+        input: 1.4 # 普通输入 Token 单价。
+        cache_creation: 1.4 # 新建 Prompt Cache 的输入 Token 单价。
+        cache_read: 0.26 # 命中 Prompt Cache 后读取 Token 的单价。
+        output: 4.4 # 模型输出 Token 单价。
+      source: user_confirmed # 价格来源；用于审计，不声明为供应商账单。
+      effective_at: "2026-08-11" # 本次确认价格的日期。
+  scheduling: # 可选调度增强；关闭时保持原有异步 FIFO/Actor 优先级。
+    search_policy: # Improve 回合的 New Idea/Refine 配对策略。
+      type: pairwise_improve # 策略实现由独立 search 模块提供，Loop 只调用统一接口。
+      enabled: true # 同时给 ImplementAgent 当前 Refine 和一条 New Idea 供选择或融合。
+    time_aware_idea_ranking: # 研究临近截止时重排尚未实现的普通 Idea。
+      enabled: true # NatureBench 刷分任务默认开启冲刺阶段排序。
+      trigger_remaining_sec: 3600 # 剩余 1 小时时进入冲刺阶段，可按任务覆盖。
+      min_items: 3 # 待实现 Idea 少于 3 条时跳过：两条之间的取舍不值得一次 Judge 调用。
+      judge_timeout_sec: 1800 # 排序最多 30 分钟；同一冲刺窗口不会重复调用。
+    idea_debate: # Idea 入队前先由 Judge 批判，与上面的冲刺期排序对称。
+      enabled: false # 默认关闭，先按 A/B 对照验证再决定是否常开。
+      mode: respond # respond：Judge 只给反馈，作者自己决定改不改（保留作者权，防同质化）；rewrite：Judge 直接改写。
+      max_rounds: 1 # 默认单轮，避免无意义的来回。
+      activation:
+        min_elapsed_sec: 3600 # 兜底闸门：至少跑满 1 小时。实测头 1 小时会产出约 66% 的 Idea。
+        min_evaluated_attempts: 1 # 主闸门：至少 1 条 in-task 评测结果，否则 Judge 无据可批。
+        allow_cross_task_only: false # 打开后可在无 in-task 证据时启用，此时只准引用跨任务经验。
+
+constraints: # 限制自主循环可以消耗的总预算。
+  max_wall_time_hours: 4 # 整个目标允许运行的最长墙钟时间，单位为小时。
+  max_implement_lifetime_sec: 14400 # 单个 ImplementActor 最长存活 4 小时，可被多次唤醒。
+  max_implement_turns_per_actor: 3 # 同一 Idea lineage 最多进行 3 个研究/refine 回合；纯工程修复不占该预算。
+  max_run_attempts_per_actor: 4 # canonical run 最多执行 4 次；本地失败重跑也计入。
+  max_repairs_per_revision: 1 # 同一失败版本最多触发 1 次定向修复，避免反复卡在同类错误。
+  idea_queue_high_watermark: 3 # Idea/continuation 队列达到 3 条后暂停继续生产。
+  evaluation_queue_capacity: 3 # 最多允许 3 个 Candidate 排队或正在评测。

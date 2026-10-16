@@ -1,0 +1,13 @@
+# Overlay the official Terminal-Bench verifier runtime account without
+# changing the task environment or the Claude runtime layers.
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+USER root
+RUN if ! getent passwd solveruser >/dev/null 2>&1; then \
+      groupadd --system --gid 65532 solveruser 2>/dev/null || true; \
+      useradd --system --uid 65532 --gid 65532 --no-create-home \
+        --shell /usr/sbin/nologin solveruser; \
+    fi \
+    && getent passwd solveruser >/dev/null \
+    && test "$(getent passwd solveruser | cut -d: -f3)" = "65532"

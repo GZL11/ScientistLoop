@@ -1,0 +1,38 @@
+{
+  "date": "2026-07-13",
+  "summary": "今天的活动围绕一篇论文的检索展开：用户多次询问 'InterAgent-1.5' 这篇论文，跨多个会话进行了系统性查找。核心发现是目标论文实为 InternAgent-1.5（Inter 被误写，完整名含 'n'），来自上海 AI Lab，arXiv ID 为 2602.08990，主题是端到端自主科学发现。此外有一个独立会话深度解读了 FrontierOR（arXiv:2605.25246），这是 MIT 等团队发布的首个评测 LLM 在大规模运筹优化问题上算法设计能力的 benchmark。当日无新增产物文件落盘。",
+  "sessions": [
+    {
+      "id": "ses_0a4cee32fffecFaPm9LcYgukyS",
+      "title": "用WebSearch查找InterAgent-1.5论文",
+      "highlights": "这是一次工具调用流程测试：要求只用内置 websearch/webfetch，不调用 arc_* 工具查找 InterAgent-1.5。经过9轮工具调用（包括 arXiv 搜索超时、Semantic Scholar 限流、最终通过 Bing 命中），成功定位目标论文实为 InternAgent-1.5（arXiv:2602.08990）。确认该论文为上海 AI Lab 团队发布的统一自主科学发现框架，含生成-验证-演化三子系统，在 GAIA/HLE/GPQA/FrontierScience 等基准上领先。整个过程完整记录了工具调用链与去噪推理过程，具有方法论参考价值。"
+    },
+    {
+      "id": "ses_0a4da0c09ffeSAR5XpRz924dG1",
+      "title": "新对话（InterAgent-1.5 查找）",
+      "highlights": "用户直接询问 InterAgent-1.5，助手从学术库只找到 InterAgent（arXiv:2512.07410），即 Physics-based multi-agent humanoid control 论文，与目标不符。因信息不足主动向用户追问方向、arXiv ID 和机构等线索，未能直接命中目标论文，以开放性追问结束。"
+    },
+    {
+      "id": "ses_0a5269ebeffeJiFzMSQtKgdQOJ",
+      "title": "新对话（InterAgent-1.5 查找）",
+      "highlights": "用户同样询问 InterAgent-1.5，助手检索置信度为 medium，未找到精确匹配。追问用户是否有 arXiv ID、作者或年份信息。用户进一步询问搜到了哪些论文，助手列出了5篇候选，全部为碰巧含'1.5'字样的不相关论文（音视频生成、超导物理、小型语言模型等），最终以再次追问背景信息结束，未能定位目标。"
+    },
+    {
+      "id": "ses_0a5cadb88ffe4OxPisVMNGdP3N",
+      "title": "新对话（InterAgent-1.5 查找 + 上海AI Lab线索）",
+      "highlights": "用户询问 InterAgent-1.5，助手先找到 InterAgent（arXiv:2512.07410）但确认为 humanoid 控制方向，与目标不符。用户补充'上海AI Lab的可能是'这一关键线索后，助手通过 arXiv 定向搜索成功定位 InternAgent-1.5（arXiv:2602.08990），并详细介绍了其三子系统架构、57位作者团队、以及与前作 InternAgent（2505.16938）的传承关系。这是通过用户补充线索实现精准命中的典型案例。"
+    },
+    {
+      "id": "ses_0ae1eb9faffeFtL5Hq2SjhXBnf",
+      "title": "新对话（FrontierOR解读 + InterAgent-1.5查找）",
+      "highlights": "前半段深度解读了 FrontierOR benchmark（arXiv:2605.25246），涵盖：benchmark 构造（180任务，来自20+顶刊，含50题Hard子集）、评测协议（可行性+QTE双指标）、7个主流模型的实测结果（最强 Claude Opus 4.6 one-shot QTE仅0.31）、Self-evolve框架对比（CORAL达0.50）等。会话后半段用户又询问 InternAgent-1.5，此时助手再次未能直接命中，停在追问阶段，显示在无上下文线索情况下名称拼写偏差导致检索困难。"
+    }
+  ],
+  "artifacts": [],
+  "open_questions": [
+    "InternAgent-1.5 与前作 InternAgent（2505.16938）的具体技术差异和性能提升尚未深入对比分析",
+    "FrontierOR 中 CORAL self-evolve 框架相比 EoH/OpenEvolve 的具体机制差异未展开",
+    "多个会话在无补充信息时均无法直接命中 InternAgent-1.5，暴露了名称拼写容错能力的局限——值得跟进是否有更健壮的模糊匹配检索策略",
+    "FrontierOR 评测的7个模型中 Grok-4.20 和 Qwen3-Coder 的具体数字在解读中未完整列出，可补充"
+  ]
+}

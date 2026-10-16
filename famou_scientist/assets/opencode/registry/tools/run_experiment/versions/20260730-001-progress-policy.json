@@ -1,0 +1,18 @@
+{
+  "version": "20260730-001-progress-policy",
+  "created_at": "2026-07-30",
+  "title": "Expose async experiment progress policy",
+  "description": "Adds progress_policy_json to arc_run_experiment so agents can declare heartbeat monitoring strategy for local async jobs.",
+  "source_file": "registry/tools/run_experiment/files/arc.20260730-001-progress-policy.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Add optional progress_policy_json argument to arc_run_experiment.",
+    "Persist parsed progress_policy into .famou_jobs/<job_id>/meta.json.",
+    "Return the parsed policy and an invalid-JSON warning in the async launch response.",
+    "Leave status/result semantics unchanged."
+  ],
+  "rollback": {
+    "target": "20260716-001-run-experiment",
+    "notes": "Remove progress_policy_json handling and restore the original async meta.json fields."
+  }
+}

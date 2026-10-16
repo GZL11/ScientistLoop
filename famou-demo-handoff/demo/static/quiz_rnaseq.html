@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RNA-Seq 概念速学</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --fg:#171717;--fg2:#4d4d4d;--fg3:#666;--fg4:#8f8f8f;
+  --bg:#fff;--bg2:#fafafa;--bg3:#f5f5f5;
+  --border:#ebebeb;--border2:#e5e7eb;
+  --r:8px;
+  --shadow:0 0 0 1px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --concept:#6366f1;--concept-bg:#eef2ff;
+  --tool:#e8590c;--tool-bg:#fff4f0;
+  --stat:#0068d6;--stat-bg:#ebf5ff;
+  --viz:#297a3a;--viz-bg:#ecfdf5;
+}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg2);color:var(--fg);min-height:100vh;display:flex;flex-direction:column;align-items:center;-webkit-font-smoothing:antialiased}
+
+/* Topbar */
+.topbar{width:100%;height:48px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;position:sticky;top:0;z-index:10}
+.topbar-brand{font-size:13px;font-weight:600;color:var(--fg)}
+.topbar-badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:9999px;background:var(--bg3);color:var(--fg4);border:1px solid var(--border);margin-left:10px}
+.topbar-right{margin-left:auto;font-size:11px;color:var(--fg4)}
+
+/* Progress */
+.progress-wrap{width:100%;max-width:560px;padding:24px 20px 0}
+.progress-info{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.progress-label{font-size:12px;font-weight:500;color:var(--fg3)}
+.progress-count{font-size:20px;font-weight:700;color:var(--fg)}
+.progress-count span{color:var(--fg4);font-weight:400}
+.progress-bar{width:100%;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--fg);border-radius:2px;transition:width .3s ease}
+
+/* Card area */
+.card-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;width:100%;max-width:560px}
+
+/* Flip card */
+.card-container{width:100%;max-width:480px;height:280px;perspective:1200px;cursor:pointer;margin-bottom:24px}
+.card-inner{position:relative;width:100%;height:100%;transition:transform .5s ease;transform-style:preserve-3d}
+.card-container.flipped .card-inner{transform:rotateY(180deg)}
+.card-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.08)}
+
+/* Front */
+.card-front{background:var(--bg)}
+.card-front .card-category{font-size:11px;font-weight:600;padding:3px 10px;border-radius:9999px;margin-bottom:20px;letter-spacing:.3px}
+.card-front .card-category.concept{background:var(--concept-bg);color:var(--concept)}
+.card-front .card-category.tool{background:var(--tool-bg);color:var(--tool)}
+.card-front .card-category.stat{background:var(--stat-bg);color:var(--stat)}
+.card-front .card-category.viz{background:var(--viz-bg);color:var(--viz)}
+.card-front .card-term{font-size:28px;font-weight:700;color:var(--fg);text-align:center;line-height:1.3}
+.card-front .card-hint{font-size:12px;color:var(--fg4);margin-top:24px}
+
+/* Back */
+.card-back{background:var(--fg);transform:rotateY(180deg)}
+.card-back .card-explain{font-size:16px;font-weight:500;color:#fff;text-align:center;line-height:1.6;margin-bottom:20px}
+.card-back .card-metaphor{font-size:13px;color:rgba(255,255,255,.6);text-align:center;line-height:1.5;padding:12px 16px;background:rgba(255,255,255,.08);border-radius:8px}
+.card-back .card-metaphor::before{content:'"';font-size:18px;opacity:.4;margin-right:2px}
+.card-back .card-metaphor::after{content:'"';font-size:18px;opacity:.4;margin-left:2px}
+
+/* Buttons */
+.btn-row{display:flex;gap:12px;width:100%;max-width:480px}
+.btn{flex:1;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .12s ease;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-know{background:var(--fg);color:#fff}
+.btn-know:hover{background:#333}
+.btn-again{background:var(--bg);color:var(--fg);border:1px solid var(--border)}
+.btn-again:hover{background:var(--bg3)}
+.btn-flip{background:var(--bg);color:var(--fg3);border:1px solid var(--border);width:100%;max-width:480px}
+.btn-flip:hover{background:var(--bg3);color:var(--fg)}
+
+/* Navigation */
+.nav-row{display:flex;align-items:center;gap:16px;margin-top:16px}
+.nav-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--fg3);transition:all .1s}
+.nav-btn:hover{background:var(--bg3);color:var(--fg)}
+.nav-btn:disabled{opacity:.3;cursor:default}
+.nav-btn svg{width:16px;height:16px}
+.nav-dots{display:flex;gap:4px}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);transition:all .2s}
+.nav-dot.active{background:var(--fg);width:18px;border-radius:3px}
+.nav-dot.done{background:var(--viz)}
+.nav-dot.retry{background:#fbbf24}
+
+/* Keyboard hint */
+.kbd-hint{font-size:11px;color:var(--fg4);margin-top:20px;display:flex;gap:12px;align-items:center}
+.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);font-size:10px;font-weight:500;color:var(--fg3)}
+
+/* Result page */
+.result{display:none;flex-direction:column;align-items:center;text-align:center;padding:40px 20px;width:100%;max-width:480px}
+.result.active{display:flex}
+.result-emoji{font-size:48px;margin-bottom:16px}
+.result-title{font-size:22px;font-weight:700;color:var(--fg);margin-bottom:8px}
+.result-sub{font-size:14px;color:var(--fg3);margin-bottom:24px;line-height:1.5}
+.result-stats{display:flex;gap:24px;margin-bottom:32px}
+.result-stat{display:flex;flex-direction:column;align-items:center;gap:4px}
+.result-stat-num{font-size:28px;font-weight:700}
+.result-stat-num.green{color:var(--viz)}
+.result-stat-num.yellow{color:#b45309}
+.result-stat-label{font-size:11px;color:var(--fg4)}
+.btn-restart{padding:12px 32px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:var(--fg);color:#fff}
+.btn-restart:hover{background:#333}
+.btn-retry-only{padding:10px 24px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--fg);margin-top:10px}
+.btn-retry-only:hover{background:var(--bg3)}
+
+/* Hide card area when result shows */
+.card-area.hidden{display:none}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-brand">RNA-Seq 概念速学</span>
+  <span class="topbar-badge">12 张卡片</span>
+  <span class="topbar-right">Active Recall · Flashcard</span>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-info">
+    <span class="progress-label" id="progressLabel">点击卡片翻转</span>
+    <span class="progress-count"><span id="currentIdx">1</span> <span>/ 12</span></span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:8.3%"></div></div>
+</div>
+
+<div class="card-area" id="cardArea">
+  <div class="card-container" id="cardContainer" onclick="flipCard()">
+    <div class="card-inner" id="cardInner">
+      <div class="card-face card-front">
+        <span class="card-category" id="cardCategory">概念</span>
+        <div class="card-term" id="cardTerm">RNA-Seq</div>
+        <div class="card-hint">点击翻转 →</div>
+      </div>
+      <div class="card-face card-back">
+        <div class="card-explain" id="cardExplain">对全转录组测序，量化每个基因的表达水平</div>
+        <div class="card-metaphor" id="cardMetaphor">给细胞里所有"正在工作的图纸"拍快照</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="btnFlip" style="width:100%;max-width:480px;display:block">
+    <button class="btn btn-flip" onclick="flipCard()">翻转卡片 <span class="kbd" style="margin-left:6px">Space</span></button>
+  </div>
+
+  <div class="btn-row" id="btnRow" style="display:none">
+    <button class="btn btn-again" onclick="markCard(false)">再看看 ↻</button>
+    <button class="btn btn-know" onclick="markCard(true)">认识了 ✓</button>
+  </div>
+
+  <div class="nav-row">
+    <button class="nav-btn" id="prevBtn" onclick="prevCard()" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="nav-dots" id="navDots"></div>
+    <button class="nav-btn" id="nextBtn" onclick="nextCard()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+  <div class="kbd-hint">
+    <span><span class="kbd">←</span><span class="kbd">→</span> 切换</span>
+    <span><span class="kbd">Space</span> 翻转</span>
+    <span><span class="kbd">1</span> 再看看</span>
+    <span><span class="kbd">2</span> 认识了</span>
+  </div>
+</div>
+
+<div class="result" id="resultPage">
+  <div class="result-emoji" id="resultEmoji"></div>
+  <div class="result-title" id="resultTitle"></div>
+  <div class="result-sub" id="resultSub"></div>
+  <div class="result-stats">
+    <div class="result-stat">
+      <div class="result-stat-num green" id="statKnow">0</div>
+      <div class="result-stat-label">已掌握</div>
+    </div>
+    <div class="result-stat">
+      <div class="result-stat-num yellow" id="statRetry">0</div>
+      <div class="result-stat-label">需复习</div>
+    </div>
+  </div>
+  <button class="btn-restart" onclick="restart(false)">再来一轮</button>
+  <button class="btn-retry-only" id="btnRetryOnly" onclick="restart(true)">只复习不会的</button>
+</div>
+
+<script>
+const cards = [
+  { term: 'RNA-Seq', cat: 'concept', catLabel: '概念', explain: '对全转录组测序，量化每个基因的表达水平', metaphor: '给细胞里所有"正在工作的图纸"拍快照' },
+  { term: '差异表达分析', cat: 'concept', catLabel: '概念', explain: '比较实验组与对照组，找出表达量显著变化的基因', metaphor: '找出"加药后谁变忙了、谁摸鱼了"' },
+  { term: 'Counts Matrix', cat: 'concept', catLabel: '概念', explain: '行=基因，列=样品，值=reads计数，分析的起点', metaphor: '一张"基因×样品"的考勤表' },
+  { term: 'DESeq2', cat: 'tool', catLabel: '工具', explain: '基于负二项分布的R包，低重复样本也能用', metaphor: 'DE分析的"瑞士军刀"' },
+  { term: 'Normalization', cat: 'stat', catLabel: '统计', explain: '消除测序深度差异，让样品间可以公平比较', metaphor: '把不同长度的尺子统一成厘米' },
+  { term: 'Log2 Fold Change', cat: 'stat', catLabel: '统计', explain: 'log2FC=1 → 表达量翻倍，-1 → 减半', metaphor: '"倍数感"的对数版，上调下调一目了然' },
+  { term: 'p-value', cat: 'stat', catLabel: '统计', explain: '观察到的差异纯属偶然的概率', metaphor: '抛硬币连出10次正面，你信不信是巧合？' },
+  { term: 'FDR 校正', cat: 'stat', catLabel: '统计', explain: '同时测2万基因，padj < 0.05 才算靠谱', metaphor: '考20000道题总有蒙对的——FDR帮你排除蒙的' },
+  { term: 'Volcano Plot', cat: 'viz', catLabel: '可视化', explain: 'X轴 log2FC，Y轴 -log10(p)，一眼定位显著基因', metaphor: '火山喷发图：左右两翼"喷出来的"才是显著的' },
+  { term: 'MA Plot', cat: 'viz', catLabel: '可视化', explain: 'X轴平均表达量，Y轴 log2FC，检查偏差', metaphor: '另一个视角看DE：表达量越高的基因可信度越高' },
+  { term: 'PCA', cat: 'viz', catLabel: '可视化', explain: '高维降到2D，看样品是否按实验组聚类', metaphor: '把100维压成一张"鸟瞰图"，看谁跟谁站一起' },
+  { term: 'Batch Effect', cat: 'concept', catLabel: '概念', explain: '不同实验批次引入的技术噪声，必须去除', metaphor: '两拨人用不同厨房做同一道菜——味道差异来自厨房不是菜谱' },
+];
+
+let current = 0;
+let deck = [...Array(cards.length).keys()];
+let results = {};
+let isFlipped = false;
+
+function renderDots() {
+  const dots = document.getElementById('navDots');
+  dots.innerHTML = deck.map((_, i) => {
+    let cls = 'nav-dot';
+    if (i === current) cls += ' active';
+    else if (results[deck[i]] === true) cls += ' done';
+    else if (results[deck[i]] === false) cls += ' retry';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+}
+
+function renderCard() {
+  const c = cards[deck[current]];
+  document.getElementById('cardCategory').className = 'card-category ' + c.cat;
+  document.getElementById('cardCategory').textContent = c.catLabel;
+  document.getElementById('cardTerm').textContent = c.term;
+  document.getElementById('cardExplain').textContent = c.explain;
+  document.getElementById('cardMetaphor').textContent = c.metaphor;
+  document.getElementById('currentIdx').textContent = current + 1;
+  document.getElementById('progressFill').style.width = ((current + 1) / deck.length * 100) + '%';
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = current === deck.length - 1;
+
+  unflip();
+  renderDots();
+}
+
+function flipCard() {
+  const container = document.getElementById('cardContainer');
+  isFlipped = !isFlipped;
+  if (isFlipped) {
+    container.classList.add('flipped');
+    document.getElementById('btnFlip').style.display = 'none';
+    document.getElementById('btnRow').style.display = 'flex';
+    document.getElementById('progressLabel').textContent = '你认识这个概念吗？';
+  } else {
+    unflip();
+  }
+}
+
+function unflip() {
+  isFlipped = false;
+  document.getElementById('cardContainer').classList.remove('flipped');
+  document.getElementById('btnFlip').style.display = 'block';
+  document.getElementById('btnRow').style.display = 'none';
+  document.getElementById('progressLabel').textContent = '点击卡片翻转';
+}
+
+function markCard(known) {
+  results[deck[current]] = known;
+  renderDots();
+  if (current < deck.length - 1) {
+    current++;
+    renderCard();
+  } else {
+    showResult();
+  }
+}
+
+function nextCard() {
+  if (current < deck.length - 1) { current++; renderCard(); }
+}
+
+function prevCard() {
+  if (current > 0) { current--; renderCard(); }
+}
+
+function showResult() {
+  document.getElementById('cardArea').classList.add('hidden');
+  document.getElementById('resultPage').classList.add('active');
+  const known = Object.values(results).filter(v => v === true).length;
+  const retry = Object.values(results).filter(v => v === false).length;
+  document.getElementById('statKnow').textContent = known;
+  document.getElementById('statRetry').textContent = retry;
+
+  if (retry === 0) {
+    document.getElementById('resultEmoji').textContent = '🎉';
+    document.getElementById('resultTitle').textContent = '全部掌握！';
+    document.getElementById('resultSub').textContent = '你已经掌握了RNA-Seq差异表达分析的全部核心概念。';
+    document.getElementById('btnRetryOnly').style.display = 'none';
+  } else if (known >= retry) {
+    document.getElementById('resultEmoji').textContent = '👍';
+    document.getElementById('resultTitle').textContent = '不错的开始';
+    document.getElementById('resultSub').textContent = `还有 ${retry} 个概念需要巩固，再来一轮试试？`;
+    document.getElementById('btnRetryOnly').style.display = 'block';
+  } else {
+    document.getElementById('resultEmoji').textContent = '💪';
+    document.getElementById('resultTitle').textContent = '继续加油';
+    document.getElementById('resultSub').textContent = `${retry} 个概念还不熟，多看几遍就好了。`;
+    document.getElementById('btnRetryOnly').style.display = 'block';
+  }
+}
+
+function restart(retryOnly) {
+  if (retryOnly) {
+    deck = Object.entries(results).filter(([_, v]) => v === false).map(([k]) => parseInt(k));
+    if (deck.length === 0) deck = [...Array(cards.length).keys()];
+  } else {
+    deck = [...Array(cards.length).keys()];
+  }
+  current = 0;
+  results = {};
+  document.getElementById('resultPage').classList.remove('active');
+  document.getElementById('cardArea').classList.remove('hidden');
+  document.getElementById('progressFill').style.width = ((1) / deck.length * 100) + '%';
+  renderCard();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') nextCard();
+  else if (e.key === 'ArrowLeft') prevCard();
+  else if (e.key === ' ') { e.preventDefault(); flipCard(); }
+  else if (e.key === '1' && isFlipped) markCard(false);
+  else if (e.key === '2' && isFlipped) markCard(true);
+});
+
+renderDots();
+renderCard();
+</script>
+</body>
+</html>

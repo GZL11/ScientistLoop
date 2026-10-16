@@ -1,0 +1,17 @@
+{
+  "version": "20260715-002-agents-remove-paper-lookup-skill-gate",
+  "created_at": "2026-07-15",
+  "title": "Remove paper lookup skill gate from AGENTS",
+  "description": "Removes the lightweight-mode rule that forced paper identity lookup to load literature-search, keeping AGENTS decoupled from retrieval policy.",
+  "source_file": "registry/prompts/agents/files/AGENTS.20260715-002-agents-remove-paper-lookup-skill-gate.md",
+  "runtime_file": "AGENTS.md",
+  "changes": [
+    "Remove the lightweight paper-identity load-skill rule.",
+    "Keep AGENTS focused on task boundaries and non-expansion behavior.",
+    "Leave retrieval policy to enabled tools, skill versions, and OpenCode native tools."
+  ],
+  "rollback": {
+    "target": "20260715-001-agents-paper-lookup-load-skill",
+    "notes": "Restore the previous AGENTS snapshot if a skill gate is needed again."
+  }
+}

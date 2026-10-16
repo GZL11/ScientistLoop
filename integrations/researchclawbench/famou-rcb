@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#
+# famou-rcb — DEPRECATED 兼容兜底。
+#
+# 已迁移：RCB 接入逻辑（含适配器脚本 famou_rcb.py）现在收敛进评测套件
+# ../../benchmark/researchclawbench/（run_eval.sh + register_famou.py + famou_rcb.py + README.md）。
+# 本文件仅为兼容「已在 RCB agents.json 里写死本路径」的旧配置——直接转发到新脚本。
+#
+# 新接入请用同目录 register_famou.py 自动写入的绝对路径命令，别再引用本文件。
+#
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec python3 "$HERE/../../benchmark/researchclawbench/famou_rcb.py" "$@"

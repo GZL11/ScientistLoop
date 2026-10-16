@@ -1,0 +1,122 @@
+# 构建系统配置
+# PEP 517 规定的构建系统配置，指定构建工具和后端
+[build-system]
+# 构建时需要的依赖
+requires = ["hatchling"]
+# 构建后端，使用 hatchling 替代传统的 setuptools
+build-backend = "hatchling.build"
+
+# 项目元数据配置
+# PEP 621 规定的项目核心元数据
+[project]
+# 项目名称，将用于发布和安装
+name = "famou-scientist"
+# 项目版本，1.0.0 以上版本被视为正式发布版本
+# 修改版本号时请遵循：<内部版本规范文档>
+version = "0.1.0"
+# 项目简介，不支持非英文字符
+description = "A scientific writing and autonomous discovery agent: literature review, experimentation and paper drafting, plus a closed loop over an evolving solution graph."
+# README 文件路径，用于生成长描述
+readme = "README.md"
+# Python 版本要求
+# 真执行内核纯 stdlib、无 3.12 专属语法，doctor 也只要求 >=3.10，故下限取 3.10。
+requires-python = ">=3.10"
+# 许可证信息
+license = { text = "MIT" }
+# 作者信息列表
+authors = [
+    { name = "gezengle", email = "gezengle@users.noreply.github.com" }
+]
+# 关键词，用于包索引和搜索
+keywords = ["opencode", "opencode-plugin", "research", "agent", "ai-scientist"]
+# 项目分类，用于 PyPI 分类（如果项目不打算开源可以忽略）
+# 完整分类列表：https://pypi.org/pypi?%3Aaction=list_classifiers
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12"
+]
+# 项目依赖列表
+# 真执行内核仍主要使用 stdlib；PyYAML 用于读取带注释的标准 goal YAML。
+# OpenCode 由用户自行 `npm i -g opencode-ai` 安装，不是 Python 依赖。
+dependencies = [
+    "PyYAML>=6.0",
+    # Proxy verifiers for DICOM-backed TBS tasks inspect public headers with
+    # pydicom.  Keep this dependency in the controller environment rather
+    # than relying on the task-owned official verifier image by accident.
+    "pydicom>=2.4,<3",
+]
+
+# 可选依赖配置，可通过 pip install package[test] 安装
+[project.optional-dependencies]
+# 测试相关依赖
+test = [
+    "pytest",
+    "mock"
+]
+
+[tool.pytest.ini_options]
+# 只收集主项目测试，避免把 research-runs、handoff 等嵌套项目当成当前包测试。
+testpaths = [
+    "famou_scientist/tests",
+    "famou_scientist/loop/tests",
+]
+
+# 项目相关 URL 配置
+[project.urls]
+# 项目主页
+Homepage = "https://github.com/GZL11/ScientistLoop"
+# 更新日志文件链接
+Changelog = "CHANGELOG.md"
+
+# 命令行入口点配置
+[project.scripts]
+# 格式：命令名 = 模块路径:函数名
+famou-scientist = "famou_scientist.cmdline:main"
+
+# Hatch 构建工具配置
+[tool.hatch.build]
+# 要包含的 Python 包
+packages = ["famou_scientist"]
+# 要包含的数据文件（plugin 资产：tool/hook 的 TS、Python 内核、28 个 skill、
+# AGENTS.md、opencode.json）。这些是非 .py 文件，必须显式 include 才会进 wheel。
+include = [
+    "famou_scientist/assets/**",
+    "famou_scientist/loop/examples/**",
+    "famou_scientist/loop/prompts/**",
+    "famou_scientist/scripts/**",
+    "famou_scientist/vis/trace_viewer.html"
+]
+artifacts = [
+    "famou_scientist/assets/**",
+    "famou_scientist/loop/examples/**",
+    "famou_scientist/loop/prompts/**",
+    "famou_scientist/scripts/**",
+    "famou_scientist/vis/trace_viewer.html"
+]
+# 排除运行时垃圾：OpenCode 启动时会在 config dir 自动装 node_modules、生成 .gitignore /
+# package 锁文件、Python 会留 __pycache__。这些绝不能进 wheel（会让包体积暴涨且无意义）。
+exclude = [
+    "**/node_modules/**",
+    "**/__pycache__/**",
+    "**/*.pyc",
+    "famou_scientist/loop/tests/**",
+    "famou_scientist/assets/opencode/.gitignore",
+    "famou_scientist/assets/opencode/package.json",
+    "famou_scientist/assets/opencode/package-lock.json",
+    "famou_scientist/assets/opencode/bun.lock",
+]
+
+# wheel 包构建配置
+[tool.hatch.build.targets.wheel]
+# 指定要打包的 Python 包
+packages = ["famou_scientist"]
+# wheel 包输出目录
+output-dir = "output/dist"
+
+# 源码包构建配置
+[tool.hatch.build.targets.sdist]
+# 源码包输出目录
+output-dir = "output/dist"

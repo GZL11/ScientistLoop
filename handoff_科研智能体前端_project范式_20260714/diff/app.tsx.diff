@@ -1,0 +1,695 @@
+--- famou-scientist/famou_scientist/assets/web/src/app.tsx	2026-07-08 14:08:10
++++ handoff_伐谋前端_project范式_20260714/code/src/app.tsx	2026-07-15 00:00:46
+@@ -523,6 +523,37 @@
+ function saveStarred(list) {
+   try { localStorage.setItem("famou.starred", JSON.stringify(list || [])) } catch {}
+ }
++
++// ── 项目（Project）分组：纯前端一层，不改后端 session 机制 ──
++// projects: [{id, name}]；映射 sessionId → projectId 存在各自 project 里不便查，故单独存映射。
++// 内置「未归档对话」项目 id 固定为 UNARCHIVED，承接未归属任何项目的散聊（= 现状的全局会话）。
++const UNARCHIVED = "__unarchived__"
++function loadProjects() {
++  try { const s = localStorage.getItem("famou.projects"); const a = s ? JSON.parse(s) : []; return Array.isArray(a) ? a : [] } catch { return [] }
++}
++function saveProjects(list) {
++  try { localStorage.setItem("famou.projects", JSON.stringify(list || [])) } catch {}
++}
++function loadSessProj() {
++  try { const s = localStorage.getItem("famou.sessProj"); const o = s ? JSON.parse(s) : {}; return o && typeof o === "object" ? o : {} } catch { return {} }
++}
++function saveSessProj(map) {
++  try { localStorage.setItem("famou.sessProj", JSON.stringify(map || {})) } catch {}
++}
++function loadCurProj() {
++  try { return localStorage.getItem("famou.curProj") || UNARCHIVED } catch { return UNARCHIVED }
++}
++function saveCurProj(pid) {
++  try { localStorage.setItem("famou.curProj", pid || UNARCHIVED) } catch {}
++}
++function newProjectId() { return "p_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }
++// 文献→项目归属：收藏/上传文献时记录它属于哪个项目（key=paperKey，value=projectId；未归档=UNARCHIVED）。
++function loadPaperProj() {
++  try { const s = localStorage.getItem("famou.paperProj"); const o = s ? JSON.parse(s) : {}; return o && typeof o === "object" ? o : {} } catch { return {} }
++}
++function savePaperProj(map) {
++  try { localStorage.setItem("famou.paperProj", JSON.stringify(map || {})) } catch {}
++}
+ // 「深入解读」指令：把论文（名字+链接）交给研究助手做**纯论文精读**（不牵扯当前课题）。
+ function deepDivePrompt(p) {
+   const link = paperLink(p) || (p.arxiv_id ? "https://arxiv.org/abs/" + p.arxiv_id : "")
+@@ -787,13 +818,50 @@
+   out = out.replace(/<\/?think>/gi, "")
+   return out
+ }
++// 文献引用联动：把正文里的 [n] 变成可点上标 sup.cite-num（点击→跳右栏对应文献）。
++// 自包含 rehype 插件（无外部依赖）；只在下面 TextBlock 里用，不影响 PaperFocus/工作区 md 渲染。
++function rehypeCiteNum() {
++  const SKIP = new Set(["code", "a", "sup", "pre"])
++  function walk(node, parent) {
++    if (!node) return
++    if (node.type === "element" && SKIP.has(node.tagName)) return
++    if (node.type === "text" && parent && /\[\d+\]/.test(node.value)) {
++      const parts = []
++      let last = 0, m
++      const re = /\[(\d+)\]/g
++      while ((m = re.exec(node.value))) {
++        if (m.index > last) parts.push({ type: "text", value: node.value.slice(last, m.index) })
++        parts.push({
++          type: "element", tagName: "sup",
++          properties: { className: ["cite-num"], "data-cite": m[1] },
++          children: [{ type: "text", value: m[1] }],
++        })
++        last = m.index + m[0].length
++      }
++      if (last < node.value.length) parts.push({ type: "text", value: node.value.slice(last) })
++      const i = parent.children.indexOf(node)
++      if (i >= 0) parent.children.splice(i, 1, ...parts)
++      return
++    }
++    if (node.children) for (const c of [...node.children]) walk(c, node)
++  }
++  return (tree) => walk(tree, null)
++}
++// 点正文 [n]：广播事件给右栏文献面板（跳转+高亮）。
++function onCiteNumClick(e) {
++  const el = e.target && e.target.closest && e.target.closest("sup.cite-num")
++  if (!el) return
++  const n = el.getAttribute("data-cite")
++  if (n) window.dispatchEvent(new CustomEvent("famou:cite-jump", { detail: { n } }))
++}
++
+ // React.memo：只有 part 引用变化(即这段文本被追加了新增量)才重渲染。配合 appendDelta/upsertPart
+ // 「只克隆被改动的消息/part」，流式期间历史消息的 Markdown 不再被反复重解析 → 消除长对话卡顿。
+ const TextBlock = React.memo(function TextBlock({ part }) {
+   if (!part.text || !part.text.trim()) return null
+   const text = maskPath(stripThink(part.text)) // 显示层：research-runs/ → workspace/
+   if (!text || !text.trim()) return null
+-  return <div className="assistant-text"><Markdown remarkPlugins={MD_REMARK} rehypePlugins={MD_REHYPE}>{text}</Markdown></div>
++  return <div className="assistant-text" onClick={onCiteNumClick}><Markdown remarkPlugins={MD_REMARK} rehypePlugins={[...MD_REHYPE, rehypeCiteNum]}>{text}</Markdown></div>
+ })
+ // 划词工具条：选中 agent 回复文本后浮现，复制 + 三个追问按钮。
+ // sel = { text, x, y } | null（x/y 为视口坐标，定位在选区上方居中）
+@@ -1959,17 +2027,22 @@
+   return out
+ }
+ 
+-// 单篇文献卡片（★ 收藏 + 悬停「深入解读」+ 大屏 + 原文）。compact=资产侧栏紧凑版（不显摘要）
+-function LitCard({ p, onFocus, starred, onToggleStar, onDeepDive, compact }) {
++// 单篇文献卡片（★ 收藏 + 悬停「深入解读」+ 大屏 + 原文 + 引用片段）。compact=资产侧栏紧凑版（不显摘要/片段）
++function LitCard({ p, num, onFocus, starred, onToggleStar, onDeepDive, compact }) {
+   const link = paperLink(p)
++  // 引用片段：本研究引用了这篇的哪几句。兼容 ["..."] / [{text}] / [{snippet}]
++  const cites = (Array.isArray(p.citations) ? p.citations : []).map((c) => (typeof c === "string" ? c : (c.text || c.snippet || ""))).filter(Boolean)
++  const [citeOpen, setCiteOpen] = useState(false)
+   return (
+-    <div className={"lit-card" + (compact ? " compact" : "")}>
++    <div className={"lit-card" + (compact ? " compact" : "")} id={num ? "litcard-" + num : undefined}>
+       <div className="lit-card-top">
+-        <div className="lit-title" onClick={() => onFocus(p)} title="点击大屏展示">{p.title}</div>
++        <div className="lit-title" onClick={() => onFocus(p)} title="点击大屏展示">
++          {!compact && num ? <span className="lit-num">{num}</span> : null}{p.title}
++        </div>
+         <button
+           type="button"
+           className={"lit-star" + (starred ? " on" : "")}
+-          title={starred ? "取消收藏" : "收藏到资产"}
++          title={starred ? "取消收藏" : "收藏到文献库"}
+           onClick={(e) => { e.stopPropagation(); onToggleStar && onToggleStar(p) }}
+         >
+           <Icon name="star" size={15} style={starred ? { fill: "currentColor" } : undefined} />
+@@ -1977,6 +2050,25 @@
+       </div>
+       <div className="lit-meta">{paperAuthors(p, 3)}{p.year ? " · " + p.year : ""}</div>
+       {!compact && p.abstract ? <div className="lit-abs">{p.abstract}</div> : null}
++
++      {/* 引用片段：本研究引用了这篇的哪几句 */}
++      {!compact && cites.length > 0 && (
++        <div className="lit-cites">
++          <button
++            type="button"
++            className={"lit-cites-toggle" + (citeOpen ? " open" : "")}
++            onClick={(e) => { e.stopPropagation(); setCiteOpen((v) => !v) }}
++          >
++            <span className="lit-cites-caret">▸</span>引用片段 {cites.length}
++          </button>
++          {citeOpen && (
++            <div className="lit-cites-body">
++              {cites.map((t, i) => <div className="lit-cite" key={i}>“{t}”</div>)}
++            </div>
++          )}
++        </div>
++      )}
++
+       <div className="lit-actions">
+         {link
+           ? <a className="file-dl" href={link} target="_blank" rel="noreferrer"><Icon name="link" size={13} /> 原文</a>
+@@ -1996,9 +2088,8 @@
+ }
+ 
+ // 一个小领域分组（可折叠）
+-function LitGroup({ group, idx, onFocus, starredKeys, onToggleStar, onDeepDive, compact }) {
++function LitGroup({ group, idx, numByKey, onFocus, starredKeys, onToggleStar, onDeepDive, compact }) {
+   const [open, setOpen] = useState(true)
+-  const hue = LIT_HUES[idx % LIT_HUES.length]
+   const label = translateLitLabel(group.query)
+   return (
+     <div className="lit-group">
+@@ -2007,9 +2098,8 @@
+         onClick={() => setOpen((v) => !v)}
+         title={group.query}
+       >
+-        <span className="lit-group-dot" style={{ background: hue }} />
+         <span className="lit-group-name">{label}</span>
+-        <span className="lit-group-count" style={{ color: hue, borderColor: hue }}>{group.papers.length}</span>
++        <span className="lit-group-count">{group.papers.length}</span>
+         <span className={"lit-group-caret" + (open ? " open" : "")}>▸</span>
+       </div>
+       {open && (
+@@ -2018,6 +2108,7 @@
+             <LitCard
+               key={(p.doi || p.title) + "_" + i}
+               p={p}
++              num={numByKey ? numByKey.get(paperKey(p)) : undefined}
+               onFocus={onFocus}
+               starred={starredKeys ? starredKeys.has(paperKey(p)) : false}
+               onToggleStar={onToggleStar}
+@@ -2041,14 +2132,18 @@
+     )
+   }
+   const groups = groupLiterature(papers)
++  // 全局序号：按 papers 出现顺序 1..n，供正文 [n] 引用定位；同一篇（doi/title）唯一编号
++  const numByKey = new Map()
++  papers.forEach((p, i) => { const k = paperKey(p); if (!numByKey.has(k)) numByKey.set(k, numByKey.size + 1) })
+   return (
+     <div className="lit-list">
+-      <div className="lit-count">共 {papers.length} 篇 · {groups.length} 个方向 · 点 ☆ 收藏到左侧资产</div>
++      <div className="lit-count">共 {papers.length} 篇 · {groups.length} 个方向 · 点 ☆ 收藏到文献库</div>
+       {groups.map((g, gi) => (
+         <LitGroup
+           key={g.query + "_" + gi}
+           group={g}
+           idx={gi}
++          numByKey={numByKey}
+           onFocus={onFocus}
+           starredKeys={starredKeys}
+           onToggleStar={onToggleStar}
+@@ -2163,7 +2258,7 @@
+         className="search-input"
+         type="text"
+         value={q}
+-        placeholder="搜对话 + 资产"
++        placeholder="搜对话 + 项目"
+         onChange={onChange}
+         onFocus={() => setFocused(true)}
+         onBlur={() => setTimeout(() => setFocused(false), 150)}
+@@ -2365,13 +2460,196 @@
+ // kbData={root:[未分类文件], groups:[{name,files}]} 由 App 维护（分组=knowledge-base/ 下的子目录）。
+ const KB_ACCEPT = ".pdf,.doc,.docx,.md,.txt,.csv,.tsv,.json,.tex,.bib,.py,.yaml,.yml,.toml,.ipynb,.xlsx,.xls"
+ // 侧栏入口条：点击 → onOpen()（打开全屏），不再就地展开。
++// 项目切换器：当前项目 + 下拉（全部项目 / 各项目 / 未归档），下方独立「新建项目」按钮。
++function ProjectSwitcher({ projects, curProj, curProjName, unarchivedId, onSelect, onNewProject, onOpenAll }) {
++  const [open, setOpen] = useState(false)
++  return (
++    <div className="proj-switch">
++      <div className="proj-cur" onClick={() => setOpen((v) => !v)} title="切换项目">
++        <Icon name="folder" size={14} />
++        <span className="proj-cur-name">{curProjName}</span>
++        <span className="proj-cur-car">▾</span>
++      </div>
++      {open && (
++        <div className="proj-menu">
++          <div className="proj-menu-item accent" onClick={() => { setOpen(false); onOpenAll && onOpenAll() }}>⊞ 全部项目 · 新建 / 管理</div>
++          <div className="proj-menu-sep" />
++          {projects.map((p) => (
++            <div
++              key={p.id}
++              className={"proj-menu-item" + (p.id === curProj ? " cur" : "")}
++              onClick={() => { setOpen(false); onSelect(p.id) }}
++            >{p.name}</div>
++          ))}
++          <div className="proj-menu-sep" />
++          <div
++            className={"proj-menu-item dim" + (curProj === unarchivedId ? " cur" : "")}
++            onClick={() => { setOpen(false); onSelect(unarchivedId) }}
++          >未归档对话</div>
++        </div>
++      )}
++    </div>
++  )
++}
++
++// 新建项目弹窗：命名（必填）+ 上传文件/文件夹（前端选取，纯展示体验，不接后端）。
++function NewProjectModal({ onCancel, onCreate }) {
++  const [name, setName] = useState("")
++  const [files, setFiles] = useState([]) // [{name, size}]
++  const [drag, setDrag] = useState(false)
++  const inputRef = useRef(null)
++  const dirRef = useRef(null)
++  function addFileList(fl) {
++    const arr = Array.from(fl || []).map((f) => ({ name: f.webkitRelativePath || f.name, size: f.size }))
++    if (arr.length) setFiles((prev) => [...prev, ...arr])
++  }
++  function onDrop(e) {
++    e.preventDefault(); setDrag(false)
++    if (e.dataTransfer && e.dataTransfer.files) addFileList(e.dataTransfer.files)
++  }
++  const totalSize = files.reduce((s, f) => s + (f.size || 0), 0)
++  return (
++    <div className="np-mask" onClick={(e) => { if (e.target.className === "np-mask") onCancel() }}>
++      <div className="np-modal">
++        <div className="np-title">新建项目</div>
++        <div className="np-sub">给项目起名，可上传初始文件开启，也可留空直接开始。</div>
++        <label className="np-label">项目名称 *</label>
++        <input
++          className="np-input"
++          value={name}
++          autoFocus
++          placeholder="如：GNN 风阻预测"
++          onChange={(e) => setName(e.target.value)}
++          onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) onCreate(name.trim(), files) }}
++        />
++        <label className="np-label">初始内容（可选）</label>
++        <div
++          className={"np-drop" + (drag ? " on" : "")}
++          onClick={() => inputRef.current && inputRef.current.click()}
++          onDragOver={(e) => { e.preventDefault(); setDrag(true) }}
++          onDragLeave={() => setDrag(false)}
++          onDrop={onDrop}
++        >
++          <div className="np-drop-main">点击选择文件，或拖拽文件 / 文件夹到此</div>
++          <div className="np-drop-or">
++            <button className="np-pick" onClick={(e) => { e.stopPropagation(); dirRef.current && dirRef.current.click() }}>选择整个文件夹</button>
++          </div>
++          <input ref={inputRef} type="file" multiple style={{ display: "none" }} onChange={(e) => addFileList(e.target.files)} />
++          <input ref={dirRef} type="file" webkitdirectory="" directory="" multiple style={{ display: "none" }} onChange={(e) => addFileList(e.target.files)} />
++        </div>
++        {files.length > 0 && (
++          <div className="np-files">
++            <div className="np-files-head">{files.length} 个文件 · {fmtSize(totalSize)}<span className="np-files-clear" onClick={() => setFiles([])}>清空</span></div>
++            {files.slice(0, 8).map((f, i) => (
++              <div className="np-file" key={i}><span className="np-file-nm">{f.name}</span><span className="np-file-sz">{fmtSize(f.size)}</span></div>
++            ))}
++            {files.length > 8 && <div className="np-file-more">…还有 {files.length - 8} 个</div>}
++          </div>
++        )}
++        <div className="np-hint">上传的文件进项目 workspace，标记为「原始输入」（受保护，agent 改动前需授权）。不传也能建空项目。</div>
++        <div className="np-acts">
++          <button className="np-btn" onClick={onCancel}>取消</button>
++          <button className="np-btn primary" disabled={!name.trim()} onClick={() => onCreate(name.trim(), files)}>创建并进入</button>
++        </div>
++      </div>
++    </div>
++  )
++}
++
++// 文献库全屏页：收藏/上传的论文，按「所属项目」分组。数据 = starred(收藏文献) + paperProj(归属映射)。
++function LibraryBody({ papers, projects, paperProj, unarchivedId, onFocus, onUpload, onToggleStar }) {
++  const [q, setQ] = useState("")
++  const projName = (pid) => pid === unarchivedId ? "未归档" : ((projects.find((p) => p.id === pid) || {}).name || "未归档")
++  const kw = q.trim().toLowerCase()
++  const list = (papers || []).filter((p) => {
++    if (!kw) return true
++    return [p.title, (p.authors || []).join(" "), p.year, p.doi].filter(Boolean).join("  ").toLowerCase().includes(kw)
++  })
++  // 按项目归属分组（未记归属的进「未归档」）
++  const groups = new Map()
++  list.forEach((p) => {
++    const pid = paperProj[paperKey(p)] || unarchivedId
++    if (!groups.has(pid)) groups.set(pid, [])
++    groups.get(pid).push(p)
++  })
++  // 排序：正式项目在前，未归档在后
++  const entries = [...groups.entries()].sort((a, b) => (a[0] === unarchivedId ? 1 : 0) - (b[0] === unarchivedId ? 1 : 0))
++  return (
++    <div className="lib-body">
++      <div className="lib-top">
++        <input className="lib-q" placeholder="搜索 标题 / 作者 / DOI…" value={q} onChange={(e) => setQ(e.target.value)} />
++        <span className="lib-cnt">共 {list.length} 篇 · {entries.length} 组</span>
++        <button className="lib-up" onClick={onUpload}><Icon name="plus" size={13} /> 上传文献</button>
++      </div>
++      {list.length === 0 && (
++        <div className="file-empty" style={{ padding: 30 }}>
++          文献库还是空的。<br />在项目里 ★ 收藏 AI 检索到的论文，或点「上传文献」传 PDF，即可入库。
++        </div>
++      )}
++      {entries.map(([pid, ps]) => (
++        <div className="lib-grp" key={pid}>
++          <div className="lib-grp-h">
++            <Icon name={pid === unarchivedId ? "chat" : "folder"} size={14} /> {projName(pid)}
++            <span className="lib-grp-n">{ps.length}</span>
++          </div>
++          {ps.map((p, i) => (
++            <div className="lib-paper" key={(p.doi || p.title) + "_" + i} onClick={() => onFocus(p)}>
++              <div className="lib-paper-t">{p.title}</div>
++              <div className="lib-paper-m">
++                {(p.authors || []).slice(0, 3).join(", ")}{p.year ? " · " + p.year : ""}
++                {p.source === "upload" ? <span className="lib-src">我上传</span> : <span className="lib-src">AI 找</span>}
++              </div>
++            </div>
++          ))}
++        </div>
++      ))}
++    </div>
++  )
++}
++
++// 落地页「全部项目」：项目卡片网格 + 新建项目大卡 + 未归档对话卡。右上角「临时对话」入口。
++// project first 的默认第一入口（全屏覆盖层，机制同知识库/MoonLog）。
++function ProjectsHome({ projects, sessProj, unarchivedId, onOpenProject, onOpenUnarchived, onNewProject, onRename, onDelete }) {
++  const countOf = (pid) => Object.values(sessProj || {}).filter((v) => v === pid).length
++  const unarchN = Object.values(sessProj || {}).filter((v) => (v || unarchivedId) === unarchivedId).length
++  return (
++    <div className="ph-wrap">
++      <div className="ph-head">
++        <span className="ph-title">全部项目</span>
++        <span className="ph-count">{projects.length}</span>
++        <span className="ph-acts">
++          <button className="ph-btn" onClick={onOpenUnarchived}>临时对话</button>
++        </span>
++      </div>
++      <div className="ph-sub">研究以项目为单位沉淀（workspace + 会话 + 文献）。随手散聊走「临时对话」，落入「未归档对话」，之后可移入正式项目。</div>
++      <div className="ph-grid">
++        <div className="ph-card ph-new" onClick={onNewProject}>
++          <div className="ph-new-plus"><Icon name="plus" size={26} /></div>
++          <div className="ph-new-lb">新建项目</div>
++        </div>
++        {projects.map((p) => (
++          <div key={p.id} className="ph-card" onClick={() => onOpenProject(p.id)}>
++            <span className="ph-card-dots" title="重命名 / 删除" onClick={(e) => { e.stopPropagation(); const a = window.prompt('输入 r 重命名 / d 删除：'); if (a === 'r') onRename(p); else if (a === 'd') onDelete(p) }}>···</span>
++            <div className="ph-card-nm"><Icon name="folder" size={15} /> {p.name}</div>
++            <div className="ph-card-meta"><span>{countOf(p.id)} 会话</span></div>
++          </div>
++        ))}
++        <div className="ph-card ph-unarch" onClick={onOpenUnarchived}>
++          <div className="ph-card-nm"><Icon name="chat" size={15} /> 未归档对话</div>
++          <div className="ph-card-meta"><span>{unarchN} 条 · 可移入项目</span></div>
++        </div>
++      </div>
++    </div>
++  )
++}
++
+ function KnowledgeBaseEntry({ papers, kbData, onOpen }) {
+   const docCount = (kbData?.root?.length || 0) + (kbData?.groups || []).reduce((s, g) => s + g.files.length, 0)
+   const total = docCount + (papers ? papers.length : 0)
+   return (
+     <div className="assets-panel">
+-      <div className="assets-head" onClick={onOpen} title="知识库：收藏文献 + 上传文档（全屏打开）">
+-        <span className="assets-title"><Icon name="book" size={15} /> 知识库</span>
++      <div className="assets-head" onClick={onOpen} title="文献库：收藏/上传的论文，按项目分组（全屏打开）">
++        <span className="assets-title"><Icon name="book" size={15} /> 文献库</span>
+         <span className="assets-count">{total}</span>
+       </div>
+     </div>
+@@ -2922,6 +3200,31 @@
+   const [loaded, setLoaded] = useState(false) // 首次列目录是否已完成（未完成时别显示"（空）"，免闪烁）
+   const [err, setErr] = useState(false) // 列目录失败（后端未连接等）——区别于"真的空"
+ 
++  // 正文 [n] 引用点击 → 切到「文献」Tab + 滚动高亮第 n 篇（#litcard-n）。
++  useEffect(() => {
++    function onJump(e) {
++      const n = e && e.detail && e.detail.n
++      if (!n) return
++      setTab("lit")
++      // 等文献列表渲染后再定位（切 tab 会触发一次渲染）
++      let tries = 0
++      const timer = setInterval(() => {
++        const card = document.getElementById("litcard-" + n)
++        if (card) {
++          card.scrollIntoView({ behavior: "smooth", block: "center" })
++          document.querySelectorAll(".lit-card.cite-hl").forEach((c) => c.classList.remove("cite-hl"))
++          card.classList.add("cite-hl")
++          setTimeout(() => card.classList.remove("cite-hl"), 1600)
++          clearInterval(timer)
++        } else if (++tries > 20) {
++          clearInterval(timer)
++        }
++      }, 40)
++    }
++    window.addEventListener("famou:cite-jump", onJump)
++    return () => window.removeEventListener("famou:cite-jump", onJump)
++  }, [])
++
+   // 始终指向最新 expanded，供 refreshKey 刷新时遍历已展开目录（避免异步闭包读到旧值）。
+   const expandedRef = useRef(expanded)
+   expandedRef.current = expanded
+@@ -3542,6 +3845,22 @@
+ function App() {
+   const [sessions, setSessions] = useState([]) // [{id, title}]
+   const [currentID, setCurrentID] = useState(null)
++  // ── 项目分组（纯前端一层）──
++  const [projects, setProjects] = useState(loadProjects)        // [{id, name}]
++  const [sessProj, setSessProj] = useState(loadSessProj)        // {sid: projectId}
++  const [curProj, setCurProj] = useState(loadCurProj)           // 当前选中项目 id（含 UNARCHIVED）
++  const [projView, setProjView] = useState(() => {
++    // project first：首次访问（无任何项目记录）默认进落地页；之后进来不强制拦。
++    try { return localStorage.getItem("famou.seenHome") !== "1" } catch { return true }
++  })
++  useEffect(() => { if (!projView) { try { localStorage.setItem("famou.seenHome", "1") } catch {} } }, [projView])
++  const [showNewProj, setShowNewProj] = useState(false)   // 新建项目弹窗
++  const [projFiles, setProjFiles] = useState({})          // {projectId: [文件名]}（前端体验，不接后端）
++  const [paperProj, setPaperProj] = useState(loadPaperProj) // {paperKey: projectId}（文献归属项目）
++  useEffect(() => { savePaperProj(paperProj) }, [paperProj])
++  useEffect(() => { saveProjects(projects) }, [projects])
++  useEffect(() => { saveSessProj(sessProj) }, [sessProj])
++  useEffect(() => { saveCurProj(curProj) }, [curProj])
+   const [msgsBySession, setMsgsBySession] = useState({}) // {sid: Message[]}
+   const [busySessions, setBusySessions] = useState({}) // {sid: bool}
+   const [connected, setConnected] = useState(false)
+@@ -3568,7 +3887,7 @@
+   // localStorage 持久，刷新页面停留在原来打开的界面，不会跳回主界面。
+   const [overlayView, setOverlayView] = useState(() => {
+     const v = localStorage.getItem("famou.overlayView")
+-    return v === "kb" || v === "assets" || v === "moonlog" ? v : null
++    return v === "kb" || v === "moonlog" ? v : null
+   })
+   useEffect(() => {
+     if (overlayView) localStorage.setItem("famou.overlayView", overlayView)
+@@ -3584,7 +3903,7 @@
+   useEffect(() => {
+     function onPopState(e) {
+       const v = e.state && e.state.overlayView
+-      setOverlayView(v === "kb" || v === "assets" || v === "moonlog" ? v : null)
++      setOverlayView(v === "kb" || v === "moonlog" ? v : null)
+     }
+     window.addEventListener("popstate", onPopState)
+     return () => window.removeEventListener("popstate", onPopState)
+@@ -3616,7 +3935,10 @@
+   function toggleStar(p) {
+     if (starredKeys.has(paperKey(p))) {
+       setStarred((prev) => prev.filter((x) => paperKey(x) !== paperKey(p)))
++      setPaperProj((prev) => { const n = { ...prev }; delete n[paperKey(p)]; return n })
+     } else {
++      // 收藏 → 归当前项目（无具体项目时归未归档）
++      setPaperProj((prev) => ({ ...prev, [paperKey(p)]: curProj || UNARCHIVED }))
+       setStarPending(p)
+     }
+   }
+@@ -3627,6 +3949,23 @@
+     if (group) { try { await mkdirKbGroup(group) } catch {} }
+     setStarred((prev) => (prev.some((x) => paperKey(x) === paperKey(p)) ? prev : [{ ...p, group: group || "" }, ...prev]))
+     await loadKb()
++  }
++  // 上传文献（PDF 论文）→ 入文献库、归当前项目。纯前端体验：选文件→建条目→收藏。真实解析元数据接后端。
++  function uploadPaper() {
++    const inp = document.createElement("input")
++    inp.type = "file"; inp.accept = ".pdf"; inp.multiple = true
++    inp.onchange = () => {
++      const files = Array.from(inp.files || [])
++      if (!files.length) return
++      const now = new Date().getFullYear()
++      const added = files.map((f) => ({ title: f.name.replace(/\.pdf$/i, ""), authors: ["（上传，待补元数据）"], year: now, source: "upload" }))
++      setStarred((prev) => {
++        const ex = new Set(prev.map(paperKey))
++        return [...added.filter((a) => !ex.has(paperKey(a))), ...prev]
++      })
++      setPaperProj((prev) => { const n = { ...prev }; added.forEach((a) => { n[paperKey(a)] = curProj || UNARCHIVED }); return n })
++    }
++    inp.click()
+   }
+   // 知识库：全局上传文档（knowledge-base/[<分组>/]，跨会话共享，本轮仅存档浏览）。
+   // 支持单层分组（=knowledge-base/ 下的子目录）：root=未分类文件，groups=[{name,files}]。
+@@ -4148,10 +4487,13 @@
+ 
+   async function newResearch() {
+     closeOverlay() // 全屏页(知识库/资产/MoonLog)里新建对话应跳回主界面，而非停留在全屏页背后
++    setProjView(false)
+     try {
+       const s = await createSession("新对话")
+       setSessions((prev) => [{ id: s.id, title: "新对话" }, ...prev])
+       setMsgsBySession((prev) => ({ ...prev, [s.id]: [] }))
++      // 新会话归入当前项目（未选具体项目时归「未归档对话」）
++      setSessProj((prev) => ({ ...prev, [s.id]: curProj || UNARCHIVED }))
+       setCurrentID(s.id)
+       // 聚焦输入框给出反馈（新会话在左侧列表顶部高亮出现 = 可见反馈）。
+       requestAnimationFrame(() => { const ta = document.getElementById("composer-input"); if (ta) ta.focus() })
+@@ -4162,10 +4504,52 @@
+ 
+   function switchTo(sid) {
+     closeOverlay() // 全屏页(知识库/资产/MoonLog)里点会话应跳回主界面，而非停留在全屏页背后
++    setProjView(false)
+     setCurrentID(sid)
+     if (!msgsBySession[sid]) reconcile(sid)
+   }
+ 
++  // ── 项目操作（纯前端）──
++  const curProjName = curProj === UNARCHIVED ? "未归档对话" : ((projects.find((p) => p.id === curProj) || {}).name || "未归档对话")
++  // 当前项目下的会话（未映射的旧会话默认视为「未归档」）
++  const projSessions = sessions.filter((s) => (sessProj[s.id] || UNARCHIVED) === curProj)
++  function selectProject(pid) { setCurProj(pid); setProjView(false); saveCurProj(pid) }
++  function openProjectsHome() { setProjView(true) }
++  function enterUnarchived() { setCurProj(UNARCHIVED); setProjView(false); saveCurProj(UNARCHIVED) }
++  function renameProject(p) {
++    const nn = (window.prompt("重命名项目：", p.name) || "").trim()
++    if (nn) setProjects((prev) => prev.map((x) => (x.id === p.id ? { ...x, name: nn } : x)))
++  }
++  function deleteProject(p) {
++    if (!window.confirm(`删除项目「${p.name}」？项目下的会话将退回「未归档对话」（不删会话本身）。`)) return
++    setProjects((prev) => prev.filter((x) => x.id !== p.id))
++    setSessProj((prev) => { const n = { ...prev }; Object.keys(n).forEach((k) => { if (n[k] === p.id) n[k] = UNARCHIVED }); return n })
++    if (curProj === p.id) setCurProj(UNARCHIVED)
++  }
++  function newProject() { setShowNewProj(true) }
++  function doCreateProject(name, files) {
++    setShowNewProj(false)
++    const id = newProjectId()
++    setProjects((prev) => [{ id, name }, ...prev])
++    setCurProj(id); setProjView(false)
++    // 上传文件：纯前端体验，把选取的文件名存入项目（不接后端）；真实上传接后端后落 workspace。
++    if (files && files.length) setProjFiles((prev) => ({ ...prev, [id]: files.map((f) => f.name) }))
++  }
++  function moveSessionToProject(sid, e) {
++    if (e) e.stopPropagation()
++    const others = projects
++    const names = others.map((p, i) => `${i + 1}. ${p.name}`).join("\n")
++    const ans = (window.prompt(`把这条对话移入哪个项目？输入编号：\n${names}\n0. 新建项目并移入`, "") || "").trim()
++    if (!ans) return
++    if (ans === "0") {
++      const nm = (window.prompt("新项目名称：", "") || "").trim(); if (!nm) return
++      const id = newProjectId(); setProjects((prev) => [{ id, name: nm }, ...prev]); setSessProj((prev) => ({ ...prev, [sid]: id }))
++      return
++    }
++    const idx = parseInt(ans, 10) - 1
++    if (idx >= 0 && idx < others.length) setSessProj((prev) => ({ ...prev, [sid]: others[idx].id }))
++  }
++
+   async function onDeleteSession(sid, e) {
+     e.stopPropagation() // 别触发 switchTo
+     const s = sessions.find((x) => x.id === sid)
+@@ -4347,6 +4731,22 @@
+ 
+   return (
+     <div className={"app" + (rightOpen ? "" : " right-collapsed")}>
++      {showNewProj && <NewProjectModal onCancel={() => setShowNewProj(false)} onCreate={doCreateProject} />}
++      {/* 落地页「全部项目」全屏覆盖层：project first 第一入口。选/建项目或进临时对话后关闭。 */}
++      {projView && (
++        <div className="fs-screen">
++          <ProjectsHome
++            projects={projects}
++            sessProj={sessProj}
++            unarchivedId={UNARCHIVED}
++            onOpenProject={selectProject}
++            onOpenUnarchived={enterUnarchived}
++            onNewProject={newProject}
++            onRename={renameProject}
++            onDelete={deleteProject}
++          />
++        </div>
++      )}
+       {/* ⓪ 「知识库/资产」整窗全屏覆盖层：fixed 盖住整个 .app（含侧栏/对话/产物/右栏），
+           点击左栏对应入口条打开，点返回或切会话关闭。侧栏窄放不下这两块内容，全屏给后续
+           新功能（RAG、多文档管理等）留空间。 */}
+@@ -4354,25 +4754,20 @@
+         <div className="fs-screen">
+           <div className="fs-bar">
+             <span className="fs-bar-ttl">
+-              <Icon name={overlayView === "kb" ? "book" : overlayView === "assets" ? "briefcase" : "moon"} size={16} />
+-              {overlayView === "kb" ? "知识库" : overlayView === "assets" ? "资产" : "MoonLog"}
++              <Icon name={overlayView === "kb" ? "book" : "moon"} size={16} />
++              {overlayView === "kb" ? "文献库" : "MoonLog"}
+             </span>
+           </div>
+           {overlayView === "kb" ? (
+-            <KnowledgeBaseBody
++            <LibraryBody
+               papers={starred}
+-              kbData={kbData}
+-              onCreateGroup={createKbGroup}
+-              onUpload={uploadKb}
+-              onOpenKb={(path) => window.open(rawUrl(path), "_blank", "noopener")}
+-              onDeleteKb={deleteKb}
++              projects={projects}
++              paperProj={paperProj}
++              unarchivedId={UNARCHIVED}
+               onFocus={(p) => { openFocus("paper", p); closeOverlay() }}
+-              starredKeys={starredKeys}
++              onUpload={uploadPaper}
+               onToggleStar={toggleStar}
+-              onDeepDive={onDeepDive}
+             />
+-          ) : overlayView === "assets" ? (
+-            <WorkspaceAssetsBody sessions={sessions} />
+           ) : (
+             <MoonLogBody />
+           )}
+@@ -4415,17 +4810,30 @@
+               onPickSession={(sid) => switchTo(sid)}
+               onPickPaper={(p) => openFocus("paper", p)}
+             />
++            {/* 项目切换器 + 新建项目（项目分组入口） */}
++            <ProjectSwitcher
++              projects={projects}
++              curProj={curProj}
++              curProjName={curProjName}
++              unarchivedId={UNARCHIVED}
++              onSelect={selectProject}
++              onNewProject={newProject}
++              onOpenAll={() => setProjView(true)}
++            />
+             <KnowledgeBaseEntry papers={starred} kbData={kbData} onOpen={() => openOverlay("kb")} />
+-            <WorkspaceAssetsEntry sessions={sessions} onOpen={() => openOverlay("assets")} />
+             <MoonLogEntry dateCount={moonlogDates.length} onOpen={() => openOverlay("moonlog")} />
+-            <button className="new-chat-btn" onClick={newResearch}><Icon name="plus" size={14} /> 新对话</button>
++            {/* 「新会话」与会话列表只在进入某项目/临时对话后显示；落地页(全部项目)不显示 */}
++            {!projView && (
++              <button className="new-chat-btn" onClick={newResearch}><Icon name="plus" size={14} /> 新会话</button>
++            )}
++            {!projView && (
+             <div className="session-list">
+-              {sessions.length === 0 && (
++              {projSessions.length === 0 && (
+                 <div className="file-empty" style={{ fontSize: 12, padding: 16 }}>
+-                  还没有研究。<br />点「＋ 新对话」或直接输入开始。
++                  {curProj === UNARCHIVED ? "还没有对话。" : `项目「${curProjName}」下还没有会话。`}<br />点「＋ 新会话」或直接输入开始。
+                 </div>
+               )}
+-              {sessions.map((s) => (
++              {projSessions.map((s) => (
+                 <div
+                   key={s.id}
+                   className={"session-item " + (s.id === currentID ? "active" : "")}
+@@ -4437,6 +4845,15 @@
+                   {questionsBySession[s.id] && <span className="q-flag" title="有待回答的问题">？</span>}
+                   {permissionsBySession[s.id] && <span className="p-flag" title="有待批准的权限请求">🔒</span>}
+                   {busySessions[s.id] && <span className="dot busy" />}
++                  {curProj === UNARCHIVED && projects.length > 0 && (
++                    <span
++                      className="session-item-move"
++                      title="移入项目"
++                      onClick={(e) => moveSessionToProject(s.id, e)}
++                    >
++                      ↗
++                    </span>
++                  )}
+                   <span
+                     className="session-item-del"
+                     title="删除对话"
+@@ -4447,6 +4864,7 @@
+                 </div>
+               ))}
+             </div>
++            )}
+             <div className="sidebar-foot">
+               <span className={"dot " + (connected ? "live" : "")} title={connected ? "已连接" + (modelID ? " · " + modelLabelOf(modelID) : "") : "连接中…"} />
+               <span

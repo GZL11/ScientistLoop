@@ -1,0 +1,14 @@
+{
+  "version": "20260716-001-run-experiment",
+  "created_at": "2026-07-16",
+  "title": "Split out experiment runner",
+  "description": "Creates a standalone registry record for arc_run_experiment so its version history no longer shares the literature tools' history.",
+  "source_file": "tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Expose arc_run_experiment as an independent tool entry.",
+    "Track experiment execution versions separately from paper lookup and LaTeX tools.",
+    "Keep synchronous and detached background execution in the same runtime implementation."
+  ]
+}
+

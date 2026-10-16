@@ -1,0 +1,20 @@
+{
+  "version": "20260810-001-generic-venue-handoff",
+  "created_at": "2026-08-10",
+  "title": "Hand unsupported automatic sources back to the Agent",
+  "description": "Makes the safe download allowlist a fast path while giving all other venues an explicit official author-kit workflow.",
+  "source_file": "registry/source/tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "implementation_files": [
+    "scripts/latex_template.py"
+  ],
+  "changes": [
+    "Explain that an unlisted venue remains supported by the generic writing workflow.",
+    "Return a structured manual handoff to official author instructions and the complete author kit.",
+    "Keep arbitrary URL fetching outside the tool to preserve the existing SSRF boundary."
+  ],
+  "rollback": {
+    "target": "20260808-001-extensible-venue-templates",
+    "notes": "Restore the prior unknown-venue error."
+  }
+}

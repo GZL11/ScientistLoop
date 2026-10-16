@@ -1,0 +1,18 @@
+{
+  "version": "20260808-001-agent-first-writing",
+  "created_at": "2026-08-08",
+  "title": "Use an Agent-first venue-aware writing brief",
+  "description": "Adds a lightweight, source-backed venue writing brief only for paper deliverables and removes the conflicting generic article fallback.",
+  "source_file": "registry/prompts/agents/files/AGENTS.20260808-001-agent-first-writing.md",
+  "runtime_file": "AGENTS.md",
+  "changes": [
+    "Create planning/venue-writing-brief.md from official requirements and nearby venue papers when a paper is requested.",
+    "Separate the source paper venue from the intended submission venue.",
+    "Keep missing template requirements unknown instead of guessing.",
+    "Leave failed template exports as drafts instead of falling back to generic article."
+  ],
+  "rollback": {
+    "target": "20260716-001-literature-skill-boundary",
+    "notes": "Restore the prior main prompt snapshot."
+  }
+}

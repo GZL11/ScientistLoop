@@ -1,0 +1,143 @@
+\section{Related Work}
+\label{sec:related}
+
+%% 结构（见 outline_v1.md §2）：
+%%   2.1 已发表结果与复现问题 —— 叙事线：评估严格度排序 → 三条规律 → 信号并非不存在
+%%   2.2 连接组分类的模型族 —— 纯综述，中性收尾
+%%   2.3 编码智能体与演化程序综合 —— 收尾陈述这类领域的目标函数具备哪四条性质
+%% 纪律：不作优先权宣称；不写协议机制细节（留 §5）；2.2 不写「这是我们要演化的搜索空间」。
+%%
+%% 2026-08-10：Gap 小节整节删除（用户决定）。原 Gap 三句话的内容分布如下，删前已逐条核对：
+%%   (a)「已发表结果由逐个设计的架构得到、彼此不可比」→ 2.1 第 2 段末句已说
+%%      （"deprives cross-study comparison of most of its evidential value"）。
+%%   (b)「本任务不具备 2.3 那四条性质（效应量小 / 异质性大 / 指标可被绕过）」→ **§3 整章**
+%%      就是这件事，且 §3 开篇即自述 "what makes it hard"，§2.3 收尾 → §3 标题的对照是显性的。
+%%   (c)「两个问题：算法是否有新意 / 提升是否可信」→ §1 contribution 2 与 4，以及
+%%      §1¶5 末句（评估必须先加固）。
+%% ⚠ 唯一变为隐含的一条：「§2.2 的各模型族之间没有可比评估」。2.1 的论断是针对整个文献的，
+%%   对模型族只是蕴含而非明说。若审稿人问起，补回位置是 2.2 首段而不是重建 Gap。
+%% 2026-08-09 修订：删除 tab:published——本文不是综述文章，不需要用一张汇总表把已发表结果
+%% 逐条列出；论点改为直接用引文承载。dai2023hbm（原表第 5 行）在表里只是又一个落在
+%% pooled 5-fold CV 区间的例子，不承载三条读法中任何一条论点，此次未并入正文叙述，
+%% 暂时未被引用；dai2023jad 仍在 §2.2 引用，不受影响。
+%%
+%% 2026-08-09 修订（2.1 重写）：三条意见——(1)「Reading this literature requires attending
+%% less to ... than to ...」口语化；(2) 全节数字过多，要直接给结论；(3) 2.1 啰嗦、缺书面性。
+%% 处理：
+%%   - 段落职能不变（框架 → 三条规律 → 信号并非不存在 + 我们的结论），但每段改为
+%%     **先命题、后证据**：首句是一句可独立成立的论断（"The first is monotonicity within a
+%%     single study."），其后才是支撑，不再用 "First, ... Second, ... Third, ..." 起句。
+%%   - **去数字**：61%/53–56%/2,338/1,039/2,027/24/31/0.71/0.72/0.81/0.79/85%/83%/28/53/
+%%     94.3%/91.8%/1,601/521/70/60 全部删除或改为量级表述（"roughly ten points below"、
+%%     "a few dozen patients each"、"both above ninety percent"、"well above chance"）。
+%%     **只保留 "five to eight points"**——这是 §1 删掉 ¶5 之后全文唯一的严格度代价量化，
+%%     且是本节论点的支点，删掉就没有论证了。
+%%   - 逐研究数字仍在 outline_v1.md §2.1 的九行台账里，需要时可查。
+%%   - ⚠ 后果：§3.3 现在是全文唯一还在堆数字的地方（Kambeitz 85/83、Gallo 61、
+%%     Chen 0.71/0.81），与本节的新写法风格不一致，压缩时优先处理。
+
+\subsection{Neuroimaging-based classification of MDD: reported results and the replication problem}
+\label{sec:related:mdd}
+
+Attempts to separate patients with major depressive disorder from healthy controls on the basis of
+resting-state functional connectivity extend over more than a decade, and the accuracies reported
+span almost the entire range available to a binary classifier. This dispersion is governed less by
+the choice of model than by the design of the evaluation, which admits a natural ordering by
+strictness: cross-validation within a single site; pooled $k$-fold splits, in which participants
+scanned on the same machine fall in both the training and the test fold; leave-one-site-out; and
+validation on a cohort collected and processed independently. Read against this ordering, the
+literature exhibits three regularities.
+
+The first is monotonicity within a single study. Where a paper evaluates its model under more than
+one design, accuracy and AUROC alike decline by five to eight points between pooled
+cross-validation and validation on an independently collected cohort \citep{gallo2023,
+liu2024lgmf}. Model and data are held fixed across these comparisons, so the decline cannot be
+attributed to differences in capacity. Its magnitude is also comparable to the entire spread
+between model families evaluated under similar designs, which deprives cross-study comparison of
+most of its evidential value.
+
+The second is that reported performance declines as the sample grows, and this has been established
+independently of any individual study. In a meta-analysis stratified by sample size, the small
+minority of studies with more than a hundred participants pooled to sensitivity and specificity
+roughly ten points below the remainder \citep{chen2023meta}; the earlier and more favourable pooled
+estimates rest on samples averaging a few dozen patients each \citep{kambeitz2017}. A learning
+curve predicts the opposite relation, and the observed one is what a literature produces when each
+entry is a maximum taken over choices that go unreported \citep{schnack2016, marek2022}.
+
+The third concerns the upper end of the range. The highest accuracy in this literature, above
+ninety percent, comes from a single-site study of some fifty participants evaluated by
+leave-one-out cross-validation \citep{zeng2012}, while the figures at the centre of the
+distribution come from multi-site samples evaluated across scanners. The observation is not an
+allegation about that study. The point is that the extremes of this distribution and its centre
+are not estimates of the same quantity, so the intervals between them are not differences in
+performance.
+
+None of this indicates that the signal is absent. Harmonization across sites, followed by
+validation on sites withheld entirely from training, has yielded accuracy well above chance
+\citep{yamashita2020}, and models have retained much of their discriminative performance on
+externally collected cohorts under conditions in which comparison models did not
+\citep{liu2024lgmf}.
+
+\subsection{Model families for connectome-based classification}
+\label{sec:related:models}
+
+The methods that produced the results above belong to a small number of families, distinguished by
+how they represent the connectome and which aspects of its structure the model is allowed to
+exploit.
+
+The longest-established approach treats the upper triangle of a correlation matrix as a feature
+vector and fits a linear model to it, typically a support vector machine or a penalized regression
+\citep{zeng2012}. A refinement respects the geometry of the matrices instead of flattening them:
+covariance matrices lie on a Riemannian manifold, and projecting them to the tangent space at a
+group mean before applying a linear readout preserves distances that flattening distorts
+\citep{varoquaux2010, barachant2013}. In a systematic comparison across several resting-state
+datasets and pipelines, tangent-space parameterization followed by a linear classifier was the
+strongest of the configurations examined \citep{dadi2019}.
+
+Architectures designed for connectome data supply structural assumptions of their own. BrainNetCNN
+replaces ordinary spatial convolution with edge-to-edge and edge-to-node filters that respect the
+topological structure of a connectivity matrix \citep{kawahara2017}. BrainGNN treats the connectome
+as a graph and adds region-aware convolution together with a pooling operator that selects
+informative regions, which provides a route to interpretation \citep{li2021braingnn}. The Brain
+Network Transformer treats brain regions as tokens and learns the pairwise structure through
+attention rather than fixing it in advance \citep{kan2022bnt}.
+
+A separate line of work does not summarize the time series into a static matrix. Temporal graph
+convolution operates on the region-by-time signal directly \citep{gadgil2020stgcn}, and features
+computed from the time course of each region have been used as input to a graph network in the
+depression setting \citep{dai2023jad}. A single set of regional time series moreover admits many
+different pairwise statistics---correlation, partial correlation, coherence in specific bands,
+measures of directed information---which answer different questions about how two regions are
+coupled. A recent library collects hundreds of such statistics behind a single interface and reports
+that they behave differently from one another on real data \citep{cliff2023pyspi}.
+
+\subsection{LLM coding agents and evolutionary program synthesis}
+\label{sec:related:agents}
+
+Language models that interleave reasoning with tool calls \citep{react2022} underlie a class of
+agents that operate directly on software repositories through interfaces built for that purpose
+\citep{sweagent2024, openhands2025}; a recent survey collects this work under the heading of agents
+that revise themselves in response to feedback \citep{selfevolve2025}.
+
+Closer to the present setting is the work in which the agent emits a program, the program is
+executed and scored, and the score directs the search over subsequent programs. FunSearch maintains
+a population of programs, mutates them with a language model, and retains those that a fixed
+evaluator ranks highly, obtaining constructions that improved the best known bounds for the cap set
+problem and for online bin packing \citep{funsearch2023}. AlphaEvolve carries the same principle
+from a single scored function to larger codebases and a broader set of objectives, among them
+production infrastructure and matrix multiplication algorithms \citep{alphaevolve2025}. FM Agent
+couples evolutionary sampling with domain-specific evaluators and a distributed execution layer,
+and reports results on several scientific and operational tasks \citep{fmagent2025}. The population
+mechanisms on which these systems depend have a longer history in evolutionary computation, in
+archives that maintain diversity over a behavioural space instead of optimizing a scalar
+\citep{mapelites2015} and in non-dominated sorting for selection under several objectives at once
+\citep{nsga2}. AutoML shares the aim of automating the construction of a predictive pipeline, but
+searches a fixed space of components and hyperparameters rather than writing code
+\citep{autosklearn2}.
+
+These applications share a property that lies in their objective functions rather than in their
+search procedures. Combinatorial constructions and matrix multiplication algorithms admit exact
+verification, and scheduling heuristics and compute kernels are scored by direct measurement. The
+objective in each case is inexpensive to compute, can be evaluated as often as the search requires,
+returns the same value when recomputed, and coincides with the quantity the work is about, so that
+an increase in the score is an improvement in the result.

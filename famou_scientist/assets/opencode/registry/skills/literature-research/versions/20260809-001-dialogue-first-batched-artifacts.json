@@ -1,0 +1,21 @@
+{
+  "version": "20260809-001-dialogue-first-batched-artifacts",
+  "created_at": "2026-08-09",
+  "title": "Dialogue-first synthesis with bounded artifact batches",
+  "description": "Keeps literature synthesis transparent and conversational while writing evidence objects and reports in bounded semantic batches; speed is secondary to keeping the user informed.",
+  "source_file": "registry/skills/literature-research/files/SKILL.20260809-001-dialogue-first-batched-artifacts.md",
+  "runtime_file": "skill/experiment/literature-research/SKILL.md",
+  "changes": [
+    "Present a provisional evidence-backed direction map after the first coherent seed batch.",
+    "Preview long retrieval, synthesis, and artifact operations with their objective, reason, and expected result.",
+    "Emit a chat checkpoint whenever a completed evidence batch changes the research judgment.",
+    "Report rate-limit retries, weak evidence, plan changes, and real blockers instead of emitting fixed heartbeats.",
+    "Communicate conclusions before writing large artifacts.",
+    "Write at most five PaperCard records per tool call and group records by semantic family.",
+    "Keep conclusions in chat, execution details in process, and complete content in artifacts."
+  ],
+  "rollback": {
+    "target": "20260719-002-artifact-visibility-contract",
+    "notes": "Restore artifact visibility rules without dialogue checkpoints or bounded writes."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "version": "20260808-001-agent-first-venue-brief",
+  "created_at": "2026-08-08",
+  "title": "Add lightweight venue-aware writing brief",
+  "description": "Keeps venue-aware paper planning Agent-first while recording a small, source-backed writing brief instead of introducing a workflow service.",
+  "source_file": "registry/skills/scientific-writing/files/SKILL.20260808-001-agent-first-venue-brief.md",
+  "runtime_file": "skill/writing/scientific-writing/SKILL.md",
+  "changes": [
+    "Ask for or confirm a target venue only when the user requests a paper deliverable.",
+    "Write planning/venue-writing-brief.md with official sources, template facts, and exemplar-paper notes.",
+    "Keep the brief lightweight and let the Agent use it during drafting; no backend Venue Profile is required.",
+    "Do not infer requirements when official evidence is unavailable; mark them unknown or ask the user."
+  ],
+  "rollback": {
+    "target": "scientific-writing-1.0",
+    "notes": "Stop creating the optional venue-writing brief and retain the previous generic writing guidance."
+  }
+}

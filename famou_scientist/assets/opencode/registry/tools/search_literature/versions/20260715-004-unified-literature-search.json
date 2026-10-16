@@ -1,0 +1,19 @@
+{
+  "version": "20260715-004-unified-literature-search",
+  "created_at": "2026-07-15",
+  "title": "Unify literature search routing",
+  "description": "Removes the hard rejection path in arc_search_literature, adds optional user_query/mode arguments, and keeps the tool usable for both topic literature search and academic metadata enrichment after native web-first lookup.",
+  "source_file": "tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Remove the wrong_tool_for_specific_paper_lookup rejection path from arc_search_literature.",
+    "Add optional user_query and mode arguments so the tool can carry the original request and intent marker.",
+    "Reframe arc_search_literature as a unified academic retrieval entry point while leaving native websearch/webfetch as the first step for concrete paper lookup.",
+    "Keep lookup_paper disabled in the tool export."
+  ],
+  "rollback": {
+    "target": "20260715-003-survey-only-search-literature",
+    "notes": "Restore the previous topic-only guard behavior."
+  }
+}
+

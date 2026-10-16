@@ -1,0 +1,27 @@
+{
+  "date": "2026-07-12",
+  "summary": "今天主要围绕两篇前沿论文进行深度解读：FrontierOR（首个评测 LLM 在真实大规模运筹优化问题上算法设计能力的 benchmark）和 Uni-OPD（将知识蒸馏与强化学习统一的策略优化框架）。FrontierOR 的核心发现是当前最强 frontier 模型 one-shot QTE 最高仅 0.31，瓶颈已从代码执行后移至有效算法设计；Uni-OPD 通过 trajectory-level 聚合与 margin 校准解决了 vanilla OPD per-token 信号噪声过大的问题。当天活动以文献阅读与想法整理为主，相关笔记已落盘，尚未启动系统性实验流程。",
+  "sessions": [
+    {
+      "id": "ses_0ae1eb9faffeFtL5Hq2SjhXBnf",
+      "title": "新对话",
+      "highlights": "深度解读 FrontierOR（arXiv:2605.25246）：180 个来自 OR 顶刊的真实大规模任务，评估指标 QTE 要求同时在解质量和运行时间上超越 Gurobi，最强 one-shot 模型 Claude Opus 4.6 的 QTE 仅 0.31，self-evolve 框架（CORAL）可将 Hard 子集 QTE 提升至 0.50。随后深度解读 Uni-OPD：vanilla OPD 约 45% 的 correct-incorrect pair 存在 per-token 排序违反，Uni-OPD 通过将 per-token reward 聚合为 trajectory-level return 再做 margin shift 校准后广播回每个 token，以牺牲 per-token 分辨率换取 outcome-anchored 的全局可靠性。两篇论文的核心思想与数值示例均做了详细推导，并记录了若干潜在研究方向。"
+    }
+  ],
+  "artifacts": [
+    {
+      "dir": "research-runs/researchstudio-idea-notes-0712-fd29/planning/",
+      "files": [
+        "researchstudio-idea-notes.md"
+      ],
+      "note": "阅读 FrontierOR 与 Uni-OPD 后形成的研究想法笔记，记录潜在方向与灵感"
+    }
+  ],
+  "open_questions": [
+    "FrontierOR 中强模型失败的主要模式是启发式搜索不充分，是否存在系统性方法让 LLM 自动识别 OR 问题结构并选择合适算法范式？",
+    "Uni-OPD 的 margin 超参 δ 如何自适应设定，固定 δ 在不同难度任务上是否仍然合理？",
+    "FrontierOR self-evolve 最高 QTE 为 0.50，是否存在更优的 agent 框架设计进一步突破这一上限？",
+    "Uni-OPD trajectory-level 聚合牺牲了 per-token 分辨率，是否存在更细粒度但仍 outcome-anchored 的混合信号设计？",
+    "FrontierOR 与 Uni-OPD 是否存在结合点：用 Uni-OPD 类框架训练专门针对 OR 算法设计的 LLM，能否在 FrontierOR 上显著提升 QTE？"
+  ]
+}

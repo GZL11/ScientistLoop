@@ -1,0 +1,8 @@
+{
+  "version": "20260710-001-task-routing",
+  "description": "增加请求边界、轻量论文问答模式和 compact 恢复纪律，避免读论文问题被自动升级成完整研究流程。",
+  "created_at": "2026-07-10T00:10:00+08:00",
+  "created_by": "gezengle",
+  "source_file": "registry/prompts/agents/files/AGENTS.20260710-001-task-routing.md",
+  "status": "released"
+}

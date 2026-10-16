@@ -1,0 +1,18 @@
+{
+  "version": "20260715-002-disable-lookup-paper-fallback",
+  "created_at": "2026-07-15",
+  "title": "Remove lookup_paper fallback from paper lookup skill",
+  "description": "Updates literature-search so specific-paper lookup no longer falls back to arc_lookup_paper while that tool export is disabled.",
+  "source_file": "registry/skills/literature-search/files/SKILL.20260715-002-disable-lookup-paper-fallback.md",
+  "runtime_file": "skill/experiment/literature-search/SKILL.md",
+  "changes": [
+    "Remove arc_lookup_paper fallback guidance from specific-paper lookup.",
+    "Use native websearch/webfetch for specific-paper lookup.",
+    "Ask the user for stronger identifiers when web evidence is insufficient.",
+    "Keep topic literature search guidance unchanged."
+  ],
+  "rollback": {
+    "target": "20260714-001-web-first-paper-lookup",
+    "notes": "Restore the previous skill version if lookup_paper is re-enabled."
+  }
+}

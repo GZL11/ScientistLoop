@@ -1,0 +1,19 @@
+{
+  "version": "20260718-002-coe-literature-workflow",
+  "created_at": "2026-07-18",
+  "title": "Chain-of-Evidence literature workflow",
+  "description": "Adds explicit PaperCard, RejectedPaper, ClaimCard, GapCard, IdeaCard, and EvidenceEdge schemas; introduces strict phase gates before map, gap, and idea generation; and requires semantic literature graph edges for evidence-backed synthesis.",
+  "source_file": "registry/skills/literature-research/files/SKILL.20260718-002-coe-literature-workflow.md",
+  "runtime_file": "skill/experiment/literature-research/SKILL.md",
+  "changes": [
+    "Add Chain-of-Evidence object schemas for papers, rejected candidates, claims, gaps, ideas, and graph edges.",
+    "Require claim_cards.jsonl and evidence_edges.jsonl before gap mapping.",
+    "Require explicit user approval before moving from gap map to idea bank.",
+    "Define semantic relation types for literature graph edges, including cites, extends, same_task, same_benchmark, compares_with, gap_supports, and gap_counterexample.",
+    "Strengthen phase gates so weak retrieval evidence stops the workflow instead of producing fabricated maps, gaps, or ideas."
+  ],
+  "rollback": {
+    "target": "20260718-001-evidence-first-literature-map",
+    "notes": "Restore the evidence-first workflow without explicit Chain-of-Evidence object schemas and graph-edge contracts."
+  }
+}

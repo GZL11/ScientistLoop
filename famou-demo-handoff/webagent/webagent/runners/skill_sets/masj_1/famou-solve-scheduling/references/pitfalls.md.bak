@@ -1,0 +1,285 @@
+# 排程常见坑 + 退出自检清单
+
+> 本文件中的具体数字(任务数、产线数、产能值...)都是**典型样貌**——
+> 用于说明踩坑形态。**真正的约束以用户提供的问题描述为准**。
+
+## 通用坑
+
+### 坑 0:没读完任务描述就动手
+
+任务描述中常常有"次要目标""所用默认值""可视化样式规范"这些容易跳过的小节,但里面会藏着评分用得上的信息(如 Gold 客户罚款 ×3、感控排当日最后、冷却期跨自然天而非工作日)。**读两遍**,把硬约束抄到脚本注释顶部。
+
+### 坑 1:交付字段名/文件名不匹配
+
+`landing_time` 写成 `landing` ——评分脚本/验证读不到,全盘归零。
+中文字段名(`车辆编号`/`网点编码`/`工单编号`)也必须**逐字保留**。
+最后一步前用 `pd.read_csv` 重读自己的输出,对照需求清单字段表打勾。
+
+### 坑 2:求解器 Optimal 不等于建模正确
+
+CBC/CP-SAT 报 Optimal 只代表"在你写下的约束里最优"。
+约束写错(变量方向反、索引转置)时它仍可能给"最优"解。
+**必须独立验证**:用与建模代码独立的方式从输出反向逐条检查硬约束。
+
+---
+
+## 子族 A 专属坑(单机序列)
+
+### 坑 A1:分离矩阵索引方向搞反
+
+`separation_matrix[i][j]` 的方向通常是:**先做的为行索引,后做的为列索引**,
+约束写 `time[j] - time[i] >= sep[i][j]`(i 先于 j)。
+具体方向以问题描述/数据结构为准——拿不准时打印几个样本验证一下。
+
+### 坑 A2:流水车间 makespan 计算错误
+
+NEH 评估时必须追踪**所有机器**的最晚完成时间,不是只看末机:
+```
+start[i, m] = max(complete[i, m-1], complete[i-1, m])
+```
+忘记 `complete[i-1, m]`(同机器前一工件)会算出过低 makespan 并验证失败。
+
+### 坑 A3:ILS 扰动力度不变
+
+连续 5 次无改进还在做 3 段翻转 = 局部最优陷阱。
+**自适应**:`k = 3 + min(no_improve // 5, 9)`。
+
+### 坑 A4:大规模 or-opt 完整 O(n²) 超时
+
+500 节点 × 500 插入位置 = 25 万次评估每轮,30s 时间就用完了。
+**先 swap 收敛**(限邻域 30),再做 or-opt 且每次内层加时间检查。
+
+---
+
+## 子族 B 专属坑(多产线生产)
+
+### 坑 B1:MILP 报 infeasible 但实际有解
+
+通常是约束建模 bug:
+- `still_short` / `late` 方向:必须用 `>=`,不要写成 `<=`(实际项目中真实事故)
+- `Series.prod()` 把 pandas Series 当成乘积函数用(应该用 `row['product']`)
+- 换产首日没赋值:`co[l, 1]` 应固定为 0
+- 冷却期用了"工作日"距离而非"自然天"
+
+**先去掉夜班/外包/冷却期等复杂约束,看能否可行?再逐步加约束定位 bug。**
+
+### 坑 B2:换产建模仅按"天"判定
+
+错误:`co[l,d] = (d 在生产)`——这把所有生产天都算成换产。
+正确:`co[l,d] = (今天生产 ≠ 昨天生产)`,等价为对所有 `p1 ≠ p2`:
+`co[l,d] >= x[l,p1,d-1] + x[l,p2,d] - 1`,再 `co[l,1] = 0`。
+
+### 坑 B3:保质期建模忘记 +1
+
+"生产当天计第 1 天"意味着:
+`生产日期 ≥ deadline 日期 - shelf_life_days + 1`,**不是** `- shelf_life_days`。
+shelf=4 表示"生产当天到 deadline 当天总共 4 天"。
+
+### 坑 B4:CBC 不收敛(gap 卡 20%+)
+
+- 加**手工初始解(warm-start)**:先用贪心构造可行方案塞进去
+- 加成本上界 cuts:`prob += total_cost <= 估计上界 * 1.2`
+- 切到 OR-Tools CP-SAT,整数变量为主时通常更快
+- 若仍超时:超时后**接受当前可行解 + 输出 gap**,不要硬等
+
+### 坑 B5:特殊数据加载(pickle + 自定义模块)
+
+某些数据用 `pickle` 序列化但依赖自定义 `database` 模块(等)。
+**用以下 mock 在脚本头部注入:**
+
+```python
+import pickle, sys, types, importlib.util
+
+class FlexClass:
+    def __init__(self, *a, **k): pass
+    def __setstate__(self, s): self.__dict__.update(s)
+
+class AutoAttrModule(types.ModuleType):
+    def __getattr__(self, name):
+        cls = type(name, (FlexClass,), {})
+        setattr(self, name, cls)
+        return cls
+
+class MockLoader:
+    def __init__(self, modname): self.modname = modname
+    def create_module(self, spec): return AutoAttrModule(self.modname)
+    def exec_module(self, module): pass
+
+class MockFinder:
+    def find_spec(self, fullname, path, target=None):
+        if fullname.startswith('database'):  # 改为实际依赖的模块名
+            spec = importlib.util.spec_from_loader(fullname, MockLoader(fullname))
+            return spec
+        return None
+
+sys.meta_path.insert(0, MockFinder())
+data = pickle.load(open('data/data.pkl', 'rb'))
+```
+
+---
+
+## 子族 C 专属坑(资源约束)
+
+### 坑 C1:CP-SAT 时间被 NoOverlap 吃光
+
+20+ 个 NoOverlap 约束 + 几百个 IntervalVar 时,求解器搜索很慢。
+**对策:**
+- `solver.parameters.num_search_workers = 4`(多线程)
+- 加冗余但易求解的约束(例如先按 deadline 把任务硬定到具体某天)
+- 用 redundant constraints:把"医生不重叠"展成显式两两 disjunction(CP-SAT 喜欢这种)
+
+### 坑 C2:跨日资源占用未正确建模
+
+例如 ICU 床位"跨 2 天":占床日 = {完成日, 完成日+1}。
+错误:仅扣完成日。
+正确:CP-SAT 用 IntervalVar 长度 = 2 天的虚拟资源占用,`AddCumulative(capacity=N)`。
+
+### 坑 C3:"当天最后"硬约束
+
+例如感控病例排"该手术室、当天的最后一台"——指**该手术室、当天**的最后一台,不是全院或全周最后。
+正确建模:`start[i] >= max(end[j])  for j ∈ same_room_same_day, j != i`
+错误建模:把感控排成一周最后或全院最后。
+
+### 坑 C4:闭合约束被绕过
+
+"首站 = 末站"是硬约束,不是软约束。
+**必须在每一步链扩展时检查仍可闭合**,而不是末步再修。
+末班无法接续时只能作为独立 2 任务链(保证首=末)。
+若站点之间存在不可直达关系(如 A↔Z 之间无直接,必须走 M 中转),换乘要计入工时与衔接时间。
+
+### 坑 C5:里程/工时口径混淆
+
+任务描述常说"里程只算执行任务里程,不计司机步行/换乘空走"。
+工时则是"首任务接班 → 末任务交班",**包含空闲等待时段**。
+两个口径一定要分清,否则验证 100% 不过。
+
+---
+
+## 历史踩坑
+
+> 来自评测运行的失败模式聚合。下方为新增聚合条目(21 patches)。
+
+### sched-001:硬编码绝对路径导致 extractor 找不到产物 [7/21 runs]
+
+**观察自:** patches #3, #4, #7, #9, #10, #20, #21
+
+求解器把开发机绝对路径(`/path/to/workspace/.../run_0X`)写死,既用作输入读取也用作输出落盘。评估器在另一个工作目录执行,看不到任何产物 → exit code 1,得 0 分。
+
+**避坑:**
+- **永远不要硬编码绝对路径**。
+- 读输入:`./data/` 优先,带 fallback 搜索;或读 `os.environ.get("RUN_DIR", ".")` / CLI 参数。
+- 写输出:统一写到当前工作目录(`os.getcwd()`)或脚本所在目录(`os.path.dirname(os.path.abspath(__file__))`)下的相对路径。
+- 写完后 `assert os.path.exists(out_path)`,并 `print(os.path.abspath(out_path))` 让日志可见。
+
+```python
+import os
+HERE = os.path.dirname(os.path.abspath(__file__)) if "__file__" in globals() else os.getcwd()
+OUT = os.path.join(os.getcwd(), "schedule_result.csv")  # 评估器在 CWD 找
+df.to_csv(OUT, index=False, encoding="utf-8-sig")
+assert os.path.exists(OUT), OUT
+print("WROTE:", os.path.abspath(OUT))
+```
+
+### sched-002:产物文件名/schema/编码不匹配 [11/21 runs]
+
+**观察自:** patches #1, #2, #5, #6, #7, #8, #14, #15, #16, #17, #18
+
+失败形态包括:(a) 算出解但从没写出指定文件名;(b) 列名/dtype/索引基(0 vs 1)错;(c) 只写了 Gantt HTML / summary JSON 之类的辅助产物,主 CSV/JSON 缺失。
+
+**避坑——把 schema 当硬约束建模:**
+- 编码 solver 之前,先从任务描述/extractor 脚本里抄出 **精确文件名、路径、列、dtype、编码**。
+- 在脚本里把期望 schema 设为常量,`to_csv` 之前 assert:
+
+```python
+EXPECTED_COLS = ["task_id", "machine_id", "mold_id", "start_time", "end_time", "planned_qty", "is_parallel"]
+assert list(df.columns) == EXPECTED_COLS, f"schema mismatch: {df.columns.tolist()}"
+df.to_csv("schedule_result.csv", index=False, encoding="utf-8-sig")  # 中文表头必须带 -sig
+```
+
+- 各领域常见 schema(以问题为准):
+  - 流水车间:`result.csv` 列 `position,job_id` + `makespan.txt`(纯整数)
+  - Job-shop:`schedule_result.csv` 列 `job_id, step, machine, start_time, end_time` + `result.json` 含 `makespan`
+  - 手术室排程:`schedule_result.csv` 手术字段 + `summary.json` 含 KPI
+  - 生产排程:`schedule_result.csv` 列如上述
+  - 微网调度:`dispatch.csv` 全时步轨迹 + `summary.json`
+- **可视化与解的写出解耦**:先在 `try/except` 中把主产物落盘,再去渲染 Gantt(渲染崩了不影响得分)。
+
+### sched-003:优化前未先落盘 baseline,异常/超时 = 0 分 [8/21 runs]
+
+**观察自:** patches #1, #6, #8, #12, #14, #17, #19, #20
+
+solver 上来就跑 ILS / tabu / MILP / JIT 编译,中途 OOM/超时/异常 → 磁盘上零产物,即便内部已有可行解。
+
+**避坑——先写 baseline,再迭代覆盖:**
+1. **构造可行初解后立刻落盘**(贪心 / EDD / NEH / 全网格基线 / 顺序 JSS),用 `os.replace` 原子替换。
+2. 优化主循环包 `try/finally`,任何退出路径都把当前 best 刷盘。
+3. 给最终 write+flush+verify **预留 ≥10s 尾部预算**。
+4. solver 状态为 INFEASIBLE/UNKNOWN 时,降级到启发式解(部分分 > 零分)。
+
+```python
+def dump(sol):
+    tmp = OUT + ".tmp"
+    pd.DataFrame(sol).to_csv(tmp, index=False, encoding="utf-8-sig")
+    os.replace(tmp, OUT)
+
+best = greedy_initial()
+dump(best)              # 立刻有 baseline
+try:
+    for it in range(MAX_ITERS):
+        if time.time() - t0 > BUDGET - 10: break
+        cand = improve(best)
+        if better(cand, best):
+            best = cand; dump(best)
+finally:
+    dump(best)
+```
+
+### sched-004:源码被截断 / 未完成的脚本 [6/21 runs]
+
+**观察自:** patches #1, #4, #8, #13, #17, #19
+
+脚本字面被截断在语句中段(`np.del`、`period_cos`、未结束的 f-string、缺 `model.Minimize/Solve`),import/解析阶段就 crash。
+
+**避坑:**
+- 写完后**整文件通读一遍**,确保最后一行是 `if __name__ == "__main__":` 块的正常结尾或顶层 print。
+- 提交前 `python -m py_compile your_script.py` 自检语法。
+- 长脚本切分函数,主入口位于文件末尾且简短(`main()` 调用),便于一眼判断未截断。
+- 不要把"完成产物落盘"放在脚本末尾——按 sched-003 在中段就落盘。
+
+---
+
+## 退出自检清单
+
+提交前**逐条**打勾。建议用独立验证脚本(或独立函数)自动化做。
+
+**通用**
+- [ ] 用户要求的每个交付物都已生成(文件名一字不差)
+- [ ] CSV 表头字段一字不差,行数与需求清单一致
+- [ ] 总成本 / 总惩罚 / 关键指标在终结回复中明示
+- [ ] **所有 I/O 路径都是相对路径**,无 `/mnt/...` 等开发机绝对路径(sched-001)
+- [ ] **schema 常量化并 assert**:列名、dtype、索引基(0/1)、中文表头 utf-8-sig 已确认(sched-002)
+- [ ] **构造初始可行解后立刻落盘**,优化循环包 `try/finally`,预留 ≥10s 写盘尾部预算(sched-003)
+- [ ] 提交前 `python -m py_compile` 通过,文件结尾完整无截断(sched-004)
+
+**单机序列(A)**
+- [ ] 每个任务实际时间在 `[earliest, latest]` 内(若有时间窗)
+- [ ] 任意相邻 i→j 满足 `time[j] - time[i] >= separation[i][j]`(若有分离矩阵)
+- [ ] makespan / 加权完成时间用输出重算 = 求解器报告值
+
+**多产线生产(B)**
+- [ ] 每产线每天最多一种产品
+- [ ] 换产 `co[l,d]=1` 当且仅当当天与前天产品不同;首日 co=0
+- [ ] 产能 = base × night_mul × changeover_mul,复合系数正确
+- [ ] 冷却期:类型 X 后第 d+1, d+2 天禁类型 Y(反向同理,以问题描述为准)
+- [ ] 保质期:生产日期 ≥ deadline - shelf_life + 1
+- [ ] 自产 + 外包 = 需求(精确等于)
+- [ ] 全厂日产 ≤ 上限、外包 ≤ 上限
+- [ ] cost_breakdown 各项合计 = 目标函数值(差距 < 1e-4)
+
+**资源约束(C)**
+- [ ] 每类资源每日/每时段使用量 ≤ 上限(手术室、ICU、特殊设备、护士工时、岸桥)
+- [ ] precedence 约束 j 在 i 之后均满足
+- [ ] 闭合路径(机组):每条工作链首站 = 末站
+- [ ] 工时 ≤ 上限、里程 ≤ 上限(注意里程口径)
+- [ ] 特殊顺序约束(感控、跨日占床、换乘衔接)验证通过
+- [ ] Gantt(若要求)可读,约束满足情况能直观看出

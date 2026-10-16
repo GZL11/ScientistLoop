@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>引用联动 · 真实三栏预览（照现状截图）</title>
+<link rel="stylesheet" href="./src/styles.css">
+<style>
+  html,body{margin:0;height:100%}
+  body{font-family:-apple-system,"PingFang SC",sans-serif;background:var(--bg);color:var(--text)}
+  .banner{background:#fff8ec;border-bottom:1px solid #ffe3ad;color:#92600a;font-size:12px;padding:7px 14px}
+  :root.dark .banner{background:#2a2410;border-color:#4a3d18;color:#e0c07a}
+  .app{display:flex;height:calc(100vh - 30px)}
+  /* 最左收起的会话 rail */
+  .rail{width:44px;flex:0 0 44px;border-right:1px solid var(--border);background:var(--bg-soft);display:flex;flex-direction:column;align-items:center;padding-top:10px;gap:12px;color:var(--text-dim)}
+  .rail button{background:none;border:none;font-size:18px;color:var(--text-dim);cursor:pointer}
+  /* 左栏 对话/报告 */
+  .pane-chat{flex:0 0 34%;max-width:34%;border-right:1px solid var(--border);display:flex;flex-direction:column;min-width:0}
+  .chat-scroll{flex:1;overflow-y:auto;padding:20px 24px}
+  .assistant-text{font-size:14px;line-height:1.9}
+  .assistant-text h3,.assistant-text h2{font-size:15px;font-weight:700;margin:20px 0 8px}
+  .assistant-text ul{margin:6px 0;padding-left:20px}
+  .assistant-text li{margin:4px 0}
+  .chat-input{flex:0 0 auto;border-top:1px solid var(--border);padding:12px;background:var(--bg-soft)}
+  .chat-input .box{border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--text-dim)}
+  .chat-input .tools{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .chat-input .chip{border:1px solid var(--border);border-radius:100px;padding:5px 11px;font-size:12px;color:var(--text-dim)}
+  /* 中栏 进程 */
+  .pane-products{flex:1;display:flex;flex-direction:column;min-width:0;border-right:1px solid var(--border)}
+  .pp-tabs{display:flex;gap:6px;padding:12px 16px;border-bottom:1px solid var(--border);flex:0 0 auto}
+  .pp-tab{font-size:13px;color:var(--text-dim);padding:6px 12px;border-radius:8px;cursor:pointer;display:inline-flex;gap:5px;align-items:center}
+  .pp-tab.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .pp-body{flex:1;overflow-y:auto;padding:16px}
+  .plan-card{border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+  .plan-card .ttl{font-weight:600;font-size:14px;margin-bottom:10px;display:flex;gap:6px;align-items:center}
+  .plan-step{font-size:13px;color:var(--text-dim);padding:4px 0;padding-left:22px;position:relative}
+  .plan-step.done::before{content:"✓";position:absolute;left:0;color:var(--accent)}
+  .plan-step.active::before{content:"▷";position:absolute;left:0;color:var(--accent)}
+  .plan-step::before{content:"○";position:absolute;left:2px;color:var(--border)}
+  .tool-row{display:flex;align-items:center;gap:10px;padding:8px 4px;font-size:13px;border-top:1px solid var(--border)}
+  .tool-row .ic{color:var(--text-dim)}
+  .tool-row .mono{font-family:var(--mono,monospace);font-size:12px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tool-row .ok{margin-left:auto;color:var(--accent)}
+  /* 右栏 文献 */
+  .pane-right{flex:0 0 320px;display:flex;flex-direction:column;background:var(--bg-soft)}
+  .rp-tabs{display:flex;gap:6px;padding:12px 14px;border-bottom:1px solid var(--border);flex:0 0 auto}
+  .rp-body{flex:1;overflow-y:auto;padding:12px}
+  .rp-pane{display:none}.rp-pane.on{display:block}
+  .lit-group-head-x{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;padding:8px 4px;margin-top:4px}
+  .lit-group-head-x .gc{margin-left:auto;font-size:11px;color:var(--accent);border:1px solid var(--accent-soft);border-radius:100px;padding:0 7px}
+  .themebtn{background:var(--accent);color:#fff;border:none;border-radius:100px;padding:3px 12px;font-size:12px;cursor:pointer;margin-left:10px}
+  /* 方向分组 */
+  .grp{border-bottom:1px solid var(--border)}
+  .grp-head{display:flex;align-items:center;gap:9px;padding:11px 4px;cursor:pointer}
+  .grp-head:hover{background:var(--bg)}
+  .grp-dot{display:none}
+  .grp-name{font-size:13px;font-weight:600;line-height:1.35}
+  .grp-cnt{margin-left:auto;font-size:11px;font-weight:700;border:1px solid;border-radius:100px;padding:1px 8px;flex:0 0 auto}
+  .grp-caret{font-size:11px;color:var(--text-dim);transition:transform .18s;flex:0 0 auto}
+  .grp-caret.open{transform:rotate(90deg)}
+  .grp-body{padding:2px 0 10px}
+  .grp-more{font-size:11.5px;color:var(--text-dim);padding:6px 4px;text-align:center}
+</style>
+</head>
+<body>
+<div class="banner">📐 照现状截图忠实还原（报告左 / 进程中 / 文献右，真实 styles.css）。<b>点左栏报告里蓝色的 [1][2][3]</b> → 右栏自动切「文献」并高亮对应论文。<button class="themebtn" onclick="document.documentElement.classList.toggle('dark')">切换深/浅</button></div>
+
+<div class="app">
+  <!-- 最左 会话 rail（收起态） -->
+  <div class="rail"><button title="展开侧栏">☰</button><button title="新对话">＋</button></div>
+
+  <!-- 左栏 报告正文（含 [n] 引用标号） -->
+  <div class="pane-chat">
+    <div class="chat-scroll">
+      <div class="assistant-text">
+        <h3>可复现性评估</h3>
+        <ul>
+          <li>✅ 超参数完整列出（见 Table 1）</li>
+          <li>✅ 实验协议详细（设备型号、分辨率、帧率均给出）</li>
+          <li>⚠️ 无开源代码（本文为 2018 年本科毕业论文的英文翻译）</li>
+        </ul>
+        <h3>方法与依据</h3>
+        <p>本文提出用屏幕显示的二维虚拟鱼作为 RL 智能体，通过 Q-learning 直接在真实环境中学习引导鱼群方向的策略<sup class="cite-num" data-cite="1">1</sup>。这一"虚拟鱼引导真实鱼群"的思路，与近年基于强化学习控制鱼群运动的工作一致<sup class="cite-num" data-cite="1">1</sup>。</p>
+        <p>鱼群的集体行为本身具有自组织特性：从极化列队到旋转磨坊等多种模式，均可由个体间的局部交互涌现<sup class="cite-num" data-cite="2">2</sup>。将个体波动与集体动力学联系起来的随机建模，为理解与预测这些模式提供了框架<sup class="cite-num" data-cite="3">3</sup>。</p>
+        <h3>6. 一句话总结</h3>
+        <p>本文用屏幕二维虚拟鱼作为 RL 智能体，绕过"无鱼群行为模型"和"物理机器鱼工程难题"两大障碍，通过 Q-learning 直接在真实环境中学习引导鱼群方向的策略——是 <strong>RL 驱动集体动物行为控制</strong>领域的早期概念验证工作<sup class="cite-num" data-cite="1">1</sup>。</p>
+        <p style="color:var(--text-dim);font-size:12px">↑ 报告里每处引用带 [n]，点它 → 右栏文献定位高亮。</p>
+      </div>
+    </div>
+    <div class="chat-input">
+      <div class="box">输入研究主题或指令…（Enter 发送，Shift+Enter 换行）</div>
+      <div class="tools"><span class="chip">● Claude Sonnet 4.6</span><span class="chip">✎ 上传</span><span class="chip">🔍 检索文献</span><span class="chip">⚗ 设计实验</span><span class="chip">✎ 写论文</span></div>
+    </div>
+  </div>
+
+  <!-- 中栏 进程/工作区 -->
+  <div class="pane-products">
+    <div class="pp-tabs">
+      <span class="pp-tab on">⚡ 进程</span>
+      <span class="pp-tab">▤ 工作区</span>
+    </div>
+    <div class="pp-body">
+      <div class="plan-card">
+        <div class="ttl">📋 任务计划</div>
+        <div class="plan-step done">建立研究目录 research-runs/fish-behavior-0712-7d63/</div>
+        <div class="plan-step active">文献检索：群体行为与集群动力学</div>
+        <div class="plan-step">文献检索：行为识别与分类（深度学习方法）</div>
+        <div class="plan-step">筛选与质量评估，提取关键方法/发现/研究空白</div>
+        <div class="plan-step">撰写 planning/literature.md 综述报告</div>
+      </div>
+      <div class="tool-row"><span class="ic">◇</span>question<span class="ok">✓</span></div>
+      <div class="tool-row"><span class="ic">📖</span>load skill: literature-search<span class="ok">✓</span></div>
+      <div class="tool-row"><span class="ic">◇</span><span class="mono">RUN="workspace/fish-behavior-$(date +%m%d)…"</span><span class="ok">✓</span></div>
+      <div class="tool-row"><span class="ic">📄</span><span class="mono">检索文献  fish schooling collective behavior dynamics</span><span class="ok">✓</span></div>
+      <div class="tool-row"><span class="ic">📄</span><span class="mono">检索文献  fish behavior recognition deep learning</span><span class="ok">✓</span></div>
+      <div class="tool-row"><span class="ic">◇</span>arc_fetch_source<span class="ok">✓</span></div>
+      <div class="tool-row"><span class="ic">◇</span>webfetch<span class="ok">✓</span></div>
+    </div>
+  </div>
+
+  <!-- 右栏 本次科研：产物/文献 -->
+  <div class="pane-right">
+    <div class="rp-tabs">
+      <button class="rp-tab" onclick="rpTab('files',event)">产物</button>
+      <button class="rp-tab active" id="litTabBtn" onclick="rpTab('lit',event)">文献 · 109</button>
+    </div>
+    <div class="rp-body">
+      <div class="rp-pane" id="pane-files"><div class="lit-count">本次 run 的 workspace 产物</div></div>
+      <div class="rp-pane on" id="pane-lit">
+        <div class="lit-count">共 109 篇 · 7 个方向 · 点报告 [n] 可定位</div>
+
+        <!-- 方向1（展开）：24 篇 -->
+        <div class="grp">
+          <div class="grp-head" onclick="toggleGrp(this)">
+            <span class="grp-dot" style="background:#2f6b4f"></span>
+            <span class="grp-name">fish schooling collective behavior dynamics 预测</span>
+            <span class="grp-cnt" style="color:#2f6b4f;border-color:#2f6b4f">24</span>
+            <span class="grp-caret open">▸</span>
+          </div>
+          <div class="grp-body">
+            <div class="lit-card" id="litcard-1">
+              <div class="lit-card-top"><div class="lit-title"><span class="lit-num">1</span>Controlling Fish Schools via Reinforcement Learning of Virtual Fish Movement</div><button class="lit-star on">★</button></div>
+              <div class="lit-meta">Yusuke Nishii, Hiroaki Kawashima · 2026</div>
+              <div class="lit-abs">This study investigates a method to guide and control fish schools using virtual fish trained with reinforcement learning…</div>
+              <div class="lit-cites"><button class="lit-cites-toggle"><span class="lit-cites-caret">▸</span>引用片段 2</button>
+                <div class="lit-cites-body" style="display:none">
+                  <div class="lit-cite">“用屏幕显示的二维虚拟鱼作为 RL 智能体，通过 Q-learning 学习引导鱼群方向”</div>
+                  <div class="lit-cite">“在真实环境中直接学习，绕过无鱼群行为模型的障碍”</div>
+                </div></div>
+              <div class="lit-actions"><a class="file-dl" href="#">🔗 原文</a></div>
+            </div>
+            <div class="lit-card" id="litcard-2">
+              <div class="lit-card-top"><div class="lit-title"><span class="lit-num">2</span>Noise-Induced Collective Memory in Schooling Fish</div><button class="lit-star">☆</button></div>
+              <div class="lit-meta">Alyssa Chan, Eva Kanso · 2025</div>
+              <div class="lit-abs">Schooling fish often self-organize into a variety of collective patterns, from polarized schooling to rotational milling…</div>
+              <div class="lit-cites"><button class="lit-cites-toggle"><span class="lit-cites-caret">▸</span>引用片段 1</button>
+                <div class="lit-cites-body" style="display:none"><div class="lit-cite">“从极化列队到旋转磨坊等多种集体模式由局部交互涌现”</div></div></div>
+              <div class="lit-actions"><a class="file-dl" href="#">🔗 原文</a></div>
+            </div>
+            <div class="lit-card" id="litcard-3">
+              <div class="lit-card-top"><div class="lit-title"><span class="lit-num">3</span>Data-Driven Stochastic Modeling of Schooling Fish: From Collective Dynamics to Individual Fluctuations</div><button class="lit-star">☆</button></div>
+              <div class="lit-meta">Elena G. de Lamo, M. Carmen Miguel, Romualdo Pastor-Satorras · 2025</div>
+              <div class="lit-abs">Collective motion in animal groups emerges from the interplay between individual variability and social coordination…</div>
+              <div class="lit-cites"><button class="lit-cites-toggle"><span class="lit-cites-caret">▸</span>引用片段 1</button>
+                <div class="lit-cites-body" style="display:none"><div class="lit-cite">“将个体波动与集体动力学联系起来的随机建模框架”</div></div></div>
+              <div class="lit-actions"><a class="file-dl" href="#">🔗 原文</a></div>
+            </div>
+            <div class="lit-card" id="litcard-4">
+              <div class="lit-card-top"><div class="lit-title"><span class="lit-num">4</span>Modeling the effect of hydrodynamic wakes in dynamical models of large-scale fish schools</div><button class="lit-star">☆</button></div>
+              <div class="lit-meta">Ji Zhou, Jung-Hee Seo, Rajat Mittal · 2024</div>
+              <div class="lit-abs">We present a dynamical model incorporating hydrodynamic wake interactions to explain emergent structure in large fish schools…</div>
+              <div class="lit-actions"><a class="file-dl" href="#">🔗 原文</a></div>
+            </div>
+            <div class="grp-more">…还有 20 篇（滚动加载）</div>
+          </div>
+        </div>
+
+        <!-- 方向2（折叠）：22 篇 -->
+        <div class="grp">
+          <div class="grp-head" onclick="toggleGrp(this)">
+            <span class="grp-dot" style="background:#3b82f6"></span>
+            <span class="grp-name">fish behavior 识别 分类 深度学习 computer vision</span>
+            <span class="grp-cnt" style="color:#3b82f6;border-color:#3b82f6">22</span>
+            <span class="grp-caret">▸</span>
+          </div>
+          <div class="grp-body" style="display:none">
+            <div class="lit-card"><div class="lit-card-top"><div class="lit-title">Applications of deep learning in fish habitat monitoring: A tutorial and survey</div><button class="lit-star">☆</button></div><div class="lit-meta">Alzayat Saleh, Marcus Sheaves, Dean R. Jerry 等 · 2023</div><div class="lit-abs">Marine ecosystems and their fish habitats are becoming increasingly important due to their integral role…</div><div class="lit-actions"><a class="file-dl" href="#">🔗 原文</a></div></div>
+            <div class="lit-card"><div class="lit-card-top"><div class="lit-title">Artificial intelligence for fish behavior recognition may unlock fishing gear selectivity</div><button class="lit-star">☆</button></div><div class="lit-meta">Alexa Sugpatan Abangan, Dorothée Kopp, Robin Faillettaz · 2023</div><div class="lit-abs">Through the advancement of observation systems, our vision has far extended its reach into the world of fishes…</div><div class="lit-actions"><a class="file-dl" href="#">🔗 原文</a></div></div>
+            <div class="grp-more">…还有 20 篇</div>
+          </div>
+        </div>
+
+        <!-- 方向3（折叠）：12 篇 -->
+        <div class="grp">
+          <div class="grp-head" onclick="toggleGrp(this)">
+            <span class="grp-dot" style="background:#8b5cf6"></span>
+            <span class="grp-name">fish behavioral response environmental factors water temperature light</span>
+            <span class="grp-cnt" style="color:#8b5cf6;border-color:#8b5cf6">12</span>
+            <span class="grp-caret">▸</span>
+          </div>
+          <div class="grp-body" style="display:none">
+            <div class="lit-card"><div class="lit-card-top"><div class="lit-title">Thermal effects on the swimming behavior and schooling dynamics of juvenile fish</div><button class="lit-star">☆</button></div><div class="lit-meta">R. Wang, Y. Sun · 2024</div><div class="lit-abs">Water temperature strongly modulates the collective swimming behavior and cohesion of juvenile schools…</div><div class="lit-actions"><a class="file-dl" href="#">🔗 原文</a></div></div>
+            <div class="grp-more">…还有 11 篇</div>
+          </div>
+        </div>
+
+        <!-- 方向4（折叠）：10 篇 -->
+        <div class="grp">
+          <div class="grp-head" onclick="toggleGrp(this)">
+            <span class="grp-dot" style="background:#f59e0b"></span>
+            <span class="grp-name">fish trajectory 预测 movement 机器学习 神经网络</span>
+            <span class="grp-cnt" style="color:#f59e0b;border-color:#f59e0b">10</span>
+            <span class="grp-caret">▸</span>
+          </div>
+          <div class="grp-body" style="display:none">
+            <div class="lit-card"><div class="lit-card-top"><div class="lit-title">Trajectory prediction of schooling fish using recurrent neural networks</div><button class="lit-star">☆</button></div><div class="lit-meta">K. Tanaka et al. · 2023</div><div class="lit-abs">We benchmark LSTM and GRU architectures for multi-agent fish trajectory forecasting…</div><div class="lit-actions"><a class="file-dl" href="#">🔗 原文</a></div></div>
+            <div class="grp-more">…还有 9 篇</div>
+          </div>
+        </div>
+
+        <!-- 方向5（折叠）：10 篇 -->
+        <div class="grp">
+          <div class="grp-head" onclick="toggleGrp(this)">
+            <span class="grp-dot" style="background:#ef4444"></span>
+            <span class="grp-name">automated fish behavior 识别 aquaculture video 分析 深度学习</span>
+            <span class="grp-cnt" style="color:#ef4444;border-color:#ef4444">10</span>
+            <span class="grp-caret">▸</span>
+          </div>
+          <div class="grp-body" style="display:none">
+            <div class="lit-card"><div class="lit-card-top"><div class="lit-title">A Review on the Use of Computer Vision and Deep Learning in Aquaculture</div><button class="lit-star">☆</button></div><div class="lit-meta">M. Yang, L. Zhou · 2022</div><div class="lit-abs">This review surveys computer-vision pipelines for automated behavior recognition in aquaculture settings…</div><div class="lit-actions"><a class="file-dl" href="#">🔗 原文</a></div></div>
+            <div class="grp-more">…还有 9 篇</div>
+          </div>
+        </div>
+
+        <!-- 方向6/7（折叠，仅头） -->
+        <div class="grp">
+          <div class="grp-head" onclick="toggleGrp(this)"><span class="grp-dot" style="background:#14b8a6"></span><span class="grp-name">fish individual tracking pose estimation underwater video</span><span class="grp-cnt" style="color:#14b8a6;border-color:#14b8a6">18</span><span class="grp-caret">▸</span></div>
+          <div class="grp-body" style="display:none"><div class="grp-more">18 篇（点击展开）</div></div>
+        </div>
+        <div class="grp">
+          <div class="grp-head" onclick="toggleGrp(this)"><span class="grp-dot" style="background:#ec4899"></span><span class="grp-name">reinforcement learning animal collective behavior control</span><span class="grp-cnt" style="color:#ec4899;border-color:#ec4899">13</span><span class="grp-caret">▸</span></div>
+          <div class="grp-body" style="display:none"><div class="grp-more">13 篇（点击展开）</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function rpTab(which,e){
+    document.querySelectorAll('.rp-tab').forEach(b=>b.classList.remove('active'));
+    (e?e.target:document.getElementById('litTabBtn')).classList.add('active');
+    document.querySelectorAll('.rp-pane').forEach(p=>p.classList.remove('on'));
+    document.getElementById('pane-'+which).classList.add('on');
+  }
+  function toggleGrp(head){
+    const body=head.parentElement.querySelector('.grp-body');
+    const caret=head.querySelector('.grp-caret');
+    const open=body.style.display!=='none' && caret.classList.contains('open');
+    body.style.display=open?'none':'block';
+    caret.classList.toggle('open',!open);
+  }
+  // 左栏报告 [n] → 右栏文献Tab + 展开目标所在分组 + 高亮滚动
+  document.querySelectorAll('.cite-num[data-cite]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const n=el.getAttribute('data-cite');
+      rpTab('lit');
+      const card=document.getElementById('litcard-'+n);
+      if(!card)return;
+      // 确保所在分组展开
+      const grp=card.closest('.grp'); if(grp){const b=grp.querySelector('.grp-body');const c=grp.querySelector('.grp-caret');if(b){b.style.display='block';} if(c){c.classList.add('open');}}
+      card.scrollIntoView({behavior:'smooth',block:'center'});
+      document.querySelectorAll('.lit-card.cite-hl').forEach(c=>c.classList.remove('cite-hl'));
+      card.classList.add('cite-hl');
+      setTimeout(()=>card.classList.remove('cite-hl'),1600);
+    });
+  });
+  document.querySelectorAll('.lit-cites-toggle').forEach(btn=>{
+    btn.addEventListener('click',(e)=>{e.stopPropagation();btn.classList.toggle('open');const b=btn.parentElement.querySelector('.lit-cites-body');if(b)b.style.display=btn.classList.contains('open')?'flex':'none';});
+  });
+</script>
+</body>
+</html>

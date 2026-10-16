@@ -1,0 +1,123 @@
+\section{Famou-Scientist: From Goal Clarification to Autonomous Research Loops}
+\label{sec:agent}
+
+Famou-Scientist turns a natural-language research objective into an executable algorithm-discovery process. Rather than asking a large language model (LLM) to produce a single classifier, the system constructs a complete, executable solution program and evaluates it through an iterative research loop. This design follows the broader line of LLM-mediated program search and scientific coding agents \cite{funsearch2023,alphaevolve2025,fmagent2025}. Famou-Scientist first identifies the user's objective through multi-turn interaction, then determines whether additional task knowledge, baselines, benchmarks, or evaluation criteria are required. When necessary, it invokes Deep Research as part of this clarification process and uses the resulting evidence to construct a common evaluator. After the objective has been fixed, the system repeatedly proposes, implements, runs, and analyzes candidate solutions. The user can also revise the objective in response to intermediate results, yielding an outer feedback loop around the inner research loop.
+
+\subsection{Overview and Problem Formulation}
+\label{sec:agent_overview}
+
+Let $r$ denote the user's natural-language request, let $\mathcal{A}$ denote the space of executable solution programs, and let $\mathcal{D}$ denote the data and experimental environment. Given an executable research goal $\mathcal{G}$, the system seeks a solution with the best protocol-defined score:
+
+\begin{equation}
+\label{eq:solution_objective}
+a^{*}=\arg\max_{a\in\mathcal{A}} S(a;\mathcal{D},\mathcal{G}).
+\end{equation}
+
+Here, $S$ is determined by the evaluation protocol. Famou-Scientist does not map $r$ directly to $a^{*}$. It first identifies the goal through dialogue, gathers task-specific evidence when needed, and constructs an executable protocol. Let $r_{0:k}$ denote the information collected after $k$ rounds of interaction. The goal-construction process can be abstracted as
+
+\begin{equation}
+\label{eq:goal_construction}
+g=\mathcal{C}_{\phi}(r_{0:k}),\qquad
+\mathcal{P}=\mathcal{R}_{\phi}(g),\qquad
+\mathcal{G}=\mathcal{F}_{\phi}(g,\mathcal{P}),
+\end{equation}
+
+where $g$ is the research objective identified through dialogue, $\mathcal{P}$ is task evidence gathered conditionally on that objective, and $\mathcal{G}$ is the resulting executable goal. If the objective already contains sufficient task knowledge, $\mathcal{P}$ can be empty; otherwise, Deep Research supplies relevant papers, dataset documentation, and existing implementations. Thus, Deep Research is a conditional component within goal clarification rather than a top-level stage parallel to clarification.
+
+For the $k$-th outer objective, the inner research loop maintains an experimental history $\mathcal{H}^{(k)}_t$ and generates a candidate solution $a^{(k)}_t$. After the user provides feedback $f_k$ on one or more rounds, the objective can be revised as
+
+\begin{equation}
+\label{eq:goal_update}
+\mathcal{G}^{(k+1)}=\mathcal{U}_{\phi}(\mathcal{G}^{(k)},f_k),
+\end{equation}
+
+where $\mathcal{U}_{\phi}$ denotes the goal-revision process. This formulation separates algorithm-level improvement within an objective from research-level revision of the objective itself.
+
+\subsection{Goal Clarification}
+\label{sec:agent_clarification}
+
+A natural-language request is often insufficient to start a reliable experiment. For example, ``find a solution with good cross-site generalization'' does not specify what should be optimized, which data may be used, whether existing methods should be compared, or what evidence would support the conclusion.
+
+Famou-Scientist first identifies the scientific meaning of the request through interaction with the user. The clarification process focuses on the research question rather than immediately selecting a model. It resolves the target output, data-access boundary, evaluation priorities, and resource constraints; when these remain underspecified, the system asks for additional information or records the relevant assumption explicitly. The user can also point out a mismatch after seeing preliminary results, for example by placing greater emphasis on cross-site stability, reducing solution complexity, or changing the desired interpretation of the result.
+
+Once the objective is sufficiently specified, the system determines whether external task knowledge is needed. If the request concerns a well-studied task, the system may need to identify customary baselines, benchmarks, metrics, and experimental protocols. Deep Research is invoked at this point as a subprocedure of clarification: it retrieves relevant papers, dataset descriptions, and existing implementations, and organizes them into alternatives that can be reviewed as part of the goal definition. Deep Research supplies evidence for the decision; it does not silently determine the experimental setup.
+
+The executable goal can be represented as
+
+\[
+\mathcal{G}=(\mathcal{D}_{\mathrm{pub}},\mathcal{S},\mathcal{M},\mathcal{B},\mathcal{R},\mathcal{B}_{\mathrm{base}},\mathcal{K}),
+\]
+
+where $\mathcal{D}_{\mathrm{pub}}$ is the accessible data, $\mathcal{S}$ specifies data splits and site constraints, $\mathcal{M}$ is the evaluation metric, $\mathcal{B}$ is the resource budget, $\mathcal{R}$ specifies output and stopping conditions, $\mathcal{B}_{\mathrm{base}}$ is the selected set of baselines, and $\mathcal{K}$ is the benchmark contract. Whether baselines or a benchmark are needed, and which forms they should take, is determined by the clarified objective rather than fixed in advance.
+
+After $\mathcal{G}$ has been confirmed, Famou-Scientist constructs an evaluator from the goal:
+
+\[
+\mathcal{E}_{\mathcal{G}}=\mathcal{V}_{\phi}(\mathcal{G}),
+\qquad
+\mathcal{E}_{\mathcal{G}}:\mathcal{A}\rightarrow\mathbb{R}\times\mathcal{Z},
+\]
+
+where $\mathcal{V}_{\phi}$ denotes evaluator construction, the first output is the score of a candidate solution, and $\mathcal{Z}$ contains auxiliary evidence such as logs, diagnostics, and failure causes. For the present task, the evaluator organizes data loading, site-aware splitting, baseline execution, candidate execution, metric computation, and validity checks. It is fixed before candidate search begins, preventing the evaluation protocol from changing to accommodate a particular candidate.
+
+\subsection{The Iterative Research Loop}
+\label{sec:agent_loop}
+
+After the goal and evaluator have been fixed, Famou-Scientist enters an inner research loop. For the $k$-th objective, let the history before round $t$ be
+
+\[
+\mathcal{H}^{(k)}_{t}=\{(a^{(k)}_i,e^{(k)}_i)\}_{i=1}^{t-1},
+\]
+
+where $a^{(k)}_i$ is the solution program proposed and implemented at round $i$, and $e^{(k)}_i$ contains its experimental results and analysis. Candidate generation and evaluation are written as
+
+\[
+a^{(k)}_t\sim\pi_{\phi}(\cdot\mid\mathcal{G}^{(k)},\mathcal{E}_{\mathcal{G}^{(k)}},\mathcal{H}^{(k)}_t),
+\qquad
+e^{(k)}_t=\mathcal{E}_{\mathcal{G}^{(k)}}(a^{(k)}_t).
+\]
+
+Each round consists of four stages.
+
+\paragraph{Proposal.}
+The system proposes a new solution mechanism using the current objective, the selected baselines, existing candidates, and the experimental history. A useful proposal identifies which part of the solution changes and why that change could improve the target metric. The search is therefore not restricted to random hyperparameter tuning; it can explore data representations, feature construction, model structure, training strategies, and other task-relevant mechanisms. The accumulated history also helps identify previously attempted directions and avoid redundant search.
+
+\paragraph{Implementation.}
+The proposed mechanism is translated into executable candidate solution code. Each candidate follows the input-output constraints specified by the benchmark contract and is evaluated through the same evaluator, making comparisons meaningful. The implementation stage also checks whether the candidate can run on the target data within the available budget and distinguishes an implementation failure from a genuinely low-scoring solution.
+
+\paragraph{Execution and evaluation.}
+The candidate is executed under the fixed data and evaluation protocol. The system records its performance metrics together with relevant diagnostics. A candidate may achieve a strong score, or it may fail because of an implementation error, a resource limit, or unstable optimization. These outcomes are all valid feedback for the research loop. The evaluation record therefore includes more than a final scalar score: intermediate evidence can reveal why a solution succeeded or failed.
+
+\paragraph{Analysis and update.}
+The system analyzes the candidate relative to the selected baselines and decides whether the next round should refine the current mechanism, explore a new direction, or combine complementary mechanisms. Both successful and failed experiments influence subsequent proposals, turning the process from a sequence of independent attempts into evidence-driven search.
+
+\subsection{User-Feedback-Driven Outer Loop}
+\label{sec:agent_outer_loop}
+
+The inner loop optimizes a solution under a fixed objective, but its results can reveal that the objective itself is incomplete. For example, a candidate may improve the primary metric without improving the cross-site stability that the user actually cares about; the selected benchmark may fail to capture the central difficulty of the task; or the results may motivate a new constraint. Famou-Scientist allows the user to provide feedback in these situations rather than forcing subsequent work to remain within the original objective.
+
+Suppose that the user provides feedback $f_k$ after the $k$-th outer round. The system combines the current objective with this feedback to update the next research objective:
+
+\begin{equation}
+\mathcal{G}^{(k+1)}=\mathcal{U}_{\phi}(\mathcal{G}^{(k)},f_k).
+\end{equation}
+
+Here, $\mathcal{U}_{\phi}$ denotes goal revision. The update may change the optimization metric, data scope, baselines, benchmark, or resource constraints. If these changes alter the meaning of evaluation, the evaluator is reconstructed accordingly. Candidates, experimental results, and failure analyses from the previous objective are retained as historical evidence rather than discarded. Famou-Scientist therefore forms an outer loop of goal clarification, solution search, user feedback, and goal revision around the inner candidate-search loop.
+
+This design preserves user control over the research direction while allowing the system to carry out concrete solution exploration between feedback events. The user need not intervene between every implementation and experiment; intervention is needed when intermediate evidence suggests that the current objective or evaluation emphasis no longer answers the intended research question.
+
+\subsection{Asynchronous and Concurrent Research Infrastructure}
+\label{sec:agent_infra}
+
+Famou-Scientist is supported by infrastructure for asynchronous and concurrent execution. Candidate proposal, implementation, experiment execution, and result analysis are coordinated by the same research loop at the logical level, but individual tasks can be scheduled on different execution resources and run in parallel. Multiple candidates proposed in the same round can therefore be implemented and evaluated concurrently. Tasks with different resource requirements can use different queues, so a long-running candidate does not block the entire search.
+
+The infrastructure maintains task status, runtime logs, evaluation results, and associations between candidates and their evidence. As a result, completed tasks can enter analysis immediately, while failed tasks are isolated and returned with diagnostics. The interaction and execution layers are decoupled: the user can provide feedback, pause a direction, or revise the outer objective while background experiments are still running. Once a new objective is confirmed, a new search can be started while preserving the evidence collected under the previous objective.
+
+This asynchronous and concurrent execution capability turns a limited number of LLM interactions into a larger experimental search while preserving continuity and traceability. For the MDD application, it enables multiple candidate solutions to be compared under the same benchmark and allows completed results to feed back promptly into subsequent solution analysis and goal revision.
+
+\subsection{Instantiation for Cross-Site MDD Classification}
+\label{sec:agent_mdd}
+
+In this work, the user first specifies a research objective concerning cross-site MDD classification. Famou-Scientist uses goal clarification to determine the task definition, data boundary, and generalization criterion. When task-specific background is required, Deep Research identifies common baselines, cross-site benchmarks, and evaluation protocols for resting-state MDD imaging. After these choices have been confirmed, the system constructs an evaluator that applies the same protocol to both the baselines and the candidate solutions. The solution space $\mathcal{A}$ permits exploration of connectivity representations, feature construction, model structure, training strategies, and other task-relevant mechanisms.
+
+Famou-Scientist is not asked to generate an unconstrained neural network. It searches for a solution program within a predefined scientific question, baseline set, and evaluation boundary. If intermediate results show that the original objective or evaluation protocol needs revision, user feedback can trigger an outer-loop update and a new research loop. Section~\ref{sec:application} describes the data construction, benchmark, search space, and experimental protocol; Section~\ref{sec:results} reports the discovered solutions and their performance, and analyzes which mechanisms may explain their cross-site behavior.

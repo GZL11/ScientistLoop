@@ -1,0 +1,88 @@
+# ── 运行产物（实验库、跑分、权重、日志），一律不入库 ──────────────────────
+# 闭环运行时的实验库与批次产物：节点 JSON、attempt 产物、评测输出、凭据文件
+.famou/
+.famou_jobs/
+# 研究台跑出来的论文/实验/数据，属用户工作区产物
+research-runs/
+# 模型权重与序列化产物
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.h5
+*.pkl
+*.npz
+
+# ── 凭据：任何形态都不进库 ────────────────────────────────────────────────
+# 批次提交用的 settings 里是明文 token，历史上泄过一次，这里硬挡
+claude_settings.json
+secrets.env
+*.secrets
+.env
+.env.*
+auth.json
+
+# ── 缓存 ──────────────────────────────────────────────────────────────────
+.cache/
+.researchclaw_cache/
+.pytest_cache/
+.test-tmp/
+__pycache__/
+*.py[cod]
+*.so
+.coverage
+coverage.xml
+nosetests.xml
+.tox/
+
+# ── 依赖与构建 ────────────────────────────────────────────────────────────
+node_modules/
+/.venv/
+/venv/
+/build/
+/dist/
+/sdist/
+/eggs/
+/develop-eggs/
+/parts/
+/var/
+/lib/
+/lib64/
+/bin/
+/output/
+/*.egg-info/
+/*.egg
+/.eggs
+/.installed.cfg
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ── 本机便利脚本（含本机路径与代理凭证） ──────────────────────────────────
+/start-famou.sh
+
+# ── OpenCode 在 config dir 自动生成的运行时垃圾（assets 是源码资产，这些不是）──
+famou_scientist/assets/opencode/.gitignore
+famou_scientist/assets/opencode/package.json
+famou_scientist/assets/opencode/package-lock.json
+famou_scientist/assets/opencode/bun.lock
+# launcher.py 启动时按 AI_SEARCH_KEY 有没有配置生成；源模板是 _baidu_search_snippet.md
+famou_scientist/assets/opencode/_generated_baidu_search.md
+
+# ── 杂项 ──────────────────────────────────────────────────────────────────
+__MACOSX/
+.DS_Store
+*.zip
+*.mo
+/docs/_build/
+/AUTHORS
+/ChangeLog
+/build_submitter.*
+/logger_client_log
+# 本地 agent / 编辑器配置
+.claude/
+.codex/
+.agents/
+# 检索诊断与查询日志（运行时产物）
+queries.jsonl
+search_diagnostics.jsonl

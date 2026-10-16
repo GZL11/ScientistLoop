@@ -1,0 +1,67 @@
+{
+  "primaries": [
+    {
+      "name": "multi_period_replenishment_milp",
+      "discriminator": "Instruction describes multi-period inventory replenishment with cold storage capacity, per-SKU cold_usage, and ordering decisions over a horizon at one or more DCs/warehouses",
+      "algorithm_skeleton": "Build a MILP/CP-SAT model over (period, SKU, location) with integer order variables. Precompute effective unit costs (purchase + holding + shortage + surcharges). Simulate inventory state period-by-period: inv[t] = inv[t-1] + arrivals[t] - sales[t] - spoilage[t]. Enforce cold capacity weighted by cold_usage at BOTH peak (post-arrival) and end-of-period. Minimize total cost (purchase + holding + shortage + spoilage). Emit dense output grid over all (period, SKU, location).",
+      "core_constraints": [
+        "Order quantity variables must be declared as Integer (not Continuous)",
+        "Cold capacity constraint must be weighted by per-SKU cold_usage at every storage location",
+        "Cold capacity must be enforced at PEAK occupancy (prev_inv + arrivals) AND end-of-period, not just end-of-period",
+        "Inventory non-negativity enforced at every period (no netting across periods)",
+        "Output CSV must contain a complete dense grid over all (period × SKU × location) including zero-order rows",
+        "Output column names must exactly match spec (e.g., 'order_units' not 'order_qty'); integer cast before write"
+      ]
+    },
+    {
+      "name": "multi_supplier_procurement_milp",
+      "discriminator": "Instruction describes selecting among multiple suppliers with conditional cost modifiers (discounts, surcharges, risk premiums, MOQs) over a planning horizon, without cold storage as a primary bottleneck",
+      "algorithm_skeleton": "Precompute fully-loaded effective unit cost cost[supplier, product, month] folding in price, lead-time surcharge, risk premium, and FX. Build MILP with integer purchase quantities x[s,p,m], binary supplier-used y[s], binary month-active b[s,m], binary discount-taken ep[s,m]. Linearize binary×continuous terms (e.g. discount × qty) via auxiliary variables with big-M. Minimize Σ effective_cost · x − discount_savings, subject to demand satisfaction, supplier capacity, and any portfolio rules.",
+      "core_constraints": [
+        "Purchase quantities declared as Integer variables",
+        "All discrete decisions (supplier-used, discount-taken) modeled as explicit binaries",
+        "Bilinear terms (binary × continuous) linearized via auxiliary variables with big-M tied to capacity",
+        "Effective unit cost precomputed outside solver, including lead-time surcharge and risk premium",
+        "Output CSV uses exact required column names with complete row coverage"
+      ]
+    }
+  ],
+  "case_to_primary": {
+    "wb_cold_storage_replenishment": "multi_period_replenishment_milp",
+    "wb_multi_supplier_procurement": "multi_supplier_procurement_milp",
+    "wb_replenishment_hub_spoke": "multi_period_replenishment_milp",
+    "wb_replenishment_with_lead_time": "multi_period_replenishment_milp"
+  },
+  "case_extensions": {
+    "wb_cold_storage_replenishment": [
+      "supplier_weekly_capacity",
+      "pre_build_lookahead"
+    ],
+    "wb_multi_supplier_procurement": [
+      "early_payment_discount",
+      "lead_time_surcharge",
+      "reliability_risk_premium"
+    ],
+    "wb_replenishment_hub_spoke": [
+      "hub_spoke_transshipment",
+      "quality_substitution",
+      "weighted_cold_capacity_at_all_nodes"
+    ],
+    "wb_replenishment_with_lead_time": [
+      "lead_time_arrivals",
+      "quality_substitution",
+      "pre_build_lookahead"
+    ]
+  },
+  "extension_recipes": {
+    "supplier_weekly_capacity": "Add per-week supplier capacity constraint: Σ_p order[p,t] ≤ supplier_capacity[t]. Allow pre-ordering by enabling order in earlier weeks, but constrain cold capacity to absorb the pre-built inventory at peak occupancy.",
+    "pre_build_lookahead": "When capacity is tight near peak demand weeks, augment the model to look ahead: include forward demand in the planning horizon so the solver can pre-build. If using greedy fallback, add buffer = min(future_demand * 0.2, cap_slack).",
+    "early_payment_discount": "Add binary ep[s,m] indicating early-payment for supplier s in month m. Introduce auxiliary z[s,m] = ep[s,m] · qty[s,m] with big-M linearization (z ≤ M·ep, z ≤ qty, z ≥ qty − M·(1−ep), z ≥ 0). Subtract 0.01 · price · z from objective.",
+    "lead_time_surcharge": "During effective-cost precomputation, add $5/unit to suppliers with lead_time > 7 days: eff_cost[s,p,m] += 5 if lead_time[s] > 7.",
+    "reliability_risk_premium": "During effective-cost precomputation: eff_cost[s,p,m] += 0.10 * (100 - reliability_score[s]).",
+    "hub_spoke_transshipment": "Add a hub location with its own inventory state. Decision variables: order[hub, t] from supplier, transfer[hub→spoke, p, t] with per-transfer cost. Spoke inventory only flows from hub transfers. Apply weighted cold capacity at hub AND each spoke independently.",
+    "quality_substitution": "Allow premium SKU to satisfy standard SKU demand when standard is short: add variable sub[premium→standard, t, loc] in the demand-fulfillment equation: sales_std + sub ≥ demand_std (capped by available premium inventory). Decrement premium inventory by sub.",
+    "weighted_cold_capacity_at_all_nodes": "Apply Σ_p inv[p,t,loc] · cold_usage[p] ≤ cold_capacity[loc] at EVERY location (hub and all spokes), not only the hub. Enforce both at peak (post-arrival/post-transfer-in) and end-of-period.",
+    "lead_time_arrivals": "Define arrivals[p,t,loc] = order[p, t − lead_time[loc], loc] (zero if t < lead_time). Inventory update uses arrivals not orders. Emit order rows for ALL periods 1..T even when t + lead_time > T (zero is acceptable but row must exist)."
+  }
+}

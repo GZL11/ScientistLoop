@@ -1,0 +1,19 @@
+{
+  "version": "20260713-002-parallel-paper-lookup",
+  "created_at": "2026-07-13",
+  "title": "Use parallel lookup for specific paper requests",
+  "description": "Changes specific-paper retrieval from lookup-first to parallel academic lookup plus native websearch/webfetch verification.",
+  "source_file": "registry/prompts/agents/files/AGENTS.20260713-002-parallel-paper-lookup.md",
+  "runtime_file": "AGENTS.md",
+  "changes": [
+    "Clarify that arc_lookup_paper collects academic-library candidates rather than complete web evidence.",
+    "Require first-round parallel lookup with arc_lookup_paper and native websearch for concrete paper names, acronyms, approximate titles, and versioned names.",
+    "Require webfetch verification for arXiv, OpenReview, ACL, PMLR, DOI, or official paper/project pages found via websearch.",
+    "Do not ask the user merely because arc_lookup_paper returns needs_confirmation=true; inspect web evidence first.",
+    "Reject candidates that only match versions, years, numbers, or generic words."
+  ],
+  "rollback": {
+    "target": "20260713-001-literature-retrieval-routing",
+    "notes": "Restore lookup-first routing if native websearch causes unacceptable latency or noise."
+  }
+}

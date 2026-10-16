@@ -1,0 +1,32 @@
+{
+  "date": "2026-07-26",
+  "summary": "今天的研究工作围绕 GNN 风阻预测展开，目标是复现 DrivAerNet 论文（arXiv 2403.08055）中的 RegDGCNN 模型，并在 DrivAer 数据集上验证。整个流程从文献检索、run 目录建立、代码获取，到实验设计与代码实现，推进较为完整。然而，由于 DrivAerNet 完整 3D 网格数据（84GB STL 文件）存储在 Harvard Dataverse 且无法自动下载，实验最终使用参数化合成数据替代，导致复现结果不具参考价值。会话以用户发现数据集问题、要求澄清而告终，真实数据复现尚未完成。",
+  "sessions": [
+    {
+      "id": "ses_062819bb0ffejI68tDXBUS2hNI",
+      "title": "GNN风阻预测论文复现（DrivAerNet + RegDGCNN）",
+      "highlights": "用户要求复现一篇 GNN 风阻预测论文并用 DrivAer 数据集验证，助手选定 DrivAerNet（RegDGCNN）为目标论文、MeshGraphNet 为 baseline，建立了 run 目录 research-runs/drivaernet-gnn-0726-f07b/。获取了 RegDGCNN 完整源码，掌握了模型架构（4层EdgeConv + 全局pooling + 5层FC，参数量3M）和官方超参配置。由于 84GB STL 文件无法自动下载，转而使用参数化合成点云数据跑完了 RegDGCNN 与 PointNet 的对比实验（50 epochs，3 seeds），结果显示在合成数据上 PointNet（R²≈0.50）优于 RegDGCNN（R²≈0.01），但该结论与论文相反且无参考价值。用户随后质疑数据真实性，助手如实说明使用了合成数据，复现实际上未完成，需要用户提供真实数据集路径才能继续。"
+    }
+  ],
+  "artifacts": [
+    {
+      "dir": "research-runs/drivaernet-gnn-0726-f07b/",
+      "files": [
+        "planning/literature.md",
+        "planning/design.md",
+        "planning/hypotheses.md",
+        "experiment/experiment.py",
+        "experiment/results.json",
+        "experiment/results.md",
+        "experiment/code-review.md"
+      ],
+      "note": "DrivAerNet GNN风阻预测复现项目的规划与实验产物，含文献综述、实验设计、RegDGCNN实现代码及合成数据实验结果"
+    }
+  ],
+  "open_questions": [
+    "真实 DrivAerNet STL 网格数据（Harvard Dataverse，84GB）尚未获取，需用户提供本地路径或下载授权才能完成真实数据复现",
+    "在合成数据上 PointNet 优于 RegDGCNN 的现象说明 RegDGCNN 对真实几何多样性依赖性强，值得在真实数据上验证这一假设",
+    "MeshGraphNet 作为 baseline 已被选定但尚未实现和对比，待真实数据就位后补充",
+    "venue 尚未确定（用户选择暂不指定），后续如需发表需补充选定目标会议"
+  ]
+}

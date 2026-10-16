@@ -1,0 +1,14 @@
+{
+  "version": "20260716-001-experiment-status",
+  "created_at": "2026-07-16",
+  "title": "Split out experiment status",
+  "description": "Creates a standalone registry record for arc_experiment_status so its version history is independent from the rest of arc.ts.",
+  "source_file": "tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Expose arc_experiment_status as an independent tool entry.",
+    "Track job-status inspection separately from experiment launch and cancellation.",
+    "Keep deterministic job-directory reads as the runtime behavior."
+  ]
+}
+

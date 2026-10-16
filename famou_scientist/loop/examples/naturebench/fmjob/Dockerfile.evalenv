@@ -1,0 +1,103 @@
+# ==============================================================================
+# NatureBench 官方评测环境（naturebench-eval 的 pip 等价物）
+# ==============================================================================
+# Build:  bash build_eval_env_image.sh
+#
+# 为什么需要它
+# ------------
+# NatureBench 在仓库根的 `eval_env_mapping.json` 里为**全部 90 道题**声明了同一个
+# 评测环境 `naturebench-eval`，其内容见 `conda_env_eval.yml`：numpy 2.3.1 /
+# pandas 2.3.2 / rdkit 2025.03.2 / scikit-learn 1.7.1 / meeko 0.5.1。
+#
+# 而 Agent 任务镜像的 `/opt/py311` 被 torch cu118 的 `numpy<2.0` 反向锁死在
+# numpy 1.26 / pandas 2.2.3（见上游 docker/Dockerfile.base 第 9 行的注释）。
+# 两套 pin 不可能共存于一个解释器，所以评测器必须住在自己的 venv 里。
+#
+# 不这么做的实际代价（已复现，不是假设）：
+#   - s43588-025-00878-7 的 GT 是 pandas≥2.3 写的 pickle，2.2.3 读它会在
+#     `StringDtype.__init__()` 上签名不匹配，并被 pandas 的 pickle 兼容层掩成
+#     `issubclass() arg 1 must be a class`。14/14 次 attempt 全挂，与模型无关。
+#     **同一道题的 problem/data/*.pkl 也是 numpy≥2 写的**，所以 Agent 侧连训练
+#     数据都读不了——这个 venv 同时修掉了两边。
+#   - s42256-023-00712-7 镜像里的 meeko 0.6.0 不带 `meeko/data/params/`，
+#     `MoleculePreparation()` 抛 ValueError，被 evaluator 的
+#     `except Exception: return None` 吞成「每个分子 Vina Score 都是 null」。
+#
+# 选包口径
+# --------
+# **不是照抄 conda_env_eval.yml 的全部 300 行**——那里面大量是 conda 的传递依赖
+# 和与评测无关的包。这里只装 90 个 `evaluation/evaluator.py` 真正 import 到的东西
+# （扫描结果：numpy 84 / pandas 46 / sklearn 42 / scipy 27 / rdkit 5 / h5py 4 /
+# anndata 4 / Bio 3 / torch 3 / skimage 2 / imageio 1 / meeko 1 / networkx 1 /
+# dgl 1 / pyarrow 1），版本一律对齐 conda_env_eval.yml。
+#
+# torch 用 **CPU 版**：评测器只做指标计算，不需要 GPU；上游 conda_env_eval.yml
+# 里也是 `torch==2.6.0+cpu`。这样既不与任务镜像的 cu118 torch 冲突，也省下体积。
+#
+# 改这个文件后必须跑 `verify_eval_env.py`——它会在全部 90 道题上试跑 evaluator
+# 的 import，缺包会当场报出来，而不是等到线上评测时才变成一次 −1。
+# ==============================================================================
+
+ARG BASE_IMAGE=<你的镜像仓库>/famou-public/naturebench-base:v3
+FROM ${BASE_IMAGE}
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# 默认走清华源：本机到 pypi.org 与 mirrors.baidubce.com 都会读超时，实测只有
+# tuna 稳定返回。构建机网络不同的话用 --build-arg PIP_INDEX_URL=... 覆盖。
+ARG PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
+    PIP_DEFAULT_TIMEOUT=180 \
+    PIP_RETRIES=8
+
+# 用系统的 python3.11 而不是 /opt/py311 建 venv：后者已经被 numpy<2 污染，
+# 而且这样 venv 不依赖任务镜像里那个环境是否存在。
+RUN /usr/bin/python3.11 -m venv /opt/pyeval \
+    && /opt/pyeval/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel
+
+# ── 与 conda_env_eval.yml 对齐的核心科学栈 ──────────────────────────────────
+RUN /opt/pyeval/bin/python -m pip install --no-cache-dir \
+    numpy==2.3.1 \
+    pandas==2.3.2 \
+    scipy==1.16.0 \
+    scikit-learn==1.7.1 \
+    pyarrow==19.0.0 \
+    h5py==3.14.0 \
+    tables==3.10.2 \
+    networkx==3.4.2 \
+    statsmodels==0.14.6 \
+    matplotlib==3.10.6 \
+    tqdm==4.67.3
+
+# ── 影像 / 生信 / 化学 ───────────────────────────────────────────────────────
+# ⚠️ 这一层**必须排在上面那层之后**：meeko 0.5.1 的包级 `__init__` 会一路 import 到
+# `from scipy import spatial`（receptor_pdbqt）和 `import pandas as pd`
+# （analysis/fingerprint_interactions），而这两个包**都不在它的 install_requires
+# 里**。先装 meeko 的话它连 import 都过不去。别把两层合并或调换顺序。
+RUN /opt/pyeval/bin/python -m pip install --no-cache-dir \
+    scikit-image==0.25.2 \
+    imageio==2.37.3 \
+    tifffile==2025.3.30 \
+    biopython==1.85 \
+    rdkit==2025.3.2 \
+    meeko==0.5.1
+
+# ── torch CPU + dgl（仅 4 道题的 evaluator 需要）─────────────────────────────
+RUN /opt/pyeval/bin/python -m pip install --no-cache-dir \
+    torch==2.6.0 torchvision==0.21.0 \
+    --index-url https://download.pytorch.org/whl/cpu
+RUN /opt/pyeval/bin/python -m pip install --no-cache-dir \
+    anndata==0.12.10 scanpy==1.11.5
+RUN /opt/pyeval/bin/python -m pip install --no-cache-dir \
+    dgl==2.5.0 -f https://data.dgl.ai/wheels/torch-2.6/repo.html \
+    || echo "WARN: dgl 未装上，s42256-024-00916-5 的评测会回退到任务解释器"
+
+# 冒烟：这两条正是前面两道题挂掉的位置，装错版本在 build 阶段就该炸。
+RUN /opt/pyeval/bin/python - <<'PY'
+import numpy, pandas, meeko
+assert numpy.__version__.startswith("2."), numpy.__version__
+assert pandas.__version__ >= "2.3", pandas.__version__
+from meeko import MoleculePreparation
+MoleculePreparation()          # meeko 0.6.0 会在这里 ValueError
+print("eval env OK:", numpy.__version__, pandas.__version__, meeko.__version__)
+PY

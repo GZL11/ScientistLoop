@@ -1,0 +1,25 @@
+# 复制此文件为 bench_config.toml，填入本机绝对路径
+# cp bench_config.toml.example bench_config.toml
+
+[paths]
+benchmark_cases = "/absolute/path/to/benchmark/cases"
+results  = "/absolute/path/to/benchmark/results"
+# interactive = "/absolute/path/to/interactive_sessions"  # 可选，默认 results 同级
+
+# 自动回答 API 配置（--answerer api 时使用）
+[answerer]
+api_base_url = "https://api.anthropic.com"
+auth_token   = ""                              # API key / auth token
+model        = "glm-5"                         # 回答模型
+
+# 沙箱额外配置（--sandbox 时使用，与内置 deny/allow 列表合并）
+# 内置 deny_read：CASES_DIR / RESULTS_DIR / INTERACTIVE_DIR
+# 内置 allow_write：workspace + ~/.claude / ~/.local / ~/.config / ~/.cache / ~/.npm / ~/.bun / /tmp / opencode 安装目录
+[sandbox]
+extra_deny_read = [
+    # "/Users/youruser/.ssh",
+    # "/Users/youruser/Documents",
+    # "/Users/youruser/workspace/other_project",
+]
+extra_allow_write_dirs = []
+extra_allow_write_files = []

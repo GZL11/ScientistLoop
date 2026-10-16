@@ -1,0 +1,19 @@
+{
+  "version": "20260809-001-responsive-retrieval",
+  "created_at": "2026-08-09",
+  "title": "Keep interactive literature retrieval responsive",
+  "description": "Moves network retrieval off the OpenCode event loop, uses fast source fallback for interactive searches, and applies bounded source timeouts.",
+  "source_file": "registry/tools/search_literature/files/arc.20260809-001-responsive-retrieval.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Run the Python retrieval subprocess asynchronously so API and SSE events remain available.",
+    "Stop interactive source traversal after the requested unique-paper count is reached.",
+    "Keep full multi-source traversal for systematic mode.",
+    "Reduce individual source timeout and retry budgets.",
+    "Cap interactive retrieval at 45 seconds and systematic retrieval at 90 seconds."
+  ],
+  "rollback": {
+    "target": "20260718-003-structured-search-diagnostics",
+    "notes": "Restore synchronous exhaustive multi-source retrieval and the prior client retry budgets."
+  }
+}

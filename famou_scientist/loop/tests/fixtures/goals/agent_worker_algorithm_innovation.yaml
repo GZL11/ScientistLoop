@@ -1,0 +1,54 @@
+{
+  "goal": {
+    "id": "agent_worker_algorithm_innovation",
+    "name": "agent_worker_algorithm_innovation"
+  },
+  "workers": {
+    "type": "prompt",
+    "llm": {
+      "type": "command",
+      "cmd": "python ../llm/fake_loop_llm.py --input {input} --output {output}",
+      "timeout_sec": 30
+    },
+    "implement": {
+      "type": "agent",
+      "cmd": "python {config_dir}/../agents/fake_implement_agent.py --input {input} --output {output}",
+      "timeout_sec": 30,
+      "sandbox": {"type": "local"}
+    }
+  },
+  "experiment_runner": {
+    "type": "command",
+    "cmd": "python {entrypoint} --output {run_dir}/trained_submission.json",
+    "timeout_sec": 30
+  },
+  "benchmarks": [
+    {
+      "name": "fake_command_classification_bench",
+      "adapter": {
+        "type": "command",
+        "public_eval_cmd": "python ../evaluators/fake_classification_eval.py --mode public --submission {artifact}",
+        "official_eval_cmd": "python ../evaluators/fake_classification_eval.py --mode official --submission {artifact}",
+        "timeout_sec": 30
+      },
+      "official_metric": {"name": "accuracy", "direction": "higher_is_better"},
+      "hidden_test_access": "forbidden"
+    }
+  ],
+  "objective_brief": {
+    "primary_goal": "Command-backed implement agent smoke test.",
+    "official_metric": {"name": "accuracy", "source": "benchmark_adapter", "direction": "higher_is_better"},
+    "preference_description": "Prefer agent-produced code with auditable logs.",
+    "allow_examples": ["Use a tool-using implement agent to edit files."],
+    "reject_examples": ["Expose evaluator private data to the implement agent."],
+    "tie_breakers": ["Prefer complete artifact chain."]
+  },
+  "constraints": {
+    "max_wall_time_hours": 1,
+    "max_evaluator_submissions": 1,
+    "max_parallel_evaluations": 1,
+    "max_experiment_retries": 0,
+    "hidden_test_access": "forbidden"
+  },
+  "outputs": {"required": ["evidence_bundle"]}
+}

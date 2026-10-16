@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>Famou Bench Viewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<style>
+:root {
+  --bg: #F1F0EC;
+  --surface: #FFFFFF;
+  --border: #E5E4DF;
+  --border-subtle: #EDECE9;
+  --nav-bg: #0D0D0C;
+  --text-primary: #0D0D0C;
+  --text-secondary: #65645D;
+  --text-tertiary: #A3A29B;
+  --blue: #4F46E5;
+  --blue-dark: #4338CA;
+  --blue-light: #EEF2FF;
+  --blue-border: #C7D2FE;
+  --green: #059669;
+  --green-light: #ECFDF5;
+  --amber: #92400E;
+  --amber-light: #FFFBEB;
+  --red: #E11D48;
+  --red-light: #FFF1F2;
+  --purple: #7C3AED;
+  --purple-light: #F5F3FF;
+  --purple-border: #EDE9FE;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgba(13,13,12,0.05);
+  --shadow-md: 0 4px 16px rgba(13,13,12,0.08), 0 1px 3px rgba(13,13,12,0.05);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  background: var(--bg);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── nav ── */
+nav {
+  background: var(--nav-bg);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 56px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.brand {
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #fff;
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  white-space: nowrap;
+}
+.brand-mark {
+  width: 26px; height: 26px;
+  border-radius: 7px;
+  background: var(--blue);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 800; color: #fff; letter-spacing: -0.5px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 2px 6px rgba(79,70,229,0.5);
+}
+nav button, nav a.nav-link {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+  text-decoration: none;
+  font-family: inherit;
+  letter-spacing: -0.01em;
+}
+nav button.active { background: rgba(255,255,255,0.1); color: #fff; font-weight: 600; }
+nav button:hover:not(.active), nav a.nav-link:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.nav-spacer { flex: 1; }
+.nav-chat-link {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 600;
+  color: rgba(255,255,255,0.4);
+  text-decoration: none;
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.15s;
+  letter-spacing: -0.01em;
+}
+.nav-chat-link:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); border-color: rgba(255,255,255,0.18); }
+
+/* ── pages ── */
+.page { display: none; padding: 28px 32px; }
+.page.active { display: block; }
+
+/* ── page header ── */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.page-header h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.6px;
+}
+
+/* ── buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.15s;
+  border: none;
+  outline: none;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.btn-primary { background: var(--blue); color: #fff; box-shadow: 0 1px 3px rgba(79,70,229,0.35); }
+.btn-primary:hover { background: var(--blue-dark); box-shadow: 0 2px 6px rgba(79,70,229,0.4); }
+.btn-ghost { background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.btn-ghost:hover { background: var(--bg); color: var(--text-primary); border-color: #D1D0CA; }
+.btn-ghost.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12px; font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+  font-family: inherit;
+  box-shadow: var(--shadow-sm);
+  letter-spacing: -0.01em;
+}
+.btn-back:hover { background: var(--bg); color: var(--text-primary); }
+
+/* ── experiment list ── */
+.exp-list { display: flex; flex-direction: column; gap: 6px; }
+.exp-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+}
+.exp-row:hover {
+  border-color: #A5B4FC;
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.07), 0 4px 14px rgba(13,13,12,0.07);
+  transform: translateY(-1px);
+}
+.exp-status-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.exp-status-dot.done { background: var(--green); }
+.exp-status-dot.running {
+  background: #D97706;
+  animation: pulse-dot 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+}
+.exp-status-dot.error { background: var(--red); }
+@keyframes pulse-dot {
+  0%   { box-shadow: 0 0 0 0   rgba(217,119,6,0.45); }
+  70%  { box-shadow: 0 0 0 5px rgba(217,119,6,0); }
+  100% { box-shadow: 0 0 0 0   rgba(217,119,6,0); }
+}
+.exp-row-main { flex: 1; min-width: 0; }
+.exp-row-top { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; flex-wrap: wrap; }
+.exp-id {
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 12px; font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+}
+.badge {
+  font-size: 10px; padding: 2px 7px;
+  border-radius: 5px; font-weight: 700;
+  letter-spacing: .2px;
+}
+.badge-done    { background: #ECFDF5; color: #065F46; }
+.badge-running { background: #FFFBEB; color: #92400E; }
+.badge-error   { background: #FFF1F2; color: #9F1239; }
+.exp-pill {
+  display: inline-flex; align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px; font-weight: 500;
+  color: var(--text-secondary);
+}
+.exp-row-sub { font-size: 11px; color: var(--text-tertiary); }
+.exp-score {
+  font-size: 26px; font-weight: 800;
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  flex-shrink: 0;
+  letter-spacing: -1.5px;
+  min-width: 76px; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.score-hi  { color: #059669; }
+.score-lo  { color: #E11D48; }
+.score-mid { color: #D97706; }
+
+/* ── result grid ── */
+.result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+  display: flex; flex-direction: column;
+  box-shadow: var(--shadow-sm);
+}
+.result-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: #D1D0CA;
+  transform: translateY(-1px);
+}
+.case-name {
+  font-weight: 700; font-size: 12px;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+  word-break: break-all; line-height: 1.5;
+}
+.score-main {
+  font-size: 40px; font-weight: 800;
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  letter-spacing: -2px; line-height: 1;
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.score-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.score-bar-track { flex: 1; height: 5px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+.score-bar-fill { height: 100%; border-radius: 3px; transition: width 0.7s cubic-bezier(.22,1,.36,1); }
+.score-sub {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  display: flex; gap: 14px; margin-bottom: 10px;
+}
+.score-sub .sub-label { color: var(--text-tertiary); }
+.score-sub .sub-val { font-weight: 700; color: var(--text-secondary); font-family: ui-monospace, 'SF Mono', Consolas, monospace; }
+.tag {
+  display: inline-flex; align-items: center;
+  font-size: 10px; padding: 2px 7px;
+  border-radius: 5px; font-weight: 700;
+  letter-spacing: .2px;
+}
+.tag-success { background: #ECFDF5; color: #065F46; }
+.tag-failed  { background: #FFF1F2; color: #9F1239; }
+.tag-pending { background: var(--bg); color: var(--text-tertiary); border: 1px solid var(--border); }
+.stats-mini {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  font-size: 11px; margin-top: 8px;
+  padding-top: 8px; border-top: 1px solid var(--border-subtle);
+}
+.stats-mini .sm { display: flex; flex-direction: column; gap: 1px; }
+.stats-mini .sm-l { color: var(--text-tertiary); font-size: 10px; text-transform: uppercase; letter-spacing: .3px; font-weight: 600; }
+.stats-mini .sm-v { font-weight: 700; color: var(--text-secondary); font-family: ui-monospace, 'SF Mono', Consolas, monospace; font-size: 12px; }
+a.trace-link {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 700;
+  color: var(--blue); text-decoration: none;
+  margin-top: auto; padding-top: 12px;
+  transition: gap 0.2s, color 0.15s;
+  letter-spacing: -0.01em;
+}
+a.trace-link:hover { gap: 8px; color: var(--blue-dark); }
+
+/* ── compare ── */
+.compare-checks { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+.compare-check {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  cursor: pointer; font-size: 12px; font-weight: 500;
+  transition: all 0.15s; user-select: none;
+  box-shadow: var(--shadow-sm);
+}
+.compare-check:hover { border-color: #A5B4FC; background: var(--blue-light); }
+.compare-check input[type=checkbox] { accent-color: var(--blue); width: 13px; height: 13px; }
+.compare-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+table { border-collapse: collapse; width: 100%; font-size: 12px; }
+th, td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); padding: 10px 14px; text-align: left; }
+th:last-child, td:last-child { border-right: none; }
+tr:last-child td { border-bottom: none; }
+th {
+  background: var(--bg); font-weight: 700;
+  color: var(--text-tertiary); font-size: 11px;
+  text-transform: uppercase; letter-spacing: .5px;
+  position: sticky; top: 0; z-index: 1;
+}
+td.score-cell { text-align: right; font-family: ui-monospace, 'SF Mono', Consolas, monospace; }
+td.score-cell .score-val { font-weight: 700; font-size: 13px; }
+td.score-cell .cell-stats { font-size: 10px; color: var(--text-tertiary); margin-top: 2px; }
+tr.avg-row { background: #FBFAF8; }
+tr.avg-row td { font-weight: 700; }
+tr:hover td { background: #FAFAF8; }
+tr.avg-row:hover td { background: #F5F4F0; }
+
+/* ── trace layout ── */
+#trace-wrap { display: flex; gap: 16px; height: calc(100vh - 124px); }
+#trace-sessions { width: 218px; flex-shrink: 0; overflow-y: auto; }
+#trace-turns { flex: 1; overflow-y: auto; }
+.session-item {
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: var(--shadow-sm);
+}
+.session-item:hover { border-color: #A5B4FC; box-shadow: var(--shadow-md); }
+.session-item.active { border-color: var(--blue); background: var(--blue-light); }
+.session-item .s-name { font-weight: 700; font-size: 12px; color: var(--text-primary); }
+.session-item .s-meta { font-size: 11px; color: var(--text-tertiary); margin-top: 3px; }
+
+/* ── turn blocks ── */
+.turn-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s;
+}
+.turn-block:hover { box-shadow: var(--shadow-md); }
+.turn-header {
+  padding: 8px 14px;
+  background: var(--bg);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+.role { font-weight: 800; font-size: 10px; letter-spacing: .5px; text-transform: uppercase; }
+.role-user      { color: var(--blue); }
+.role-assistant { color: var(--purple); }
+.turn-body { padding: 14px; }
+.thinking-box {
+  background: #FFFEF0; border: 1px solid #EFE18A;
+  border-radius: var(--radius-sm); padding: 10px 12px;
+  margin-bottom: 10px; font-size: 11px; color: #78350F;
+  max-height: 200px; overflow-y: auto;
+  white-space: pre-wrap; word-break: break-word; line-height: 1.6;
+}
+.turn-text { font-size: 13px; color: var(--text-primary); word-break: break-word; line-height: 1.78; }
+.tool-list { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+.tool-item { border: 1px solid var(--purple-border); border-radius: 8px; overflow: hidden; }
+.tool-header {
+  padding: 7px 12px; background: var(--purple-light);
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+  font-size: 12px; transition: background 0.12s;
+}
+.tool-header:hover { background: var(--purple-border); }
+.tool-name { font-family: ui-monospace, 'SF Mono', Consolas, monospace; font-weight: 700; color: #5B21B6; font-size: 11px; }
+.tool-ok  { color: var(--green); font-size: 11px; font-weight: 700; }
+.tool-err { color: var(--red); font-size: 11px; font-weight: 700; }
+.tool-run { color: #D97706; font-size: 11px; font-weight: 700; }
+.tool-chevron { margin-left: auto; color: var(--text-tertiary); font-size: 10px; transition: transform 0.2s; }
+.tool-header.open .tool-chevron { transform: rotate(180deg); }
+.tool-detail {
+  display: none; padding: 12px 14px;
+  font-size: 11px; font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  background: #FAF9F7; white-space: pre-wrap; word-break: break-all;
+  max-height: 300px; overflow-y: auto;
+  border-top: 1px solid var(--purple-border);
+  line-height: 1.6; color: var(--text-secondary);
+}
+.tool-detail.open { display: block; }
+
+/* ── session stats ── */
+.session-stats {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 18px; margin-bottom: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.session-stats h4 {
+  font-size: 10px; color: var(--text-tertiary);
+  text-transform: uppercase; letter-spacing: .7px;
+  margin-bottom: 14px; font-weight: 700;
+}
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+.stat-item {
+  text-align: center; background: var(--bg);
+  border-radius: var(--radius-sm); padding: 12px 8px;
+}
+.stat-item .stat-num {
+  font-size: 24px; font-weight: 800;
+  color: var(--text-primary);
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  letter-spacing: -0.8px; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.stat-item .stat-desc {
+  font-size: 10px; color: var(--text-tertiary);
+  margin-top: 4px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+.tool-bars { margin-top: 16px; }
+.tool-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.tool-bar .bar-label {
+  width: 90px; text-align: right;
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 11px; color: var(--text-secondary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tool-bar .bar-track { flex: 1; height: 5px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+.tool-bar .bar-fill { height: 100%; background: var(--blue); border-radius: 3px; opacity: 0.55; min-width: 2px; }
+.tool-bar .bar-count {
+  width: 28px; font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 11px; font-weight: 700; color: var(--text-tertiary);
+}
+
+/* ── markdown ── */
+.md p { margin-bottom: 8px; line-height: 1.78; }
+.md p:last-child { margin-bottom: 0; }
+.md h1,.md h2,.md h3,.md h4 { font-weight: 800; margin: 12px 0 5px; line-height: 1.3; color: var(--text-primary); letter-spacing: -0.3px; }
+.md h1 { font-size: 16px; } .md h2 { font-size: 15px; } .md h3 { font-size: 14px; } .md h4 { font-size: 13px; }
+.md ul,.md ol { padding-left: 20px; margin-bottom: 8px; }
+.md li { margin-bottom: 3px; line-height: 1.65; }
+.md code { background: var(--bg); padding: 1px 5px; border-radius: 5px; font-family: ui-monospace, 'SF Mono', Consolas, monospace; font-size: 12px; color: #5B5B53; border: 1px solid var(--border); }
+.md pre { background: #0D0D0C; color: #E2E1DA; padding: 14px 16px; border-radius: var(--radius-md); overflow-x: auto; margin: 10px 0; }
+.md pre code { background: none; color: inherit; padding: 0; font-size: 12px; border-radius: 0; border: none; }
+.md blockquote { border-left: 3px solid #D1D0CA; padding: 4px 12px; color: var(--text-secondary); margin: 8px 0; font-style: italic; }
+.md table { border-collapse: collapse; margin: 8px 0; font-size: 12px; }
+.md th,.md td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
+.md th { background: var(--bg); font-weight: 700; color: var(--text-secondary); }
+.md a { color: var(--blue); }
+.md hr { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+.md strong { font-weight: 700; }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand"><span class="brand-mark">FB</span>Famou Bench</span>
+  <button class="active" onclick="showPage('dashboard')">Dashboard</button>
+  <button onclick="showPage('compare')">Compare</button>
+  <span class="nav-spacer"></span>
+  <a href="/chat" class="nav-chat-link">Chat</a>
+</nav>
+
+<!-- ═══ DASHBOARD ═══ -->
+<div id="page-dashboard" class="page active">
+  <div class="page-header">
+    <h2>Experiments</h2>
+    <button class="btn btn-ghost" onclick="loadExperiments()">Refresh</button>
+  </div>
+  <div id="exp-list" class="exp-list"><span style="color:var(--text-tertiary)">Loading…</span></div>
+  <div id="exp-detail" style="display:none;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+      <button class="btn-back" onclick="closeDetail()">← Back</button>
+      <h3 style="font-size:16px;font-weight:800;letter-spacing:-0.3px;" id="detail-title"></h3>
+    </div>
+    <div id="detail-results"></div>
+  </div>
+</div>
+
+<!-- ═══ COMPARE ═══ -->
+<div id="page-compare" class="page">
+  <div class="page-header">
+    <h2>Experiment Compare</h2>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost" id="btn-toggle-stats" onclick="toggleCompareStats()">Show Stats</button>
+      <button class="btn btn-primary" onclick="runCompare()">Run Compare</button>
+    </div>
+  </div>
+  <div class="compare-checks" id="compare-select"></div>
+  <div id="compare-result"></div>
+</div>
+
+<!-- ═══ TRACE ═══ -->
+<div id="page-trace" class="page">
+  <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+    <button class="btn-back" onclick="showPage('dashboard');openDetail(_lastExpId)">← Back</button>
+    <h2 style="font-size:16px;font-weight:800;letter-spacing:-0.3px;" id="trace-title">Trace</h2>
+  </div>
+  <div id="trace-wrap">
+    <div id="trace-sessions"></div>
+    <div id="trace-turns"><span style="color:var(--text-tertiary)">Select a session</span></div>
+  </div>
+</div>
+
+<script>
+marked.setOptions({ breaks: true, gfm: true });
+
+let _experiments = [];
+let _currentSessions = [];
+let _lastExpId = null;
+let _showCompareStats = false;
+let _compareData = null;
+
+(async function init() {
+  await loadExperiments();
+  await loadCompareList();
+})();
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  const btns = document.querySelectorAll('nav button');
+  const idx = ['dashboard','compare'].indexOf(name);
+  if (idx >= 0) btns[idx].classList.add('active');
+  if (name === 'compare') loadCompareList();
+}
+
+async function loadExperiments() {
+  const res = await fetch('/api/experiments');
+  _experiments = await res.json();
+  renderExperiments();
+}
+
+function renderExperiments() {
+  const el = document.getElementById('exp-list');
+  if (!_experiments.length) { el.innerHTML = '<span style="color:var(--text-tertiary)">No experiments found</span>'; return; }
+  el.innerHTML = _experiments.map(e => {
+    const dotCls = e.status === 'done' ? 'done' : e.status === 'running' ? 'running' : 'error';
+    const badgeCls = e.status === 'done' ? 'badge-done' : e.status === 'running' ? 'badge-running' : 'badge-error';
+    const time = e.submitted_at ? e.submitted_at.replace('T',' ').slice(0,16) : '';
+    const avg = e.avg_score != null ? e.avg_score.toFixed(4) : null;
+    const scoreCls = e.avg_score == null ? '' : e.avg_score >= 0.8 ? 'score-hi' : e.avg_score >= 0.5 ? 'score-mid' : 'score-lo';
+    return `<div class="exp-row" onclick="openDetail('${e.id}')">
+      <div class="exp-status-dot ${dotCls}"></div>
+      <div class="exp-row-main">
+        <div class="exp-row-top">
+          <span class="exp-id">${e.id}</span>
+          <span class="badge ${badgeCls}">${e.status || '?'}</span>
+          <span class="exp-pill">${e.runner}</span>
+          <span class="exp-pill">${e.prompt_variant}</span>
+          <span class="exp-pill">${e.case_count} cases</span>
+        </div>
+        ${time ? `<div class="exp-row-sub">${time}</div>` : ''}
+      </div>
+      ${avg != null ? `<div class="exp-score ${scoreCls}">${avg}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function openDetail(expId) {
+  _lastExpId = expId;
+  document.getElementById('exp-list').style.display = 'none';
+  document.getElementById('exp-detail').style.display = 'block';
+  document.getElementById('detail-title').textContent = expId;
+  document.getElementById('detail-results').innerHTML = '<span style="color:var(--text-tertiary)">Loading…</span>';
+  const res = await fetch(`/api/experiments/${expId}/results`);
+  const data = await res.json();
+  renderDetail(expId, data);
+}
+
+function closeDetail() {
+  document.getElementById('exp-list').style.display = 'block';
+  document.getElementById('exp-detail').style.display = 'none';
+}
+
+function renderDetail(expId, data) {
+  const results = data.results || [];
+  const el = document.getElementById('detail-results');
+  el.innerHTML = `<div class="result-grid">${results.map(r => {
+    const score = r.overall_score;
+    const cls = score == null ? '' : score >= 0.8 ? 'score-hi' : score >= 0.5 ? 'score-mid' : 'score-lo';
+    const fillColor = score == null ? '#e2e8f0' : score >= 0.8 ? '#059669' : score >= 0.5 ? '#D97706' : '#E11D48';
+    const status = r.extraction_status || (r.status === 'pending' ? 'pending' : '');
+    const tagCls = status === 'success' ? 'tag-success' : status === 'pending' ? 'tag-pending' : 'tag-failed';
+    const ts = r.trace_stats;
+    const pct = score != null ? Math.round(score * 100) : 0;
+
+    let statsHtml = '';
+    if (ts) {
+      const tok = ts.tokens || {};
+      statsHtml = `<div class="stats-mini">
+        <div class="sm"><span class="sm-l">turns</span><span class="sm-v">${ts.turn_count}</span></div>
+        <div class="sm"><span class="sm-l">tokens</span><span class="sm-v">${fmtK(tok.total)}</span></div>
+        <div class="sm"><span class="sm-l">sessions</span><span class="sm-v">${ts.session_count}</span></div>
+      </div>`;
+    }
+
+    return `<div class="result-card">
+      <div class="case-name">${r.case}${r.run_idx > 0 ? ' <span style="color:var(--text-tertiary);font-weight:500;">· run ' + r.run_idx + '</span>' : ''}</div>
+      ${score != null ? `
+        <div class="score-main ${cls}">${score.toFixed(3)}</div>
+        <div class="score-bar-row">
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:${pct}%;background:${fillColor};"></div></div>
+          <span style="font-size:10px;color:var(--text-tertiary);font-family:monospace;font-weight:600;">${pct}%</span>
+        </div>
+        <div class="score-sub">
+          <span><span class="sub-label">validity</span> <span class="sub-val">${fmt(r.validity_score)}</span></span>
+          <span><span class="sub-label">quality</span> <span class="sub-val">${fmt(r.quality_score)}</span></span>
+        </div>
+      ` : '<div style="color:var(--text-tertiary);font-size:11px;margin-bottom:10px;">pending</div>'}
+      ${status ? `<span class="tag ${tagCls}">${status}</span>` : ''}
+      ${statsHtml}
+      <a class="trace-link" href="#" onclick="openTrace('${expId}','${r.case}',${r.run_idx});return false;">View Trace →</a>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+async function loadCompareList() {
+  if (!_experiments.length) await loadExperiments();
+  const el = document.getElementById('compare-select');
+  el.innerHTML = _experiments.map(e => `
+    <label class="compare-check">
+      <input type="checkbox" value="${e.id}">
+      <span>${e.id} <span style="color:var(--text-tertiary);font-size:11px;font-weight:400;">${e.runner}/${e.prompt_variant}</span></span>
+    </label>`).join('');
+}
+
+function toggleCompareStats() {
+  _showCompareStats = !_showCompareStats;
+  const btn = document.getElementById('btn-toggle-stats');
+  btn.classList.toggle('active', _showCompareStats);
+  btn.textContent = _showCompareStats ? 'Hide Stats' : 'Show Stats';
+  if (_compareData) renderCompareTable(_compareData);
+}
+
+async function runCompare() {
+  const ids = [...document.querySelectorAll('#compare-select input:checked')].map(c => c.value);
+  if (ids.length < 1) { alert('Select at least one experiment'); return; }
+  const res = await fetch(`/api/compare?ids=${ids.join(',')}`);
+  _compareData = await res.json();
+  renderCompareTable(_compareData);
+}
+
+function renderCompareTable(data) {
+  const { cases, runs, matrix } = data;
+  if (!cases.length) { document.getElementById('compare-result').innerHTML = '<span style="color:var(--text-tertiary)">No data</span>'; return; }
+
+  const header = `<tr><th>Case</th>${runs.map(r => `<th>
+    <div style="font-weight:700;color:var(--text-primary);font-size:11px;">${r.id}</div>
+    <div style="font-weight:500;color:var(--text-tertiary);font-size:10px;margin-top:2px;">${r.runner} / ${r.variant}</div>
+  </th>`).join('')}</tr>`;
+
+  const rows = cases.map(c => {
+    const cells = matrix[c].map(entry => {
+      const v = entry.score;
+      const s = entry.stats;
+      if (v == null && !s) return `<td class="score-cell" style="color:var(--text-tertiary)">—</td>`;
+      const cls = v == null ? '' : v >= 0.8 ? 'score-hi' : v >= 0.5 ? 'score-mid' : 'score-lo';
+      let statsLine = '';
+      if (_showCompareStats && s) {
+        const tok = s.tokens || {};
+        statsLine = `<div class="cell-stats">${s.turn_count}t · ${fmtK(tok.total)} tok · ${s.session_count}s</div>`;
+      }
+      return `<td class="score-cell"><div class="score-val ${cls}">${v != null ? v.toFixed(4) : '—'}</div>${statsLine}</td>`;
+    }).join('');
+    return `<tr><td>${c}</td>${cells}</tr>`;
+  }).join('');
+
+  const avgCells = runs.map((r, i) => {
+    const scores = cases.map(c => matrix[c][i].score).filter(v => v != null);
+    const avg = scores.length ? (scores.reduce((a,b) => a+b, 0) / scores.length) : null;
+    const cls = avg == null ? '' : avg >= 0.8 ? 'score-hi' : avg >= 0.5 ? 'score-mid' : 'score-lo';
+    let statsLine = '';
+    if (_showCompareStats) {
+      let totalTurns = 0, totalTokens = 0;
+      cases.forEach(c => {
+        const s = matrix[c][i].stats;
+        if (s) { totalTurns += s.turn_count; totalTokens += (s.tokens?.total || 0); }
+      });
+      statsLine = `<div class="cell-stats">Σ ${totalTurns}t · ${fmtK(totalTokens)} tok</div>`;
+    }
+    return `<td class="score-cell"><div class="score-val ${cls}">${avg != null ? avg.toFixed(4) : '—'}</div>${statsLine}</td>`;
+  }).join('');
+
+  document.getElementById('compare-result').innerHTML = `
+    <div class="compare-table-wrap">
+      <table>
+        <thead>${header}</thead>
+        <tbody>${rows}<tr class="avg-row"><td><strong>Average</strong></td>${avgCells}</tr></tbody>
+      </table>
+    </div>`;
+}
+
+async function openTrace(expId, caseName, runIdx) {
+  _lastExpId = expId;
+  showPage('trace');
+  document.getElementById('trace-title').textContent = `${expId} / ${caseName}`;
+  document.getElementById('trace-sessions').innerHTML = '<span style="color:var(--text-tertiary);font-size:12px;">Loading…</span>';
+  document.getElementById('trace-turns').innerHTML = '';
+
+  const res = await fetch(`/api/experiments/${expId}/${caseName}/trace?run_idx=${runIdx}`);
+  if (!res.ok) {
+    document.getElementById('trace-sessions').innerHTML = '<span style="color:var(--red);font-size:12px;">Trace not found</span>';
+    return;
+  }
+  const data = await res.json();
+  _currentSessions = data.sessions;
+  renderSessions(_currentSessions);
+  if (_currentSessions.length) selectSession(0);
+}
+
+function renderSessions(sessions) {
+  const el = document.getElementById('trace-sessions');
+  if (!sessions.length) { el.innerHTML = '<span style="color:var(--text-tertiary);font-size:12px;">No sessions</span>'; return; }
+  el.innerHTML = sessions.map((s, i) => {
+    const info = s.session || {};
+    const stats = s.stats || {};
+    const tok = stats.tokens || {};
+    const agent = info.agent || (info.parent_id ? 'sub-agent' : 'root');
+    const turns = stats.turn_count || 0;
+    const total = tok.total ? fmtK(tok.total) : '?';
+    return `<div class="session-item" id="sess-${i}" onclick="selectSession(${i})">
+      <div class="s-name">${agent}</div>
+      <div class="s-meta">${turns} turns · ${total} tok</div>
+      ${info.parent_id ? '<div class="s-meta" style="font-size:10px;opacity:0.6;margin-top:2px;">sub-agent</div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function selectSession(idx) {
+  document.querySelectorAll('.session-item').forEach((el, i) => el.classList.toggle('active', i === idx));
+  renderSessionContent(_currentSessions[idx]);
+}
+
+function renderSessionContent(session) {
+  const el = document.getElementById('trace-turns');
+  const stats = session.stats || {};
+  const tok = stats.tokens || {};
+  const toolUsage = stats.tool_usage || {};
+  const turns = session.turns || [];
+
+  const maxTool = Math.max(...Object.values(toolUsage), 1);
+  const toolBarsHtml = Object.keys(toolUsage).length ? `
+    <div class="tool-bars">
+      <h4 style="font-size:10px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;font-weight:700;">Tool Usage</h4>
+      ${Object.entries(toolUsage).sort((a,b) => b[1]-a[1]).map(([name, count]) => `
+        <div class="tool-bar">
+          <span class="bar-label">${name}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${(count/maxTool*100).toFixed(0)}%"></div></div>
+          <span class="bar-count">${count}</span>
+        </div>`).join('')}
+    </div>` : '';
+
+  const statsHtml = `<div class="session-stats">
+    <h4>Session Stats</h4>
+    <div class="stats-grid">
+      <div class="stat-item"><div class="stat-num">${stats.turn_count || 0}</div><div class="stat-desc">Turns</div></div>
+      <div class="stat-item"><div class="stat-num">${fmtK(tok.input)}</div><div class="stat-desc">Input</div></div>
+      <div class="stat-item"><div class="stat-num">${fmtK(tok.output)}</div><div class="stat-desc">Output</div></div>
+      <div class="stat-item"><div class="stat-num">${fmtK(tok.total)}</div><div class="stat-desc">Total</div></div>
+      <div class="stat-item"><div class="stat-num">${fmtK(tok.cache_read)}</div><div class="stat-desc">Cache</div></div>
+    </div>
+    ${toolBarsHtml}
+  </div>`;
+
+  const turnsHtml = turns.length
+    ? turns.map((t, i) => renderTurn(t, i)).join('')
+    : '<span style="color:var(--text-tertiary);font-size:12px;">No turns</span>';
+
+  el.innerHTML = statsHtml + turnsHtml;
+}
+
+function renderTurn(t, i) {
+  const role = t.role || 'unknown';
+  const roleCls = role === 'user' ? 'role-user' : 'role-assistant';
+  const ts = t.timestamp ? t.timestamp.slice(11, 19) : '';
+  let body = '';
+
+  if (t.thinking) {
+    body += `<details>
+      <summary style="font-size:11px;color:#b45309;cursor:pointer;margin-bottom:6px;font-weight:700;user-select:none;">▸ thinking (${t.thinking.length} chars)</summary>
+      <div class="thinking-box">${esc(t.thinking)}</div>
+    </details>`;
+  }
+
+  if (t.text) body += `<div class="turn-text md">${marked.parse(t.text)}</div>`;
+
+  if (t.tool_calls && t.tool_calls.length) {
+    const tools = t.tool_calls.map(tc => {
+      const statusCls = tc.status === 'success' ? 'tool-ok' : tc.status === 'error' ? 'tool-err' : 'tool-run';
+      const statusIcon = tc.status === 'success' ? '✓' : tc.status === 'error' ? '✗' : '…';
+      const inputStr = JSON.stringify(tc.input || {}, null, 2);
+      const outputStr = tc.output ? String(tc.output).slice(0, 3000) : '—';
+      return `<div class="tool-item">
+        <div class="tool-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+          <span class="tool-name">${esc(tc.name)}</span>
+          <span class="${statusCls}">${statusIcon} ${tc.status}</span>
+          <span class="tool-chevron">▼</span>
+        </div>
+        <div class="tool-detail"><strong>Input:</strong>
+${esc(inputStr)}
+
+<strong>Output:</strong>
+${esc(outputStr)}</div>
+      </div>`;
+    }).join('');
+    body += `<div class="tool-list">${tools}</div>`;
+  }
+
+  if (!body) body = '<span style="color:var(--text-tertiary);font-size:11px;">(empty turn)</span>';
+
+  return `<div class="turn-block">
+    <div class="turn-header">
+      <span class="role ${roleCls}">${role}</span>
+      <span>Turn ${i}</span>
+      ${ts ? `<span style="margin-left:auto;color:var(--text-tertiary);font-size:11px;">${ts}</span>` : ''}
+    </div>
+    <div class="turn-body">${body}</div>
+  </div>`;
+}
+
+function fmt(v) { return v != null ? v.toFixed(4) : '—'; }
+function fmtK(v) { return v ? (v >= 1000 ? (v/1000).toFixed(1) + 'k' : String(v)) : '0'; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>

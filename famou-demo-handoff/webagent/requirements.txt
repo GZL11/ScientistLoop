@@ -1,0 +1,7 @@
+--index-url <内部 pip 源>
+--trusted-host pip.baidu.com
+hatchling>=1.18.0
+build>=1.0.3
+pytest
+mock
+-e .

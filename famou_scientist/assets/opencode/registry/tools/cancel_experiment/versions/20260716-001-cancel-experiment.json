@@ -1,0 +1,14 @@
+{
+  "version": "20260716-001-cancel-experiment",
+  "created_at": "2026-07-16",
+  "title": "Split out experiment cancellation",
+  "description": "Creates a standalone registry record for arc_cancel_experiment so its version history is independent from the rest of arc.ts.",
+  "source_file": "tool/arc.ts",
+  "runtime_file": "tool/arc.ts",
+  "changes": [
+    "Expose arc_cancel_experiment as an independent tool entry.",
+    "Track cancellation behavior separately from launch and status reads.",
+    "Keep detached job cleanup and process-group termination in the runtime implementation."
+  ]
+}
+

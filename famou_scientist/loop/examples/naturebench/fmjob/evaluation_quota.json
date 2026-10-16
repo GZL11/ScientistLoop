@@ -1,0 +1,65 @@
+{
+  "_readme": [
+    "按任务覆盖评测配额。只在提交者**没有**显式设置同名环境变量时生效。",
+    "",
+    "为什么需要它：`EVALUATION_TIMEOUT_SEC` 全局默认 3600s，是照着「大多数",
+    "evaluator 几分钟就跑完」定的。但官方 evaluator 里有两道题**自身**的耗时",
+    "结构就超过一小时，我们的超时先于它们结束，于是评测被我们自己打断——",
+    "记录里看到的是 evaluator 失败或指标为 null，看起来像题目坏了或方法不行。",
+    "",
+    "怎么定这些数：依据是 evaluator 源码里写死的时间结构（见每条 reason），",
+    "不是实测。**真值应当由一次计时的完整评测跑出来**，跑出来之后回来改这里。",
+    "宁可给宽：超时只是上限，evaluator 自己跑完就返回，给宽不额外花钱；给窄",
+    "则是确定性地毁掉一次 attempt。",
+    "",
+    "同时下调队列容量的原因：`EVALUATION_DRAIN_BUDGET_SEC` 是",
+    "`capacity * (EXPERIMENT_TIMEOUT_SEC + EVALUATION_TIMEOUT_SEC)`，直接进",
+    "`HARD_TIMEOUT_SEC`。评测本身要按小时算的时候，还留 3 条排队等于把 pod",
+    "生存期拉到一天以上；而且 3 个并发 × 数小时的评测本来就跑不动。"
+  ],
+  "default": {
+    "evaluation_timeout_sec": 3600,
+    "evaluation_queue_capacity": 3
+  },
+  "tasks": {
+    "s41592-023-02148-8": {
+      "evaluation_timeout_sec": 21600,
+      "evaluation_queue_capacity": 1,
+      "reason": [
+        "evaluator 对每个 RNA family **串行**调一次 cmalign（`for fasta_name in",
+        "fasta_files`，无线程池），单次 cmalign 的 subprocess timeout 就是 3600s",
+        "（evaluation/evaluator.py:142），`--cpu 6`。两个 instance：",
+        "`rna_families_628` 按提交里实际写出的 FASTA 数量逐个评，最多 628 个；",
+        "`rna_families_18` 是 18 个 ≥10000 条序列的大 family，单个就要几分钟。",
+        "",
+        "也就是说 3600s 的总配额**小于它允许单个 family 花的时间**，一个完整提交",
+        "必然被我们打断。更糟的是这里的激励是反的：evaluator 只对实际存在的 FASTA",
+        "取均值、不惩罚缺失，于是提交的 family 越少越跑得完——**提交得越完整越容易",
+        "被判失败**。",
+        "",
+        "21600s(6h) 是按「628 个小 family × 约 20s + 18 个大 family × 约 10min」",
+        "估的，属于量级估计，未实测。"
+      ]
+    },
+    "s42256-023-00712-7": {
+      "evaluation_timeout_sec": 7200,
+      "evaluation_queue_capacity": 2,
+      "reason": [
+        "evaluator 里 `DOCKING_TIME_BUDGET = 50 * 60`（evaluation/evaluator.py:368），",
+        "而且那行的注释明写着 'leave margin within 1h evaluator timeout' —— 它是",
+        "**照着我们这个 3600s 反推出来的**。docking 之外还要对 91 pocket × 100 分子",
+        "算 QED / SA / Diversity（Diversity 是 pocket 内两两指纹相似度），这部分同样",
+        "是分钟级，加起来越过 3600s 是常态。",
+        "",
+        "给到 7200s 之后，binding 的约束就变回 evaluator 自己的 50 分钟 docking",
+        "预算——那是官方评分代码的一部分，**不动**。所以这条改动买到的是「docking",
+        "跑满它该跑的 50 分钟，而不是被我们从中间掐断」，不是更长的 docking。",
+        "",
+        "注意 docking 未完成的 pocket 只是被排除在均值之外、不计负分，所以历史上的",
+        "分数不是被拉低，而是只在少数先跑完的 pocket 上算出来的——样本偏、噪声大，",
+        "且每个 pocket 的 best-of-top10 是截断的（top10 没跑完就取不到真正最好那个）。",
+        "跑得更完整会系统性地把 Vina Score 变好，这不是噪声。"
+      ]
+    }
+  }
+}

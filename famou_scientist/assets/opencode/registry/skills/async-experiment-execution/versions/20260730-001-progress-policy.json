@@ -1,0 +1,18 @@
+{
+  "version": "20260730-001-progress-policy",
+  "created_at": "2026-07-30",
+  "title": "Add adaptive async experiment progress policy",
+  "description": "Teaches agents to declare heartbeat monitoring policy for local async experiments, including time milestones, log milestones, quiet alerts, and adaptive intervals.",
+  "source_file": "registry/skills/async-experiment-execution/files/SKILL.20260730-001-progress-policy.md",
+  "runtime_file": "skill/experiment/async-experiment-execution/SKILL.md",
+  "changes": [
+    "Document progress_policy_json for arc_run_experiment(is_async=true).",
+    "Define how agents should choose time milestones, log milestones, quiet alerts, and interval bounds.",
+    "Clarify that running progress is shown in the Process panel and should not trigger a standalone user-facing reply.",
+    "Preserve the no busy-polling rule and completion/failed notification behavior."
+  ],
+  "rollback": {
+    "target": "registry/source/skill/experiment/async-experiment-execution/SKILL.md",
+    "notes": "Restore the previous unversioned async execution guidance if adaptive progress policy causes undesirable agent behavior."
+  }
+}

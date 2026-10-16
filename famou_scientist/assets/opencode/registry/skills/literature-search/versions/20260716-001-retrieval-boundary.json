@@ -1,0 +1,18 @@
+{
+  "version": "20260716-001-retrieval-boundary",
+  "created_at": "2026-07-16",
+  "title": "Clarify literature-search retrieval boundary",
+  "description": "Narrows literature-search to paper retrieval, screening, and source verification, with explicit handoff to literature-research for field mapping, gap discovery, research direction recommendation, and idea ranking.",
+  "source_file": "registry/skills/literature-search/files/SKILL.20260716-001-retrieval-boundary.md",
+  "runtime_file": "skill/experiment/literature-search/SKILL.md",
+  "changes": [
+    "Rewrite the skill description so the model sees literature-search as retrieval execution rather than research synthesis.",
+    "Add a boundary section distinguishing retrieval/corpus work from field maps, gap maps, and idea banks.",
+    "Add a Research Synthesis Handoff intent so research-direction requests load literature-research.",
+    "Preserve existing web-first lookup and arc_search_literature retrieval guidance."
+  ],
+  "rollback": {
+    "target": "20260715-003-web-first-unified-routing",
+    "notes": "Restore unified routing behavior where literature-search could own broader review synthesis."
+  }
+}
