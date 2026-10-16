@@ -4,7 +4,7 @@
 
 > 状态：已安装 `sci-modeling-bench==0.10.0`，已固定 HF dataset revision `d8b9ea3c78ed33edf0869a427940a0651eb49f52`，已导出 13 个 task 的 agent-visible problem，`tfbind8` 已通过 canonical runner + signed trusted evaluator 真实评分 smoke。
 
-> 结果登记：完整 run registry 见 [RESULTS_REGISTRY_CN.md](./RESULTS_REGISTRY_CN.md)，机器可读主表见 [RESULTS_REGISTRY.csv](./RESULTS_REGISTRY.csv)。登记表保留外层 `fm-job` 状态、loop 内部状态、分数、promoted 输出目录、轨迹、usage、token 和 cost 等字段。
+> 结果登记：每次 run 的外层 `fm-job` 状态、loop 内部状态、分数、promoted 输出目录、轨迹、usage、token 和 cost 会写进本机的 run registry。登记表属运行记录，不入库。
 
 ## 1. 接入目标
 

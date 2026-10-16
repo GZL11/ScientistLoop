@@ -14,6 +14,32 @@ research-runs/
 *.pkl
 *.npz
 
+# ── 开发日志与调研采集产物 ────────────────────────────────────────────────
+# 按天归档的开发日志
+moonlog/
+# 专利/情报检索的原始抓取结果（正文结论在 COMPETITIVE_LANDSCAPE_CN.md 里）
+docs/landscape/_patents/
+*_harvest.log
+
+# ── 跑分记录：结论写进文档，原始表与快照不入库 ────────────────────────────
+**/RUN_RESULTS_CN.md
+**/CURRENT_RESULTS_CN.md
+**/OPUS5_RUN_RESULTS_CN.md
+**/RESULTS_REGISTRY.csv
+**/RESULTS_REGISTRY_CN.md
+**/AGENT_COSTS_*.csv
+**/AGENT_COSTS_*.json
+**/RERUN_COMPARISON_*.csv
+**/*_EVIDENCE_*.json
+**/OLD_POLICY_*_CASES_*.txt
+# 根目录零散截图
+/pic*.png
+# 绘图脚本入库，图和底表不入库
+docs/benchmarks/**/limited_gt_blackbox_*/
+docs/benchmarks/**/figs/
+docs/benchmarks/**/archive/
+docs/benchmarks/**/submission_best_score_curves.*
+
 # ── 凭据：任何形态都不进库 ────────────────────────────────────────────────
 # 批次提交用的 settings 里是明文 token，历史上泄过一次，这里硬挡
 claude_settings.json

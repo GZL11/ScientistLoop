@@ -54,12 +54,11 @@ terminal-bench 及 terminal-bench-science 四套基准。
 | `famou_scientist/loop/` | **闭环运行时**：agents / runtime / storage / execution / evaluation / harness / prompts，以及四套基准的接入（`examples/`） |
 | `famou_scientist/assets/opencode/` | 写作侧资产：skill、tool、plugin、提示词注册表（含版本与变更日志） |
 | `famou_scientist/assets/web/` | 网页研究台前端与服务端 |
-| `docs/` | 设计文档、架构说明、运维手册、基准调研与跑分记录、论文插图源码 |
+| `docs/` | 设计文档、架构说明、运维手册、基准调研与接入指南、论文插图源码 |
 | `integrations/`、`benchmark/` | ResearchClawBench 接入 |
 | `knowledge-base/` | 领域资料（Evolve / LLM / RL / VL / VLA） |
 | `handoff/`、`famou-demo-handoff/` | 前端与适配层交接文档 |
 | `overleaf_upload/` | 论文 LaTeX 稿件分节源文件 |
-| `moonlog/` | 开发日志 |
 
 文档从 `docs/README.md` 进，建议顺序：`overview/ARCHITECTURE.md` →
 `overview/CODEBASE_WALKTHROUGH_CN.md` → `design/EVOLUTION_GRAPH_V2_CN.md`。
